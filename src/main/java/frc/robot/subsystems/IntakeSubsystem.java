@@ -27,10 +27,10 @@ import java.util.function.BooleanSupplier;
 public class IntakeSubsystem extends SubsystemBase {
 
     //声明请求
-    private final TalonFX Intake_motor = new TalonFX(9,"rio");
-    private final TalonFX Intake_pitch_motor = new TalonFX(10,"rio");
+    private final TalonFX Intake_motor = new TalonFX(6,"rio");
+    private final TalonFX Intake_pitch_motor = new TalonFX(2,"rio");
 
-    private final CANcoder intakePitchEncoder = new CANcoder(5, "canivore");
+    //private final CANcoder intakePitchEncoder = new CANcoder(1, "canivore");
 
     //声明控制请求
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
@@ -52,12 +52,12 @@ public class IntakeSubsystem extends SubsystemBase {
 
 
         var IntakemotorConfigs = new TalonFXConfiguration();
-        IntakemotorConfigs.Slot0.kS = 0.2;
-        IntakemotorConfigs.Slot0.kV = 0.0;
+        IntakemotorConfigs.Slot0.kS = 0.1;
+        IntakemotorConfigs.Slot0.kV = 0.19;
         IntakemotorConfigs.Slot0.kA = 0;
-        IntakemotorConfigs.Slot0.kP = 3;
+        IntakemotorConfigs.Slot0.kP = 2.5;
         IntakemotorConfigs.Slot0.kI = 0;
-        IntakemotorConfigs.Slot0.kD = 0;
+        IntakemotorConfigs.Slot0.kD = 0.25;
         IntakemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; // Acceleration is around 40 rps/s
         IntakemotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; // Unlimited cruise velocity
         IntakemotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; // kV is around 0.12 V/rps
@@ -67,9 +67,9 @@ public class IntakeSubsystem extends SubsystemBase {
         Intake_motor.getConfigurator().apply(IntakemotorConfigs);
 
         var IntakePitchmotorConfigs = new TalonFXConfiguration();
-        IntakePitchmotorConfigs.Feedback.FeedbackRemoteSensorID = intakePitchEncoder.getDeviceID(); // CANcoder的设备ID（这里是1）
-        IntakePitchmotorConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; // 反馈源：Fused CANcoder
-        IntakePitchmotorConfigs.Feedback.RotorToSensorRatio = 50; // 电机转子与传感器的传动比（根据实际机械结构调整）
+        //IntakePitchmotorConfigs.Feedback.FeedbackRemoteSensorID = intakePitchEncoder.getDeviceID(); // CANcoder的设备ID（这里是1）
+        //IntakePitchmotorConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; // 反馈源：Fused CANcoder
+        //IntakePitchmotorConfigs.Feedback.RotorToSensorRatio = 50; // 电机转子与传感器的传动比（根据实际机械结构调整）
         IntakePitchmotorConfigs.Slot0.kS = 0.2;
         IntakePitchmotorConfigs.Slot0.kV = 0.0;
         IntakePitchmotorConfigs.Slot0.kA = 0;
@@ -132,11 +132,11 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public Command OuttakeCommand() {
 
-        return startEnd(
+        return runEnd(
             () -> { setIntakeMotorVelocity(-10);
                   },
 
-            () -> {setIntakeMotorVelocity(0);
+            () -> {setIntakeMotorVelocity(-10);
                   }
             );
     }

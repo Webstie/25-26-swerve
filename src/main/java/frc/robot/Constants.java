@@ -26,7 +26,7 @@ public class Constants {
     }
 
     public static final class Intake{
-        public static final double IntakeUpPosition = 0.0;
+        public static final double IntakeUpPosition = 10;
         public static final double IntakeDownPosition = 0.0;
         public static final double SwingIntakePosition1 = 0.0;
         public static final double SwingIntakePosition2 = 0.0;
