@@ -86,15 +86,15 @@ public class RobotContainer {
         
 
         //Operator
+        // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
+        Operator.x().onTrue(Intake.changePitchPositionFlag().alongWith(Intake.Intake_up_presstimes())
+                    .andThen(Commands.either(
+                        Intake.adjust_IntakePosition(IntakeUpPosition).andThen(Intake.IntakeCommand()), 
+                        Intake.adjust_IntakePosition(IntakeDownPosition).andThen(Intake.IntakeCommand()), 
+                        ()->Intake.IntakepitchPositionFlag)));
+        Operator.y().onTrue(Intake.OuttakeCommand());
         
-        //Intake
-        Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-        Operator.b().onTrue(Intake.OuttakeCommand());
-        Operator.x().onTrue(Intake.changePitchPositionFlag()
-                    .andThen(Commands.either(Intake.adjust_IntakePosition(IntakeUpPosition), Intake.adjust_IntakePosition(IntakeDownPosition), ()->Intake.IntakepitchPositionFlag)));
-        
-        //Transport
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).repeatedly());
+        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
 
         Operator.rightBumper().onTrue(Climber.StartClimb());
         Operator.rightTrigger().onTrue(Climber.Climb());

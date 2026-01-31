@@ -13,14 +13,12 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 public class ClimberSubsystem extends SubsystemBase{
     public final TalonFX ClimberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("rio"));
 
-
     private final MotionMagicTorqueCurrentFOC CLimberRequest = new MotionMagicTorqueCurrentFOC(0);
-
 
     public ClimberSubsystem(){
         var ClimberMotorConfigs = new TalonFXConfiguration();
 
-        ClimberMotorConfigs.Slot0.kP = 0.0;
+        ClimberMotorConfigs.Slot0.kP = 5;
         ClimberMotorConfigs.Slot0.kI = 0.0;
         ClimberMotorConfigs.Slot0.kD = 0.0;
         ClimberMotorConfigs.Slot0.kS = 0.0;

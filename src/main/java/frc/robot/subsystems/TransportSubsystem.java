@@ -14,18 +14,15 @@ public class TransportSubsystem extends SubsystemBase {
 
     private final VelocityTorqueCurrentFOC Transport_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0).withSlot(0);
 
-
     public int transport_press_times = 0;
-
-    private int speed = 10;
 
     public TransportSubsystem() {
 
         var TransportmotorConfigs = new TalonFXConfiguration();
-        TransportmotorConfigs.Slot0.kS = 0.2;
+        TransportmotorConfigs.Slot0.kS = 0.0;
         TransportmotorConfigs.Slot0.kV = 0.0;
         TransportmotorConfigs.Slot0.kA = 0;
-        TransportmotorConfigs.Slot0.kP = 3;
+        TransportmotorConfigs.Slot0.kP = 5;
         TransportmotorConfigs.Slot0.kI = 0;
         TransportmotorConfigs.Slot0.kD = 0;
         TransportmotorConfigs.MotionMagic.MotionMagicAcceleration = 100; // Acceleration is around 40 rps/s
@@ -35,32 +32,17 @@ public class TransportSubsystem extends SubsystemBase {
         TransportmotorConfigs.MotionMagic.MotionMagicJerk = 0; // Jerk is around 0
 
         Transport_motor.getConfigurator().apply(TransportmotorConfigs);
-
     }
 
     public void setTransportMotorVelocity(double velocity) {
         Transport_motor.setControl(Transport_motor_Velocity_Request.withVelocity(velocity));
     }
 
-
-
-    /*public Command TransportIntakeCommand() {
-        return runOnce(
-            () -> {if(transport_press_times%2==0){
-                setTransportMotorVelocity(0);
-            }
-            else{
-                 setTransportMotorVelocity(10);
-
-                }
-            }
-        );
-    }*/
     
     public Command TransportIntakeCommand() {
         return startEnd(
             () -> { 
-                setTransportMotorVelocity(speed);
+                setTransportMotorVelocity(TransportSpeed);
                   },
                   
             () -> {
@@ -72,7 +54,7 @@ public class TransportSubsystem extends SubsystemBase {
     public Command TransportOuttakeCommand() {
         return startEnd(
             () -> { 
-                setTransportMotorVelocity(-speed);
+                setTransportMotorVelocity(-TransportSpeed);
                   },
                   
             () -> {
@@ -80,13 +62,4 @@ public class TransportSubsystem extends SubsystemBase {
                   }
         );
     }
-
-    public Command TransportStopCommand() {
-        return runOnce(
-            () -> {
-                setTransportMotorVelocity(0);
-                  }
-        );
-    }
-
 }   
