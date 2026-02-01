@@ -49,7 +49,7 @@ public class RobotContainer {
     private final CommandXboxController Driver = new CommandXboxController(1);
     private final CommandXboxController Operator = new CommandXboxController(0);
 
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    //public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public RobotContainer() {
         configureBindings();
@@ -60,6 +60,7 @@ public class RobotContainer {
         //Driver
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
+        /*
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -85,22 +86,26 @@ public class RobotContainer {
         Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-
+        */
         
 
         //Operator
         
         //Intake
         Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-        Operator.b().onTrue(Intake.OuttakeCommand());
+        Operator.b().whileTrue(Intake.OuttakeCommand());
         Operator.x().onTrue(Intake.changePitchPositionFlag()
                     .andThen(Commands.either(Intake.adjust_IntakePosition(IntakeUpPosition), Intake.adjust_IntakePosition(IntakeDownPosition), ()->Intake.IntakepitchPositionFlag)));
-        
+        Operator.y().onTrue(Shooter.Frictionwheel_presstime().andThen(Shooter.ShooterCommand()));
+        //Operator.leftBumper().onTrue(Shooter.Intakeball_presstime().andThen(Shooter.IntakeballCommand()));
         //Transport
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).repeatedly());
+        //Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).repeatedly());
+        Operator.leftTrigger().whileTrue(Transport.TransportOuttakeCommand());
+        Operator.leftBumper().onTrue(Transport.Transportpresstime().andThen(Transport.TransportswitchCommand()));
 
         Operator.rightBumper().onTrue(Climber.StartClimb());
         Operator.rightTrigger().onTrue(Climber.Climb());
+
 
 
 

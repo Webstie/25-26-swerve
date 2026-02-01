@@ -10,19 +10,19 @@ public class Constants {
     public static final class Shooter {
         //Speeds 
         //Frictionwheel speed
-        public static final double Frictionwheelshootspeed= 0.0;
-        public static final double Frictionwheelretreatspeed =0.0;
+        public static final double Frictionwheelshootspeed= 20;
+        public static final double Frictionwheelretreatspeed =-20;
         public static final double Frictionwheelstopspeed= 0.0;
         //Intakeball speed
-        public static final double Intakeballspeed= 0.0;
-        public static final double IntakeBallRetreatSpeed= 0.0;
+        public static final double Intakeballspeed= 20;
+        public static final double IntakeBallRetreatSpeed= -20.0;
         public static final double Outtakeballspeed =0.0;
         public static final double Outtakeballstopspeed =0.0;
         //motor IDs
-        public static final int IntakeBallMotorID = 13;
-        public static final int LeftFrictionwheelMotorID = 14;
-        public static final int MiddleFrictionwheelMotorID = 15;
-        public static final int RightFrictionwheelMotorID = 16;
+        public static final int IntakeBallMotorID = 3;
+        public static final int LeftFrictionwheelMotorID = 4;
+        public static final int MiddleFrictionwheelMotorID = 5;
+        public static final int RightFrictionwheelMotorID = 6;
     }
 
     public static final class Intake{

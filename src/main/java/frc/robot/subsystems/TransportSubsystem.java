@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class TransportSubsystem extends SubsystemBase {
 
-    private final TalonFX Transport_motor = new TalonFX(11,"rio");
+    private final TalonFX Transport_motor = new TalonFX(2,"rio");
 
     private final VelocityTorqueCurrentFOC Transport_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0).withSlot(0);
 
@@ -43,7 +43,7 @@ public class TransportSubsystem extends SubsystemBase {
 
 
 
-    /*public Command TransportIntakeCommand() {
+    public Command TransportswitchCommand() {
         return runOnce(
             () -> {if(transport_press_times%2==0){
                 setTransportMotorVelocity(0);
@@ -54,7 +54,11 @@ public class TransportSubsystem extends SubsystemBase {
                 }
             }
         );
-    }*/
+    }
+
+    public Command Transportpresstime(){
+        return runOnce(()->transport_press_times+=1);
+    }
     
     public Command TransportIntakeCommand() {
         return startEnd(
@@ -76,6 +80,13 @@ public class TransportSubsystem extends SubsystemBase {
                   
             () -> {
                 setTransportMotorVelocity(0);
+                if(transport_press_times%2==0){
+                    setTransportMotorVelocity(0);
+                }
+                else{
+                     setTransportMotorVelocity(10);
+    
+                    }
                   }
         );
     }

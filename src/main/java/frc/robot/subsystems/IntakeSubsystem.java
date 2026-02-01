@@ -11,6 +11,8 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,10 +29,10 @@ import java.util.function.BooleanSupplier;
 public class IntakeSubsystem extends SubsystemBase {
 
     //声明请求
-    private final TalonFX Intake_motor = new TalonFX(6,"rio");
-    private final TalonFX Intake_pitch_motor = new TalonFX(2,"rio");
+    private final TalonFX Intake_motor = new TalonFX(8,"rio");
+    private final TalonFX Intake_pitch_motor = new TalonFX(7,"rio");
 
-    //private final CANcoder intakePitchEncoder = new CANcoder(1, "canivore");
+    private final CANcoder intakePitchEncoder = new CANcoder(4, "canivore");
 
     //声明控制请求
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
@@ -67,20 +69,25 @@ public class IntakeSubsystem extends SubsystemBase {
         Intake_motor.getConfigurator().apply(IntakemotorConfigs);
 
         var IntakePitchmotorConfigs = new TalonFXConfiguration();
-        //IntakePitchmotorConfigs.Feedback.FeedbackRemoteSensorID = intakePitchEncoder.getDeviceID(); // CANcoder的设备ID（这里是1）
-        //IntakePitchmotorConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; // 反馈源：Fused CANcoder
-        //IntakePitchmotorConfigs.Feedback.RotorToSensorRatio = 50; // 电机转子与传感器的传动比（根据实际机械结构调整）
-        IntakePitchmotorConfigs.Slot0.kS = 0.2;
-        IntakePitchmotorConfigs.Slot0.kV = 0.0;
-        IntakePitchmotorConfigs.Slot0.kA = 0;
-        IntakePitchmotorConfigs.Slot0.kP = 3;
+        IntakePitchmotorConfigs.Feedback.FeedbackRemoteSensorID = intakePitchEncoder.getDeviceID(); // CANcoder的设备ID（这里是1）
+        IntakePitchmotorConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; // 反馈源：Fused CANcoder
+        IntakePitchmotorConfigs.Feedback.RotorToSensorRatio = 50; // 电机转子与传感器的传动比（根据实际机械结构调整）
+        IntakePitchmotorConfigs.Slot0.kS = 0.25;
+        IntakePitchmotorConfigs.Slot0.kV = 0.12;
+        IntakePitchmotorConfigs.Slot0.kA = 0.01;
+        IntakePitchmotorConfigs.Slot0.kP = 4.8;
         IntakePitchmotorConfigs.Slot0.kI = 0;
-        IntakePitchmotorConfigs.Slot0.kD = 0;
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicAcceleration = 100; // Acceleration is around 40 rps/s
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; // Unlimited cruise velocity
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; // kV is around 0.12 V/rps
+        IntakePitchmotorConfigs.Slot0.kD = 0.1;
+        IntakePitchmotorConfigs.Slot0.kG = 0;
+        IntakePitchmotorConfigs.Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
+        IntakePitchmotorConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        
+        // set Motion Magic Expo settings
+        IntakePitchmotorConfigs.MotionMagic.MotionMagicAcceleration = 160; // Acceleration is around 40 rps/s
+        IntakePitchmotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 80; // Unlimited cruise velocity
+        IntakePitchmotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.15; // kV is around 0.12 V/rps
         IntakePitchmotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; // Use a slower kA of 0.1 V/(rps/s)
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicJerk = 0; // Jerk is around 0
+        IntakePitchmotorConfigs.MotionMagic.MotionMagicJerk = 1600;
 
         Intake_pitch_motor.getConfigurator().apply(IntakePitchmotorConfigs);
 
@@ -132,11 +139,11 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public Command OuttakeCommand() {
 
-        return runEnd(
+        return startEnd(
             () -> { setIntakeMotorVelocity(-10);
                   },
 
-            () -> {setIntakeMotorVelocity(-10);
+            () -> {setIntakeMotorVelocity(0);
                   }
             );
     }

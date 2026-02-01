@@ -33,12 +33,12 @@ public class ClimberSubsystem extends SubsystemBase{
     public ClimberSubsystem(){
         var ClimberMotorConfigs = new TalonFXConfiguration();
 
-        ClimberMotorConfigs.Slot0.kP = 0.0;
+        ClimberMotorConfigs.Slot0.kP = 4.80;
         ClimberMotorConfigs.Slot0.kI = 0.0;
-        ClimberMotorConfigs.Slot0.kD = 0.0;
-        ClimberMotorConfigs.Slot0.kS = 0.0;
-        ClimberMotorConfigs.Slot0.kV = 0.0;
-        ClimberMotorConfigs.Slot0.kA = 0.0;
+        ClimberMotorConfigs.Slot0.kD = 0.1;
+        ClimberMotorConfigs.Slot0.kS = 0.25;
+        ClimberMotorConfigs.Slot0.kV = 0.12;
+        ClimberMotorConfigs.Slot0.kA = 0.01;
         ClimberMotorConfigs.MotionMagic.MotionMagicAcceleration = 100;
         ClimberMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200;
         ClimberMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.12;
