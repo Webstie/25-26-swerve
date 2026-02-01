@@ -13,7 +13,6 @@ public class ShootingCommand extends ParallelCommandGroup {
     ) {
         addCommands(
             intakeSubsystem.swing_IntakePosition().repeatedly(),
-            shooterSubsystem.intakeBallCommand(),
             shooterSubsystem.ShooterCommand(),
             transportSubsystem.TransportIntakeCommand()
         );

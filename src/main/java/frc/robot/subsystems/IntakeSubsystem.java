@@ -111,15 +111,14 @@ public class IntakeSubsystem extends SubsystemBase {
             );
     }
 
-    public Command Intake_up_presstimes() {
-        return runOnce(
-            () -> { Intake_press_times += 1; }
-        );
-    };
 
-    public Command changePitchPositionFlag() {
+    public Command changePositionFlag() {
         return runOnce(
-            () -> { IntakepitchPositionFlag = !IntakepitchPositionFlag; }
+            () -> { 
+                IntakepitchPositionFlag = !IntakepitchPositionFlag; 
+                Intake_press_times += 1;
+            }
+            
         );
     };
 

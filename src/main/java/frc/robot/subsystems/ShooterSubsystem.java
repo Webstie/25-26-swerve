@@ -92,19 +92,10 @@ public class ShooterSubsystem extends SubsystemBase {
         return startEnd(
             () -> { 
                 setShooterVelocity(Frictionwheelshootspeed);
-            },
-            () -> {
-                setShooterVelocity(0);
-            }
-        );
-    }
-
-    public Command intakeBallCommand() { 
-        return startEnd(
-            () -> { 
                 setIntakeVelocity(Intakeballspeed);
             },
             () -> {
+                setShooterVelocity(0);
                 setIntakeVelocity(0);
             }
         );
