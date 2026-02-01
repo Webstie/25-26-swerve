@@ -91,20 +91,10 @@ public class ShooterSubsystem extends SubsystemBase {//变量写在这里
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
     }
 
-    public void setOuttakeShooterVelocity(double Velocity) {
-        LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-        MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-    }
 
     public void setIntakeBallVelocity(double Velocity) {
         IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
     }
-
-    public void setOuttakeBallVelocity(double Velocity) {
-        IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
-    }
-
 
     public Command Frictionwheel_presstime(){
         return runOnce(
@@ -149,8 +139,8 @@ public class ShooterSubsystem extends SubsystemBase {//变量写在这里
     public Command OuttakeEverything(){
         return runOnce(
             ()-> {
-                setOuttakeShooterVelocity(Frictionwheelretreatspeed);
-                setOuttakeBallVelocity(IntakeBallRetreatSpeed);
+                setIntakeShooterVelocity(Frictionwheelretreatspeed);
+                setIntakeBallVelocity(IntakeBallRetreatSpeed);
             }
         );
     }
