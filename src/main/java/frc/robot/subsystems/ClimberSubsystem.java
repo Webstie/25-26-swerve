@@ -11,9 +11,9 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 
 public class ClimberSubsystem extends SubsystemBase{
-    public final TalonFX ClimberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("rio"));
+    public final TalonFX ClimberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("canivore"));
 
-    private final MotionMagicTorqueCurrentFOC CLimberRequest = new MotionMagicTorqueCurrentFOC(0);
+    private final MotionMagicTorqueCurrentFOC ClimberRequest = new MotionMagicTorqueCurrentFOC(0);
 
     public ClimberSubsystem(){
         var ClimberMotorConfigs = new TalonFXConfiguration();
@@ -35,7 +35,7 @@ public class ClimberSubsystem extends SubsystemBase{
     }
 
     public void setPosition(double position){
-        ClimberMotor.setControl(CLimberRequest.withPosition(position));
+        ClimberMotor.setControl(ClimberRequest.withPosition(position));
     }
     public double getCurrentPosition(){return ClimberMotor.getPosition().getValueAsDouble();}
     

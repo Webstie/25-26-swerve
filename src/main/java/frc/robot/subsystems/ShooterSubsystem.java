@@ -10,10 +10,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.Shooter.*;
 
 public class ShooterSubsystem extends SubsystemBase {
-    private final TalonFX IntakeBallMotor = new TalonFX(INTAKE_BALL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
+    private final TalonFX IntakeBallMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
 
    private final VelocityTorqueCurrentFOC AllFrictionwheelMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
    private final VelocityTorqueCurrentFOC IntakeBallMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
@@ -81,7 +81,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setShooterVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
+        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
 
     public void setIntakeVelocity(double Velocity) {

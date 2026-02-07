@@ -98,12 +98,14 @@ public class RobotContainer {
 
         //Operator
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-        Operator.x().onTrue(Intake.changePositionFlag()
+        Operator.x().onTrue(Intake.changePitchPosition()
                     .andThen(Commands.either(
-                        Intake.adjust_IntakePosition(IntakeUpPosition).andThen(Intake.IntakeCommand()), 
-                        Intake.adjust_IntakePosition(IntakeDownPosition).andThen(Intake.IntakeCommand()), 
+                        Intake.adjust_IntakePosition(IntakeUpPosition), 
+                        Intake.adjust_IntakePosition(IntakeDownPosition), 
                         ()->Intake.IntakepitchPositionFlag)));
-        Operator.y().onTrue(Intake.OuttakeCommand());
+        Operator.y().onTrue(Intake.changeIntakeSpeed().andThen(Intake.IntakeCommand()));
+
+        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()));
         
         Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
 
