@@ -33,6 +33,12 @@ public class CANdleSystem extends SubsystemBase {
         configAll.brightnessScalar = 0.1;
         configAll.vBatOutputMode = VBatOutputMode.Modulated;
         m_candle.configAllSettings(configAll, 100);
+        // Default to steady white on boot
+        m_manualColorEnabled = true;
+        m_manualR = 255;
+        m_manualG = 255;
+        m_manualB = 255;
+        m_candle.setLEDs(m_manualR, m_manualG, m_manualB);
     }
 
     public Command setRgb(int r, int g, int b, boolean blink) {

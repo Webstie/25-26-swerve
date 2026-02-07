@@ -105,14 +105,22 @@ public class RobotContainer {
                         Intake.adjust_IntakePosition(IntakeUpPosition), 
                         Intake.adjust_IntakePosition(IntakeDownPosition), 
                         ()->Intake.IntakepitchPositionFlag)));
-        Operator.y().onTrue(Intake.changeIntakeSpeed().andThen(Intake.IntakeCommand()));
+        Operator.y().onTrue(
+            Intake.changeIntakeSpeed()
+                .andThen(Intake.IntakeCommand())
+                .andThen(Commands.either(
+                    Candle.setRgb(0, 255, 0, 0.0),
+                    Candle.setRgb(0, 0, 0, 0.0),
+                    () -> Intake.Intake_press_times % 2 == 1
+                ))
+        );
 
-        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()));
+        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()).alongWith(Candle.setRgb(255, 255, 0, 1.0)));
         Operator.b().onTrue(Candle.setRainbow());
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
+        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).alongWith(Candle.setRgb(255, 0, 0, 0.5)));
 
-        Operator.rightBumper().onTrue(Climber.StartClimb());
-        Operator.rightTrigger().onTrue(Climber.Climb());
+        Operator.rightBumper().onTrue(Climber.StartClimb().alongWith(Candle.setRgb(0, 0, 255, 0)));
+        Operator.rightTrigger().onTrue(Climber.Climb().alongWith(Candle.setRgb(0, 0, 255, 0,0)));
 
 
 
