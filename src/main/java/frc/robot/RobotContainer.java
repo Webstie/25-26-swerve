@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CANdleSystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -34,6 +35,7 @@ public class RobotContainer {
     public final ShooterSubsystem Shooter = new ShooterSubsystem();
     public final TransportSubsystem Transport = new TransportSubsystem();
     public final IntakeSubsystem Intake = new IntakeSubsystem();
+    public final CANdleSystem Candle = new CANdleSystem();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -106,7 +108,7 @@ public class RobotContainer {
         Operator.y().onTrue(Intake.changeIntakeSpeed().andThen(Intake.IntakeCommand()));
 
         Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()));
-        
+        Operator.b().onTrue(Candle.setRainbow());
         Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
 
         Operator.rightBumper().onTrue(Climber.StartClimb());

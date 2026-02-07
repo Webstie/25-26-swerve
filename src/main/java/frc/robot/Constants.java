@@ -2,8 +2,8 @@ package frc.robot;
 
 public class Constants {
     public static final class Climber{
-        public static final double ClimberTopPosition = 20.0;
-        public static final double ClimbPosition = 0.0;
+        public static final double ClimberTopPosition = 120.0;
+        public static final double ClimbPosition = 1.0;
 
         public static final int CLIMBER_MOTOR_ID = 1;
     }
@@ -35,5 +35,9 @@ public class Constants {
         public static int TransportSpeed = 20;
 
         public static int TRANSPORT_MOTOR_ID = 8;
+    }
+
+    public static final class Candle{
+        public static final int CANDLEID = 1;
     }
 }
