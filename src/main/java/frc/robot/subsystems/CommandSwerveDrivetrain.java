@@ -9,10 +9,16 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -45,6 +51,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
+    private final SwerveRequest.ApplyRobotSpeeds m_autoSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -126,6 +133,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     /**
@@ -150,6 +158,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     /**
@@ -176,12 +185,50 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double odometryUpdateFrequency,
         Matrix<N3, N1> odometryStandardDeviation,
         Matrix<N3, N1> visionStandardDeviation,
-        SwerveModuleConstants<?, ?, ?>... modules
-    ) {
+        SwerveModuleConstants<?, ?, ?>... modules) 
+        {
         super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
+    }
+
+    private void configureAutoBuilder() {
+        if (AutoBuilder.isConfigured()) {
+            return;
+        }
+
+        RobotConfig config = null;
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load PathPlanner RobotConfig from GUI settings", e.getStackTrace());
+        }
+
+        if (config == null) {
+            return;
+        }
+
+        AutoBuilder.configure(
+            this::getPose, // Robot pose supplier
+            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            (speeds, feedforwards) -> driveRobotRelative(speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            new PPHolonomicDriveController(
+                new PIDConstants(5.0, 0.0, 0.0),
+                new PIDConstants(5.0, 0.0, 0.0)
+            ),
+            config, // The robot configuration
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            },
+            this
+        );
     }
 
     /**
@@ -192,6 +239,22 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> this.setControl(requestSupplier.get()));
+    }
+
+    public Pose2d getPose() {
+        return getState().Pose;
+    }
+
+    public void resetPose(Pose2d pose) {
+        super.resetPose(pose);
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        return getState().Speeds;
+    }
+
+    public void driveRobotRelative(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
+        setControl(m_autoSpeeds.withSpeeds(speeds));
     }
 
     /**
@@ -277,6 +340,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param visionMeasurementStdDevs Standard deviations of the vision pose measurement
      *     in the form [x, y, theta]ᵀ, with units in meters and radians.
      */
+    
     @Override
     public void addVisionMeasurement(
         Pose2d visionRobotPoseMeters,
