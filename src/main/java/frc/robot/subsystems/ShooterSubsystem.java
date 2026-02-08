@@ -141,4 +141,16 @@ public class ShooterSubsystem extends SubsystemBase {
             }
         );
     }
+    public Command ShooterOuttakeCommand(){
+        return startEnd(
+            ()->{
+                setShooterVelocity(-40.0);
+                setIntakeVelocity(OuttakeBallspeed);
+            },
+            ()->{
+                setShooterVelocity(0.0);
+                setIntakeVelocity(0.0);
+            }
+        );
+    }
 }

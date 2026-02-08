@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CANdleSystem;
@@ -120,8 +121,7 @@ public class RobotContainer {
         );
 
         Operator.a().whileTrue(
-            Intake.OuttakeCommand()
-                .alongWith(Transport.TransportOuttakeCommand())
+            new OuttakeCommand(Intake, Shooter, Transport)
                 .alongWith(Candle.holdLightState(LightState.OUTTAKING))
         );
         Operator.b().onTrue(Candle.setRainbow());

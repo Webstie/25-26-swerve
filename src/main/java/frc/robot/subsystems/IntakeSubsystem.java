@@ -139,11 +139,37 @@ public class IntakeSubsystem extends SubsystemBase {
                   }
         ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
     }
+
+    private Command adjust_IntakePositionWithOuttake(double expected_position) {
+        return runEnd(
+            () -> {
+                setPitchMotorPosition(expected_position);
+                setIntakeMotorVelocity(OuttakeVelocity);
+            },
+            () -> {
+                setPitchMotorPosition(get_PitchMotorPosition());
+                setIntakeMotorVelocity(0);
+            }
+        ).until(() -> Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
+    }
+
+    private Command outtakeFor(double seconds) {
+        return startEnd(
+            () -> setIntakeMotorVelocity(OuttakeVelocity),
+            () -> setIntakeMotorVelocity(0)
+        ).withTimeout(seconds);
+    }
     
     public Command swing_IntakePosition() {
         return adjust_IntakePosition(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
             .andThen(adjust_IntakePosition(IntakeSwingDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
+    }
+    public Command swing_OuttakePosition() {
+        return adjust_IntakePositionWithOuttake(IntakeSwingUpPosition)
+            .andThen(outtakeFor(SwingWaitTime))
+            .andThen(adjust_IntakePositionWithOuttake(IntakeSwingDownPosition))
+            .andThen(outtakeFor(SwingWaitTime));
     }
 }
