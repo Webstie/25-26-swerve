@@ -8,7 +8,7 @@ public class Constants {
     }
 
     public static final class Shooter {
-        public static final double Frictionwheelshootspeed= 0.0;
+        public static final double Frictionwheelshootspeed= 100.0;
         public static final double Intakeballspeed = 10;
         public static final int INTAKE_BALL_MOTOR_ID = 13;
         public static final int LEFT_FRICTIONWHEEL_MOTOR_ID = 14;

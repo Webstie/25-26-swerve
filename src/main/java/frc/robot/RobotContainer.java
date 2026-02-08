@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -103,12 +104,16 @@ public class RobotContainer {
                         Intake.adjust_IntakePosition(IntakeUpPosition).andThen(Intake.IntakeCommand()), 
                         Intake.adjust_IntakePosition(IntakeDownPosition).andThen(Intake.IntakeCommand()), 
                         ()->Intake.IntakepitchPositionFlag)));
-        Operator.y().onTrue(Intake.OuttakeCommand());
-        
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
+
+        Operator.y().whileTrue(new OuttakeCommand(Intake, Transport, Shooter));
+        Operator.leftTrigger().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
 
         Operator.rightBumper().onTrue(Climber.StartClimb());
         Operator.rightTrigger().onTrue(Climber.Climb());
+
+        Operator.a().onTrue(Shooter.ActuatoPitchRaise());
+        Operator.b().onTrue(Shooter.ActuatoPitchDrop());
+
 
 
 

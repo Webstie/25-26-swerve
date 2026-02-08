@@ -9,7 +9,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.Shooter.*;
 
+
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkMax;
+
 public class ShooterSubsystem extends SubsystemBase {
+    //private final SparkMax leftActuator;
+    //private final SparkMax RightActuator;
     private final TalonFX IntakeBallMotor = new TalonFX(INTAKE_BALL_MOTOR_ID, new CANBus("rio"));
     private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
     private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
@@ -20,6 +29,17 @@ public class ShooterSubsystem extends SubsystemBase {
   
     
     public ShooterSubsystem() {
+
+        //leftActuator = new SparkMax(1, MotorType.kBrushed);
+        //RightActuator = new SparkMax(2, MotorType.kBrushed);
+
+        //SparkMaxConfig leftActuatorConfig = new SparkMaxConfig();
+        //leftActuatorConfig.smartCurrentLimit(60);
+        //leftActuator.configure(leftActuatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        
+        //SparkMaxConfig RightActuatorConfig = new SparkMaxConfig();
+        //RightActuatorConfig.smartCurrentLimit(60);
+        //RightActuator.configure(RightActuatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.Slot0.kS = 0.0;
@@ -78,6 +98,11 @@ public class ShooterSubsystem extends SubsystemBase {
         IntakeBallMotor.getConfigurator().apply(IntakeballmotorConfigs);
     }
 
+    //public void SetActuatorvoltage(double voltage) {
+        //leftActuator.setVoltage(voltage);
+        //leftActuator.setVoltage(voltage);
+    //}
+
     public void setShooterVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
@@ -87,6 +112,28 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setIntakeVelocity(double Velocity) {
         IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
     }
+
+    //public Command ActuatoPitchRaise(){
+        //return startEnd(
+            //()->{
+                //SetActuatorvoltage(1);
+            //},
+            //()->{
+                //SetActuatorvoltage(0);
+            //}
+        //);
+    //}
+
+       // public Command ActuatoPitchDrop(){
+        //return startEnd(
+            //()->{
+                //SetActuatorvoltage(-1);
+            //},
+            //()->{
+                //SetActuatorvoltage(0);
+            //}
+        //);
+    //}
 
     public Command ShooterCommand() { 
         return startEnd(
@@ -99,5 +146,17 @@ public class ShooterSubsystem extends SubsystemBase {
                 setIntakeVelocity(0);
             }
         );
+    }
+
+    public Command OuttakeCommand() {
+        return startEnd(
+            () -> { setShooterVelocity(-Frictionwheelshootspeed*0.5);
+                    setIntakeVelocity(-Intakeballspeed);
+                  },
+
+            () -> {setIntakeVelocity(0);
+                   setShooterVelocity(0);
+                  }
+            );
     }
 }
