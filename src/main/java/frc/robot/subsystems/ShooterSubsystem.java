@@ -17,12 +17,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 
 public class ShooterSubsystem extends SubsystemBase {
-    //private final SparkMax leftActuator;
-    //private final SparkMax RightActuator;
-    private final TalonFX IntakeBallMotor = new TalonFX(INTAKE_BALL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
+    private final SparkMax leftActuator ;
+    private final TalonFX IntakeBallMotor = new TalonFX(INTAKE_BALL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
 
    private final VelocityTorqueCurrentFOC AllFrictionwheelMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
    private final VelocityTorqueCurrentFOC IntakeBallMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
@@ -30,8 +29,7 @@ public class ShooterSubsystem extends SubsystemBase {
     
     public ShooterSubsystem() {
 
-        //leftActuator = new SparkMax(1, MotorType.kBrushed);
-        //RightActuator = new SparkMax(2, MotorType.kBrushed);
+        leftActuator = new SparkMax(9, MotorType.kBrushed);
 
         //SparkMaxConfig leftActuatorConfig = new SparkMaxConfig();
         //leftActuatorConfig.smartCurrentLimit(60);
@@ -98,42 +96,31 @@ public class ShooterSubsystem extends SubsystemBase {
         IntakeBallMotor.getConfigurator().apply(IntakeballmotorConfigs);
     }
 
-    //public void SetActuatorvoltage(double voltage) {
-        //leftActuator.setVoltage(voltage);
-        //leftActuator.setVoltage(voltage);
-    //}
+    public void SetActuatorvoltage(double voltage) {
+        leftActuator.setVoltage(voltage);
+    }
 
     public void setShooterVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
+        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
 
     public void setIntakeVelocity(double Velocity) {
         IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
     }
 
-    //public Command ActuatoPitchRaise(){
-        //return startEnd(
-            //()->{
-                //SetActuatorvoltage(1);
-            //},
-            //()->{
-                //SetActuatorvoltage(0);
-            //}
-        //);
-    //}
-
-       // public Command ActuatoPitchDrop(){
-        //return startEnd(
-            //()->{
-                //SetActuatorvoltage(-1);
-            //},
-            //()->{
-                //SetActuatorvoltage(0);
-            //}
-        //);
-    //}
+    public Command ActuatoPitchRaise(double voltage){
+        return startEnd(
+            ()->{
+                SetActuatorvoltage(voltage);
+            },
+            ()->{
+                SetActuatorvoltage(0);
+            }
+        );
+    };
+    
 
     public Command ShooterCommand() { 
         return startEnd(
@@ -150,7 +137,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public Command OuttakeCommand() {
         return startEnd(
-            () -> { setShooterVelocity(-Frictionwheelshootspeed*0.5);
+            () -> { setShooterVelocity(-Frictionwheelshootspeed*0.1);
                     setIntakeVelocity(-Intakeballspeed);
                   },
 

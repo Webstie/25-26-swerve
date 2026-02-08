@@ -111,8 +111,8 @@ public class RobotContainer {
         Operator.rightBumper().onTrue(Climber.StartClimb());
         Operator.rightTrigger().onTrue(Climber.Climb());
 
-        Operator.a().onTrue(Shooter.ActuatoPitchRaise());
-        Operator.b().onTrue(Shooter.ActuatoPitchDrop());
+        Operator.povDown().whileTrue(Shooter.ActuatoPitchRaise(12));
+        Operator.povUp().whileTrue(Shooter.ActuatoPitchRaise(-12));
 
 
 

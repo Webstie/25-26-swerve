@@ -11,7 +11,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 
 public class ClimberSubsystem extends SubsystemBase{
-    public final TalonFX ClimberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("rio"));
+    public final TalonFX ClimberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("canivore"));
 
     private final MotionMagicTorqueCurrentFOC CLimberRequest = new MotionMagicTorqueCurrentFOC(0);
 
