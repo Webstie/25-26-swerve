@@ -29,7 +29,7 @@ public class IntakeSubsystem extends SubsystemBase {
     private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
 
     public int Intake_press_times = 0;
-    public boolean IntakepitchPositionFlag = false;
+    public boolean IntakepitchPositionFlag = true;
 
     public IntakeSubsystem() {
 
@@ -56,9 +56,6 @@ public class IntakeSubsystem extends SubsystemBase {
         Intake_motor.getConfigurator().apply(IntakemotorConfigs);
 
         var IntakePitchmotorConfigs = new TalonFXConfiguration();
-        IntakePitchmotorConfigs.Feedback.FeedbackRemoteSensorID = intakePitchEncoder.getDeviceID();
-        IntakePitchmotorConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; 
-        IntakePitchmotorConfigs.Feedback.RotorToSensorRatio = 50; 
         IntakePitchmotorConfigs.Slot0.kS = 0.0;
         IntakePitchmotorConfigs.Slot0.kV = 0.0;
         IntakePitchmotorConfigs.Slot0.kA = 0;
@@ -112,10 +109,18 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
 
-    public Command changePositionFlag() {
+    public Command changePitchPosition() {
         return runOnce(
             () -> { 
                 IntakepitchPositionFlag = !IntakepitchPositionFlag; 
+            }
+            
+        );
+    };
+
+    public Command changeIntakeSpeed() {
+        return runOnce(
+            () -> { 
                 Intake_press_times += 1;
             }
             
@@ -135,9 +140,9 @@ public class IntakeSubsystem extends SubsystemBase {
     }
     
     public Command swing_IntakePosition() {
-        return adjust_IntakePosition(IntakeDownPosition)
+        return adjust_IntakePosition(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(adjust_IntakePosition(IntakeUpPosition))
+            .andThen(adjust_IntakePosition(IntakeSwingDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
     }
 }

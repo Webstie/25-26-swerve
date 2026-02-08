@@ -12,7 +12,7 @@ public class ShootingCommand extends ParallelCommandGroup {
         TransportSubsystem transportSubsystem
     ) {
         addCommands(
-            //intakeSubsystem.swing_IntakePosition().repeatedly(),
+            // intakeSubsystem.swing_IntakePosition().repeatedly(),
             shooterSubsystem.ShooterCommand(),
             transportSubsystem.TransportIntakeCommand()
         );

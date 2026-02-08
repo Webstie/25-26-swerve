@@ -35,7 +35,7 @@ public class TransportSubsystem extends SubsystemBase {
     }
 
     public void setTransportMotorVelocity(double velocity) {
-        Transport_motor.setControl(Transport_motor_Velocity_Request.withVelocity(velocity));
+        Transport_motor.setControl(Transport_motor_Velocity_Request.withVelocity(-velocity));
     }
 
     
