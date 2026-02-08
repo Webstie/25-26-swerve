@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.Candle.*;
+import frc.robot.Constants.LightState;
 
 import com.ctre.phoenix.led.*;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
@@ -23,15 +24,13 @@ public class CANdleSystem extends SubsystemBase {
     private static final double DEFAULT_BRIGHTNESS = 0.2;
 
     private Animation m_toAnimate = null;
-    private Animation m_lastAppliedAnimate = null; 
-    
+    private boolean m_manualColorEnabled = false;
+    private int m_manualR = 0;
+    private int m_manualG = 0;
+    private int m_manualB = 0;
     private boolean m_manualOverride = false;
     private LightState m_desiredState = LightState.OFF;
     private LightState m_appliedState = null;
-
-    private int m_curR = 0;
-    private int m_curG = 0;
-    private int m_curB = 0;
 
     public CANdleSystem() {
         CANdleConfiguration configAll = new CANdleConfiguration();
@@ -42,8 +41,30 @@ public class CANdleSystem extends SubsystemBase {
         configAll.vBatOutputMode = VBatOutputMode.Modulated;
         
         m_candle.configAllSettings(configAll, 100);
-        
-        setLightState(LightState.OFF);
+        // Default to steady white on boot
+        m_manualColorEnabled = true;
+        m_manualR = 0;
+        m_manualG = 0;
+        m_manualB = 0;
+        m_candle.setLEDs(m_manualR, m_manualG, m_manualB);
+    }
+
+    public void setLightState(LightState state) {
+        m_desiredState = state;
+        m_manualOverride = false;
+        m_appliedState = null;
+        applyLightState();
+    }
+
+    public Command setLightStateCommand(LightState state) {
+        return new InstantCommand(() -> setLightState(state));
+    }
+
+    public Command holdLightState(LightState state) {
+        return startEnd(
+            () -> setLightState(state),
+            () -> setLightState(LightState.OFF)
+        );
     }
 
     public void setLightState(LightState state) {
@@ -61,6 +82,7 @@ public class CANdleSystem extends SubsystemBase {
     public Command setRgbCommand(int r, int g, int b, boolean blink) {
         return new InstantCommand(() -> {
             m_manualOverride = true;
+            m_candle.configBrightnessScalar(scalar, 0);
             if (blink) {
                 m_toAnimate = new StrobeAnimation(clamp(r), clamp(g), clamp(b), 0, DEFAULT_STROBE_SPEED, LedCount);
             } else {
@@ -73,57 +95,66 @@ public class CANdleSystem extends SubsystemBase {
     public Command setRainbowCommand() {
         return new InstantCommand(() -> {
             m_manualOverride = true;
-            m_toAnimate = new RainbowAnimation(1, 0.5, LedCount);
+            m_manualColorEnabled = false;
+            m_toAnimate = new RainbowAnimation(1, 0.1, LedCount);
         }, this);
     }
 
     @Override
     public void periodic() {
+        // This method will be called once per scheduler run
         if (!m_manualOverride) {
-            processAutoLogic();
+            applyLightState();
         }
-        handleHardwareUpdate();
-    }
-
-    private void processAutoLogic() {
-        if (m_desiredState == m_appliedState) return;
-        m_appliedState = m_desiredState;
-
-        m_toAnimate = null; 
-
-        switch (m_desiredState) {
-            case INTAKING:  updateColorVariables(0, 255, 0);   break; 
-            case OUTTAKING: updateColorVariables(255, 255, 0); break; 
-            case SHOOTING:  updateColorVariables(255, 0, 0);   break; 
-            case CLIMBING:  updateColorVariables(0, 0, 255);   break; 
-            case OFF:
-            default:        updateColorVariables(0, 0, 0);     break;
-        }
-    }
-
-    private void handleHardwareUpdate() {
-        if (m_toAnimate != null) {
-            if (m_toAnimate != m_lastAppliedAnimate) {
-                m_candle.animate(m_toAnimate);
-                m_lastAppliedAnimate = m_toAnimate;
+        if (m_toAnimate == null) {
+            if (m_manualColorEnabled) {
+                m_candle.setLEDs(m_manualR, m_manualG, m_manualB);
             }
         } else {
-            if (m_lastAppliedAnimate != null) {
-                m_candle.clearAnimation(0); 
-                m_lastAppliedAnimate = null;
-                m_candle.setLEDs(m_curR, m_curG, m_curB);
-            }
+            m_candle.animate(m_toAnimate);
         }
     }
 
-    private void updateColorVariables(int r, int g, int b) {
-        m_curR = r; m_curG = g; m_curB = b;
-        m_candle.setLEDs(m_curR, m_curG, m_curB);
+    @Override
+    public void simulationPeriodic() {
+        // This method will be called once per scheduler run during simulation
     }
 
-    private int clamp(int val) {
-        return Math.max(0, Math.min(255, val));
+    private void applyLightState() {
+        if (m_desiredState == m_appliedState) {
+            return;
+        }
+        m_appliedState = m_desiredState;
+        m_toAnimate = null;
+        m_manualColorEnabled = true;
+        m_candle.configBrightnessScalar(DEFAULT_BRIGHTNESS, 0);
+        switch (m_desiredState) {
+            case OFF:
+                m_manualR = 0;
+                m_manualG = 0;
+                m_manualB = 0;
+                break;
+            case INTAKING:
+                m_manualR = 0;
+                m_manualG = 255;
+                m_manualB = 0;
+                break;
+            case OUTTAKING:
+                m_manualR = 255;
+                m_manualG = 255;
+                m_manualB = 0;
+                break;
+            case SHOOTING:
+                m_manualR = 255;
+                m_manualG = 0;
+                m_manualB = 0;
+                break;
+            case CLIMBING:
+                m_manualR = 0;
+                m_manualG = 0;
+                m_manualB = 255;
+                break;
+        }
+        m_candle.setLEDs(m_manualR, m_manualG, m_manualB);
     }
-
-    public double getBusVoltage() { return m_candle.getBusVoltage(); }
 }

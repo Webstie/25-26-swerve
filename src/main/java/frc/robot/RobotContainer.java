@@ -25,10 +25,13 @@ import frc.robot.subsystems.CANdleSystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterAngleSystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransportSubsystem;
 import frc.robot.subsystems.PivotSubsystem;
 import static frc.robot.Constants.Intake.*;
+import static frc.robot.Constants.Shooter.shootingVoltage;
+import frc.robot.Constants.LightState;
 
 
 public class RobotContainer {
@@ -38,7 +41,7 @@ public class RobotContainer {
     public final TransportSubsystem Transport = new TransportSubsystem();
     public final IntakeSubsystem Intake = new IntakeSubsystem();
     public final CANdleSystem Candle = new CANdleSystem();
-    public final PivotSubsystem Pivot = new PivotSubsystem();
+    public final ShooterAngleSystem Angle = new ShooterAngleSystem();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -108,20 +111,31 @@ public class RobotContainer {
                         Intake.adjust_IntakePosition(IntakeUpPosition), 
                         Intake.adjust_IntakePosition(IntakeDownPosition), 
                         ()->Intake.IntakepitchPositionFlag)));
-        Operator.y().onTrue(Intake.changeIntakeSpeed().andThen(Intake.IntakeCommand()));
+        Operator.y().onTrue(
+            Intake.changeIntakeSpeed()
+                .andThen(Intake.IntakeCommand())
+                .andThen(Commands.either(
+                    Candle.setLightStateCommand(LightState.INTAKING),
+                    Candle.setLightStateCommand(LightState.OFF),
+                    () -> Intake.Intake_press_times % 2 == 1
+                ))
+        );
 
-        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()));
-        //Operator.b().onTrue(Candle.setRainbow());
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
+        Operator.a().whileTrue(
+            new OuttakeCommand(Intake, Shooter, Transport)
+                .alongWith(Candle.holdLightState(LightState.OUTTAKING))
+        );
+        Operator.b().onTrue(Candle.setRainbow());
+        Operator.leftBumper().whileTrue(
+            new ShootingCommand(Intake, Shooter, Transport)
+                .alongWith(Candle.holdLightState(LightState.SHOOTING))
+        );
 
-        Operator.rightBumper().onTrue(Climber.StartClimb());
-        Operator.rightTrigger().onTrue(Climber.Climb());
+        Operator.rightBumper().onTrue(Climber.StartClimb().alongWith(Candle.setLightStateCommand(LightState.CLIMBING)));
+        Operator.rightTrigger().onTrue(Climber.Climb().alongWith(Candle.setLightStateCommand(LightState.CLIMBING)));
 
-        Operator.povDown().whileTrue(Pivot.pitchRaiseCommand(10));
-        Operator.povUp().whileTrue(Pivot.pitchRaiseCommand(-10));
-
-
-
+        Operator.povUp().whileTrue(Angle.AdjustShootingAngle(-shootingVoltage));
+        Operator.povDown().whileTrue(Angle.AdjustShootingAngle(shootingVoltage));
 
 
     }

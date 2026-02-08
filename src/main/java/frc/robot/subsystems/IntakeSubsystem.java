@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -13,6 +14,7 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.subsystems.CANdleSystem.*;
 
 import static frc.robot.Constants.Intake.*;
 
@@ -137,11 +139,37 @@ public class IntakeSubsystem extends SubsystemBase {
                   }
         ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
     }
+
+    private Command adjust_IntakePositionWithOuttake(double expected_position) {
+        return runEnd(
+            () -> {
+                setPitchMotorPosition(expected_position);
+                setIntakeMotorVelocity(OuttakeVelocity);
+            },
+            () -> {
+                setPitchMotorPosition(get_PitchMotorPosition());
+                setIntakeMotorVelocity(0);
+            }
+        ).until(() -> Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
+    }
+
+    private Command outtakeFor(double seconds) {
+        return startEnd(
+            () -> setIntakeMotorVelocity(OuttakeVelocity),
+            () -> setIntakeMotorVelocity(0)
+        ).withTimeout(seconds);
+    }
     
     public Command swing_IntakePosition() {
         return adjust_IntakePosition(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
             .andThen(adjust_IntakePosition(IntakeSwingDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
+    }
+    public Command swing_OuttakePosition() {
+        return adjust_IntakePositionWithOuttake(IntakeSwingUpPosition)
+            .andThen(outtakeFor(SwingWaitTime))
+            .andThen(adjust_IntakePositionWithOuttake(IntakeSwingDownPosition))
+            .andThen(outtakeFor(SwingWaitTime));
     }
 }

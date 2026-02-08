@@ -1,18 +1,19 @@
 package frc.robot.commands;
+
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.TransportSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.TransportSubsystem;
 
 public class OuttakeCommand extends ParallelCommandGroup {
     public OuttakeCommand(
         IntakeSubsystem intakeSubsystem,
-        TransportSubsystem transportSubsystem,
-        ShooterSubsystem shooterSubsystem
+        ShooterSubsystem shooterSubsystem,
+        TransportSubsystem transportSubsystem
     ) {
         addCommands(
-            intakeSubsystem.OuttakeCommand(),
-            shooterSubsystem.OuttakeCommand(),
+            intakeSubsystem.swing_OuttakePosition().repeatedly(),
+            shooterSubsystem.ShooterOuttakeCommand(),
             transportSubsystem.TransportOuttakeCommand()
         );
     }
