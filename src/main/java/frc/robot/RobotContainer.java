@@ -111,7 +111,7 @@ public class RobotContainer {
         Operator.y().onTrue(Intake.changeIntakeSpeed().andThen(Intake.IntakeCommand()));
 
         Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()));
-        Operator.b().onTrue(Candle.setRainbow());
+        //Operator.b().onTrue(Candle.setRainbow());
         Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
 
         Operator.rightBumper().onTrue(Climber.StartClimb());
