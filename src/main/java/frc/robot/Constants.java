@@ -7,8 +7,35 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.XboxController;
 
 public class Constants {
+
+    //variables for robot state
+    public static class RobotState{
+        public enum State {
+            STATE1, STATE2, STATE3, STATE4;
+        };
+    }
+
+    //candel Constants
+    public static class CANDLE{
+
+        public static final int CANdleID1 = 1;
+        public static final int CANdleID2 = 2;
+        public static final int JoystickId = 0;
+        public static final int IncrementAnimButton = XboxController.Button.kRightBumper.value;
+        public static final int DecrementAnimButton = XboxController.Button.kLeftBumper.value;
+        public static final int BlockButton = XboxController.Button.kStart.value;
+        public static final int MaxBrightnessAngle = 90;
+        public static final int MidBrightnessAngle = 180;
+        public static final int ZeroBrightnessAngle = 270;
+        public static final int VbatButton = XboxController.Button.kA.value;
+        public static final int V5Button = XboxController.Button.kB.value;
+        public static final int CurrentButton = XboxController.Button.kX.value;
+        public static final int TemperatureButton = XboxController.Button.kY.value;
+
+    }
     public static final class Climber{
         public static final double ClimberTopPosition = 120.0;
         public static final double ClimbPosition = 1.0;
