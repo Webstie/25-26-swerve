@@ -2,9 +2,12 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -17,7 +20,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 
 public class ShooterSubsystem extends SubsystemBase {
-    private final SparkMax shooterAdjustment;
+    // private final SparkMax shooterAdjustment;
+    private double shooterVelocityTarget = 0.0;
+    private final SlewRateLimiter shooterVelocityLimiter =
+        new SlewRateLimiter(FrictionwheelVelocityRampRate);
+    private final NeutralOut Neutral_Request = new NeutralOut();
 
     private final TalonFX IntakeBallMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
@@ -29,9 +36,10 @@ public class ShooterSubsystem extends SubsystemBase {
   
     
     public ShooterSubsystem() {
-        shooterAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
+        // shooterAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
 
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
+        LeftFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         LeftFricwhemotorConfigs.Slot0.kS = 0.0;
         LeftFricwhemotorConfigs.Slot0.kV = 0.0;
         LeftFricwhemotorConfigs.Slot0.kA = 0;
@@ -46,6 +54,7 @@ public class ShooterSubsystem extends SubsystemBase {
         LeftFrictionwheelMotor.getConfigurator().apply(LeftFricwhemotorConfigs);
 
         var MiddleFricwhemotorConfigs = new TalonFXConfiguration();
+        MiddleFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         MiddleFricwhemotorConfigs.Slot0.kS = 0.0;
         MiddleFricwhemotorConfigs.Slot0.kV = 0.0;
         MiddleFricwhemotorConfigs.Slot0.kA = 0;
@@ -60,6 +69,7 @@ public class ShooterSubsystem extends SubsystemBase {
         MiddleFrictionwheelMotor.getConfigurator().apply(MiddleFricwhemotorConfigs);
 
         var RightFricwhemotorConfigs = new TalonFXConfiguration();
+        RightFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         RightFricwhemotorConfigs.Slot0.kS = 0.0;
         RightFricwhemotorConfigs.Slot0.kV = 0.0;
         RightFricwhemotorConfigs.Slot0.kA = 0;
@@ -74,6 +84,7 @@ public class ShooterSubsystem extends SubsystemBase {
         RightFrictionwheelMotor.getConfigurator().apply(RightFricwhemotorConfigs);
 
         var IntakeballmotorConfigs = new TalonFXConfiguration();
+        IntakeballmotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         IntakeballmotorConfigs.Slot0.kS = 0.0;
         IntakeballmotorConfigs.Slot0.kV = 0.0;
         IntakeballmotorConfigs.Slot0.kA = 0;
@@ -88,24 +99,34 @@ public class ShooterSubsystem extends SubsystemBase {
         IntakeBallMotor.getConfigurator().apply(IntakeballmotorConfigs);
     }
 
-    public void setShooterAngleVoltage(double Voltage){
-        shooterAdjustment.setVoltage(Voltage);
+    @Override
+    public void periodic() {
+        if (shooterVelocityTarget == 0.0) {
+            applyShooterNeutral();
+        } else {
+            double limitedVelocity = shooterVelocityLimiter.calculate(shooterVelocityTarget);
+            applyShooterVelocity(limitedVelocity);
+        }
     }
-    public void setShooterVelocity(double Velocity) { 
+
+    private void applyShooterVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
 
-    public void setIntakeVelocity(double Velocity) {
-        IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
+    private void applyShooterNeutral() {
+        LeftFrictionwheelMotor.setControl(Neutral_Request);
+        MiddleFrictionwheelMotor.setControl(Neutral_Request);
+        RightFrictionwheelMotor.setControl(Neutral_Request);
     }
 
-    public Command AdjustShootingAngle(double Voltage){
-        return startEnd(
-            ()->setShooterAngleVoltage(Voltage),
-            ()->setShooterAngleVoltage(0)
-        );
+    public void setShooterVelocity(double Velocity) { 
+        shooterVelocityTarget = Velocity;
+    }
+
+    public void setIntakeVelocity(double Velocity) {
+        IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
     }
 
     public Command ShooterCommand() { 

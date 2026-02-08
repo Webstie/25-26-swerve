@@ -1,6 +1,14 @@
 package frc.robot;
 
 public class Constants {
+    public enum LightState {
+        OFF,
+        INTAKING,
+        OUTTAKING,
+        SHOOTING,
+        CLIMBING
+    }
+
     public static final class Climber{
         public static final double ClimberTopPosition = 120.0;
         public static final double ClimbPosition = 1.0;
@@ -9,9 +17,10 @@ public class Constants {
     }
 
     public static final class Shooter {
-        public static final double Frictionwheelshootspeed = 100.0;
+        public static final double Frictionwheelshootspeed = 20.0;
         public static final double Intakeballspeed = 30.0;
         public static final double shootingVoltage = 12.0;
+        public static final double FrictionwheelVelocityRampRate = 50.0;
 
         public static final int SHOOTER_SPARKMAX_ID = 9;
         public static final int FEEDER_MOTOR_ID = 2;
