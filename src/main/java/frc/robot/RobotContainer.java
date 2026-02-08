@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants.Intake;
 import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
@@ -40,7 +41,6 @@ import static frc.robot.Constants.Intake.*;
 import java.util.List;
 import java.util.Set;
 import static frc.robot.Constants.Shooter.shootingVoltage;
-import frc.robot.Constants.LightState;
 
 
 public class RobotContainer {
@@ -134,8 +134,8 @@ public class RobotContainer {
             Intake.changeIntakeSpeed()
                 .andThen(Intake.IntakeCommand())
                 .andThen(Commands.either(
-                    Candle.setLightStateCommand(LightState.INTAKING),
-                    Candle.setLightStateCommand(LightState.OFF),
+                    new InstantCommand(() -> Candle.Changecolor(Constants.RobotState.State.STATE1), Candle),
+                    new InstantCommand(() -> Candle.Changecolor(Constants.RobotState.State.STATE2), Candle),
                     () -> Intake.Intake_press_times % 2 == 1
                 ))
         );
