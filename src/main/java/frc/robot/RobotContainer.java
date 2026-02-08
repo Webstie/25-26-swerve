@@ -120,12 +120,13 @@ public class RobotContainer {
                     () -> Intake.Intake_press_times % 2 == 1
                 ))
         );
+    
 
         Operator.a().whileTrue(
             new OuttakeCommand(Intake, Shooter, Transport)
                 .alongWith(Candle.holdLightState(LightState.OUTTAKING))
         );
-        Operator.b().onTrue(Candle.setRainbow());
+        Operator.b().onTrue(Candle.setRainbowCommand());
         Operator.leftBumper().whileTrue(
             new ShootingCommand(Intake, Shooter, Transport)
                 .alongWith(Candle.holdLightState(LightState.SHOOTING))

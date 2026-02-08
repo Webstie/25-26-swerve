@@ -36,8 +36,8 @@ public class Constants {
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.0;
         public static final double SwingWaitTime = 0.25;
-        public static final double OuttakeVelocity = 50.0;
-        public static final double IntakeVelocity = -50.0;
+        public static final double OuttakeVelocity = 80.0;
+        public static final double IntakeVelocity = -80.0;
         
         public static final int INTAKE_MOTOR_ID = 6;
         public static final int INTAKE_PITCH_MOTOR_ID = 7;

@@ -92,7 +92,7 @@ public class IntakeSubsystem extends SubsystemBase {
                 setIntakeMotorVelocity(0);
             }
             else{
-                 setIntakeMotorVelocity(-10);
+                 setIntakeMotorVelocity(-80);
                 }
             }
         );
