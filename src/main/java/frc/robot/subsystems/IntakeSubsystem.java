@@ -23,7 +23,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
     private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("canivore"));
-    private final CANcoder intakePitchEncoder = new CANcoder(INTAKE_PITCH_ENCODER_ID, new CANBus("canivore"));
 
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
@@ -100,7 +99,7 @@ public class IntakeSubsystem extends SubsystemBase {
     public Command OuttakeCommand() {
         return startEnd(
             () -> { setIntakeMotorVelocity(10*2);
-                    setPitchMotorPosition(OuttakePosition);
+                    setPitchMotorPosition(-10);
                   },
 
             () -> {setIntakeMotorVelocity(0);

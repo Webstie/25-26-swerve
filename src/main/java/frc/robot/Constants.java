@@ -9,7 +9,7 @@ public class Constants {
     }
 
     public static final class Shooter {
-        public static final double Frictionwheelshootspeed = 100.0;
+        public static final double Frictionwheelshootspeed = 70.0;
         public static final double Intakeballspeed = 30.0;
 
         public static final int FEEDER_MOTOR_ID = 2;
@@ -22,7 +22,7 @@ public class Constants {
         public static final double IntakeSwingDownPosition = -14.0;
         public static final double IntakeSwingUpPosition = -5.0;
         public static final double IntakeUpPosition = 0.0;
-        public static final double IntakeDownPosition = -16.5;
+        public static final double IntakeDownPosition = -16.0;
         public static final double SwingWaitTime = 0.25;
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -50.0;
@@ -32,7 +32,7 @@ public class Constants {
     }
 
     public static final class Transport{
-        public static int TransportSpeed = 20;
+        public static int TransportSpeed = -30;
 
         public static int TRANSPORT_MOTOR_ID = 8;
     }

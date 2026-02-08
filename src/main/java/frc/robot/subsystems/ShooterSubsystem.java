@@ -18,7 +18,7 @@ import com.revrobotics.spark.SparkMax;
 
 public class ShooterSubsystem extends SubsystemBase {
     private final SparkMax leftActuator ;
-    private final TalonFX IntakeBallMotor = new TalonFX(INTAKE_BALL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX IntakeBallMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
