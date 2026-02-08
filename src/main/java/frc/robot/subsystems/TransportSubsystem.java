@@ -54,7 +54,7 @@ public class TransportSubsystem extends SubsystemBase {
     public Command TransportOuttakeCommand() {
         return startEnd(
             () -> { 
-                setTransportMotorVelocity(TransportSpeed*2);
+                setTransportMotorVelocity(TransportSpeed*3);
                   },
                   
             () -> {

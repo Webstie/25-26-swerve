@@ -103,6 +103,7 @@ public class IntakeSubsystem extends SubsystemBase {
     public Command OuttakeCommand() {
         return startEnd(
             () -> { setIntakeMotorVelocity(10*2);
+                    setPitchMotorPosition(OuttakePosition);
                   },
 
             () -> {setIntakeMotorVelocity(0);

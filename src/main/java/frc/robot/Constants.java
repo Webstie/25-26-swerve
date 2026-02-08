@@ -3,8 +3,8 @@ package frc.robot;
 public class Constants {
     public static final class Climber{
         public static final int CLIMBER_MOTOR_ID = 1;
-        public static final double ClimberTopPosition = 20.0;
-        public static final double ClimbPosition = 0.0;
+        public static final double ClimberTopPosition = 120.0;
+        public static final double ClimbPosition = 1.0;
     }
 
     public static final class Shooter {
@@ -17,8 +17,9 @@ public class Constants {
     }
 
     public static final class Intake{
-        public static final double IntakeUpPosition = 20.0;
-        public static final double IntakeDownPosition = 0.0;
+        public static final double IntakeUpPosition = -14.0;
+        public static final double IntakeDownPosition = -5.0;
+        public static final double OuttakePosition = -10.0;
         public static final double SwingWaitTime = 0.5;
         public static final int INTAKE_MOTOR_ID = 6;
         public static final int INTAKE_PITCH_MOTOR_ID = 7;
