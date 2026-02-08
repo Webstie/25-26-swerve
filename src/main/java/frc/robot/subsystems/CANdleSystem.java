@@ -35,9 +35,9 @@ public class CANdleSystem extends SubsystemBase {
         m_candle.configAllSettings(configAll, 100);
         // Default to steady white on boot
         m_manualColorEnabled = true;
-        m_manualR = 255;
-        m_manualG = 255;
-        m_manualB = 255;
+        m_manualR = 0;
+        m_manualG = 0;
+        m_manualB = 0;
         m_candle.setLEDs(m_manualR, m_manualG, m_manualB);
     }
 

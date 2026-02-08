@@ -27,6 +27,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransportSubsystem;
 import static frc.robot.Constants.Intake.*;
+import static frc.robot.Constants.Shooter.shootingVoltage;
 
 
 public class RobotContainer {
@@ -109,20 +110,21 @@ public class RobotContainer {
             Intake.changeIntakeSpeed()
                 .andThen(Intake.IntakeCommand())
                 .andThen(Commands.either(
-                    Candle.setRgb(0, 255, 0, 0.0),
-                    Candle.setRgb(0, 0, 0, 0.0),
+                    Candle.setRgb(0, 255, 0, false),
+                    Candle.setRgb(0, 0, 0, false),
                     () -> Intake.Intake_press_times % 2 == 1
                 ))
         );
 
-        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()).alongWith(Candle.setRgb(255, 255, 0, 1.0)));
+        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()).alongWith(Candle.setRgb(255, 255, 0, 1.0, true)));
         Operator.b().onTrue(Candle.setRainbow());
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).alongWith(Candle.setRgb(255, 0, 0, 0.5)));
+        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).alongWith(Candle.setRgb(255, 0, 0, 0.5, true)));
 
-        Operator.rightBumper().onTrue(Climber.StartClimb().alongWith(Candle.setRgb(0, 0, 255, 0)));
-        Operator.rightTrigger().onTrue(Climber.Climb().alongWith(Candle.setRgb(0, 0, 255, 0,0)));
+        Operator.rightBumper().onTrue(Climber.StartClimb().alongWith(Candle.setRgb(0, 0, 255, false)));
+        Operator.rightTrigger().onTrue(Climber.Climb().alongWith(Candle.setRgb(0, 0, 255, true)));
 
-
+        Operator.povUp().whileTrue(Shooter.AdjustShootingAngle(-shootingVoltage));
+        Operator.povDown().whileTrue(Shooter.AdjustShootingAngle(shootingVoltage));
 
 
     }

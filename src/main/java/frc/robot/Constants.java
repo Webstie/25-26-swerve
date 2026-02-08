@@ -11,7 +11,9 @@ public class Constants {
     public static final class Shooter {
         public static final double Frictionwheelshootspeed = 100.0;
         public static final double Intakeballspeed = 30.0;
+        public static final double shootingVoltage = 12.0;
 
+        public static final int SHOOTER_SPARKMAX_ID = 9;
         public static final int FEEDER_MOTOR_ID = 2;
         public static final int LEFT_FRICTIONWHEEL_MOTOR_ID = 3;
         public static final int MIDDLE_FRICTIONWHEEL_MOTOR_ID = 4;
