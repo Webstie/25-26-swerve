@@ -263,4 +263,42 @@ public class CANdleSystem extends SubsystemBase {
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
     }
+
+    private void applyLightState() {
+        if (m_desiredState == m_appliedState) {
+            return;
+        }
+        m_appliedState = m_desiredState;
+        m_toAnimate = null;
+        m_manualColorEnabled = true;
+        m_candle.configBrightnessScalar(DEFAULT_BRIGHTNESS, 0);
+        switch (m_desiredState) {
+            case OFF:
+                m_manualR = 0;
+                m_manualG = 0;
+                m_manualB = 0;
+                break;
+            case INTAKING:
+                m_manualR = 0;
+                m_manualG = 255;
+                m_manualB = 0;
+                break;
+            case OUTTAKING:
+                m_manualR = 255;
+                m_manualG = 255;
+                m_manualB = 0;
+                break;
+            case SHOOTING:
+                m_manualR = 255;
+                m_manualG = 0;
+                m_manualB = 0;
+                break;
+            case CLIMBING:
+                m_manualR = 0;
+                m_manualG = 0;
+                m_manualB = 255;
+                break;
+        }
+        m_candle.setLEDs(m_manualR, m_manualG, m_manualB);
+    }
 }
