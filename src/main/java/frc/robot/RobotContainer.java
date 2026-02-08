@@ -27,6 +27,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransportSubsystem;
+import frc.robot.subsystems.PivotSubsystem;
 import static frc.robot.Constants.Intake.*;
 
 
@@ -37,6 +38,7 @@ public class RobotContainer {
     public final TransportSubsystem Transport = new TransportSubsystem();
     public final IntakeSubsystem Intake = new IntakeSubsystem();
     public final CANdleSystem Candle = new CANdleSystem();
+    public final PivotSubsystem Pivot = new PivotSubsystem();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -115,8 +117,8 @@ public class RobotContainer {
         Operator.rightBumper().onTrue(Climber.StartClimb());
         Operator.rightTrigger().onTrue(Climber.Climb());
 
-        Operator.povDown().whileTrue(Shooter.ActuatoPitchRaise(12));
-        Operator.povUp().whileTrue(Shooter.ActuatoPitchRaise(-12));
+        Operator.povDown().whileTrue(Pivot.pitchRaiseCommand(10));
+        Operator.povUp().whileTrue(Pivot.pitchRaiseCommand(-10));
 
 
 

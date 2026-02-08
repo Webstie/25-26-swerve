@@ -31,13 +31,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
         leftActuator = new SparkMax(9, MotorType.kBrushed);
 
-        //SparkMaxConfig leftActuatorConfig = new SparkMaxConfig();
-        //leftActuatorConfig.smartCurrentLimit(60);
-        //leftActuator.configure(leftActuatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        
-        //SparkMaxConfig RightActuatorConfig = new SparkMaxConfig();
-        //RightActuatorConfig.smartCurrentLimit(60);
-        //RightActuator.configure(RightActuatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.Slot0.kS = 0.0;
@@ -96,33 +89,16 @@ public class ShooterSubsystem extends SubsystemBase {
         IntakeBallMotor.getConfigurator().apply(IntakeballmotorConfigs);
     }
 
-    public void SetActuatorvoltage(double voltage) {
-        leftActuator.setVoltage(voltage);
-    }
-
     public void setShooterVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
 
     public void setIntakeVelocity(double Velocity) {
         IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
     }
-
-    public Command ActuatoPitchRaise(double voltage){
-        return startEnd(
-            ()->{
-                SetActuatorvoltage(voltage);
-            },
-            ()->{
-                SetActuatorvoltage(0);
-            }
-        );
-    };
     
-
     public Command ShooterCommand() { 
         return startEnd(
             () -> { 
