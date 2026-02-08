@@ -5,21 +5,31 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.Shooter.*;
 
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkMax;
+
 public class ShooterSubsystem extends SubsystemBase {
-    private final TalonFX IntakeBallMotor = new TalonFX(INTAKE_BALL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("rio"));
+    private final SparkMax shooterAdjustment;
+
+    private final TalonFX IntakeBallMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
 
    private final VelocityTorqueCurrentFOC AllFrictionwheelMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
    private final VelocityTorqueCurrentFOC IntakeBallMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
   
     
     public ShooterSubsystem() {
+        shooterAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
 
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.Slot0.kS = 0.0;
@@ -78,14 +88,24 @@ public class ShooterSubsystem extends SubsystemBase {
         IntakeBallMotor.getConfigurator().apply(IntakeballmotorConfigs);
     }
 
+    public void setShooterAngleVoltage(double Voltage){
+        shooterAdjustment.setVoltage(Voltage);
+    }
     public void setShooterVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
-        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
+        RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
 
     public void setIntakeVelocity(double Velocity) {
         IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
+    }
+
+    public Command AdjustShootingAngle(double Voltage){
+        return startEnd(
+            ()->setShooterAngleVoltage(Voltage),
+            ()->setShooterAngleVoltage(0)
+        );
     }
 
     public Command ShooterCommand() { 

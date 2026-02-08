@@ -20,12 +20,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CANdleSystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransportSubsystem;
 import static frc.robot.Constants.Intake.*;
+import static frc.robot.Constants.Shooter.shootingVoltage;
 
 
 public class RobotContainer {
@@ -34,6 +36,7 @@ public class RobotContainer {
     public final ShooterSubsystem Shooter = new ShooterSubsystem();
     public final TransportSubsystem Transport = new TransportSubsystem();
     public final IntakeSubsystem Intake = new IntakeSubsystem();
+    public final CANdleSystem Candle = new CANdleSystem();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -98,19 +101,30 @@ public class RobotContainer {
 
         //Operator
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-        Operator.x().onTrue(Intake.changePositionFlag()
+        Operator.x().onTrue(Intake.changePitchPosition()
                     .andThen(Commands.either(
-                        Intake.adjust_IntakePosition(IntakeUpPosition).andThen(Intake.IntakeCommand()), 
-                        Intake.adjust_IntakePosition(IntakeDownPosition).andThen(Intake.IntakeCommand()), 
+                        Intake.adjust_IntakePosition(IntakeUpPosition), 
+                        Intake.adjust_IntakePosition(IntakeDownPosition), 
                         ()->Intake.IntakepitchPositionFlag)));
-        Operator.y().onTrue(Intake.OuttakeCommand());
-        
-        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport));
+        Operator.y().onTrue(
+            Intake.changeIntakeSpeed()
+                .andThen(Intake.IntakeCommand())
+                .andThen(Commands.either(
+                    Candle.setRgb(0, 255, 0, false),
+                    Candle.setRgb(0, 0, 0, false),
+                    () -> Intake.Intake_press_times % 2 == 1
+                ))
+        );
 
-        Operator.rightBumper().onTrue(Climber.StartClimb());
-        Operator.rightTrigger().onTrue(Climber.Climb());
+        Operator.a().whileTrue(Intake.OuttakeCommand().alongWith(Transport.TransportOuttakeCommand()).alongWith(Candle.setRgb(255, 255, 0, 1.0, true)));
+        Operator.b().onTrue(Candle.setRainbow());
+        Operator.leftBumper().whileTrue(new ShootingCommand(Intake, Shooter, Transport).alongWith(Candle.setRgb(255, 0, 0, 0.5, true)));
 
+        Operator.rightBumper().onTrue(Climber.StartClimb().alongWith(Candle.setRgb(0, 0, 255, false)));
+        Operator.rightTrigger().onTrue(Climber.Climb().alongWith(Candle.setRgb(0, 0, 255, true)));
 
+        Operator.povUp().whileTrue(Shooter.AdjustShootingAngle(-shootingVoltage));
+        Operator.povDown().whileTrue(Shooter.AdjustShootingAngle(shootingVoltage));
 
 
     }

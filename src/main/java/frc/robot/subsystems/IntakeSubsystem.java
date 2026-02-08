@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -13,6 +14,7 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.subsystems.CANdleSystem.*;
 
 import static frc.robot.Constants.Intake.*;
 
@@ -21,15 +23,14 @@ import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase {
 
-    private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("rio"));
-    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("rio"));
-    private final CANcoder intakePitchEncoder = new CANcoder(INTAKE_PITCH_ENCODER_ID, new CANBus("rio"));
+    private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("canivore"));
 
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
 
     public int Intake_press_times = 0;
-    public boolean IntakepitchPositionFlag = false;
+    public boolean IntakepitchPositionFlag = true;
 
     public IntakeSubsystem() {
 
@@ -56,9 +57,6 @@ public class IntakeSubsystem extends SubsystemBase {
         Intake_motor.getConfigurator().apply(IntakemotorConfigs);
 
         var IntakePitchmotorConfigs = new TalonFXConfiguration();
-        IntakePitchmotorConfigs.Feedback.FeedbackRemoteSensorID = intakePitchEncoder.getDeviceID();
-        IntakePitchmotorConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder; 
-        IntakePitchmotorConfigs.Feedback.RotorToSensorRatio = 50; 
         IntakePitchmotorConfigs.Slot0.kS = 0.0;
         IntakePitchmotorConfigs.Slot0.kV = 0.0;
         IntakePitchmotorConfigs.Slot0.kA = 0;
@@ -94,7 +92,7 @@ public class IntakeSubsystem extends SubsystemBase {
                 setIntakeMotorVelocity(0);
             }
             else{
-                 setIntakeMotorVelocity(10);
+                 setIntakeMotorVelocity(IntakeVelocity);
                 }
             }
         );
@@ -102,7 +100,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public Command OuttakeCommand() {
         return startEnd(
-            () -> { setIntakeMotorVelocity(-10);
+            () -> { setIntakeMotorVelocity(OuttakeVelocity);
                   },
 
             () -> {setIntakeMotorVelocity(0);
@@ -111,10 +109,18 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
 
-    public Command changePositionFlag() {
+    public Command changePitchPosition() {
         return runOnce(
             () -> { 
                 IntakepitchPositionFlag = !IntakepitchPositionFlag; 
+            }
+            
+        );
+    };
+
+    public Command changeIntakeSpeed() {
+        return runOnce(
+            () -> { 
                 Intake_press_times += 1;
             }
             
@@ -134,9 +140,9 @@ public class IntakeSubsystem extends SubsystemBase {
     }
     
     public Command swing_IntakePosition() {
-        return adjust_IntakePosition(IntakeDownPosition)
+        return adjust_IntakePosition(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(adjust_IntakePosition(IntakeUpPosition))
+            .andThen(adjust_IntakePosition(IntakeSwingDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
     }
 }

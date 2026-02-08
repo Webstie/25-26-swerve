@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class TransportSubsystem extends SubsystemBase {
 
-    private final TalonFX Transport_motor = new TalonFX(TRANSPORT_MOTOR_ID, new CANBus("rio"));
+    private final TalonFX Transport_motor = new TalonFX(TRANSPORT_MOTOR_ID, new CANBus("canivore"));
 
     private final VelocityTorqueCurrentFOC Transport_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0).withSlot(0);
 
@@ -35,7 +35,7 @@ public class TransportSubsystem extends SubsystemBase {
     }
 
     public void setTransportMotorVelocity(double velocity) {
-        Transport_motor.setControl(Transport_motor_Velocity_Request.withVelocity(velocity));
+        Transport_motor.setControl(Transport_motor_Velocity_Request.withVelocity(-velocity));
     }
 
     
