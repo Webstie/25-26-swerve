@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -16,8 +17,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CANdleSystem;
@@ -26,7 +29,13 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransportSubsystem;
+import frc.robot.subsystems.VisionSubsystem.VisionMeasurement;
+import frc.robot.subsystems.VisionSubsystem;
+
 import static frc.robot.Constants.Intake.*;
+
+import java.util.List;
+import java.util.Set;
 
 
 public class RobotContainer {
@@ -36,6 +45,7 @@ public class RobotContainer {
     public final TransportSubsystem Transport = new TransportSubsystem();
     public final IntakeSubsystem Intake = new IntakeSubsystem();
     public final CANdleSystem Candle = new CANdleSystem();
+    public final VisionSubsystem Vision = new VisionSubsystem();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -96,7 +106,16 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        
+        Driver.y().onTrue(
+            Commands.runOnce(() -> {
+                drivetrain.setHubTargetIsRight(false);
+                System.out.println("Starting Hub targeting command");
+            })
+            .andThen(Commands.defer(this::runToClosestHub, Set.<Subsystem>of(drivetrain)))
+            .finallyDo((interrupted) -> {
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            })
+        );
 
         //Operator
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
@@ -119,6 +138,22 @@ public class RobotContainer {
 
     }
     
+    public void addMeasurements() {
+
+        SwerveDriveState driveState = drivetrain.getState();
+        List<VisionMeasurement> measurements = Vision.processVisionData(driveState);
+
+        for (VisionMeasurement m : measurements) {
+            drivetrain.addVisionMeasurement(m.pose, m.timestamp, m.stdDevs);
+        }
+
+    }
+
+    // find the colset reef pose and run to it
+    private Command runToClosestHub() {
+        return  MagicSequencingCommand.magicScoreNoScoreHub(drivetrain, () -> drivetrain.closestHubPose(Vision.cameraEstimators));
+    }
+
    public Command getAutonomousCommand() {
     // This method loads the auto when it is called, however, it is recommended
     // to first load your paths/autos when code starts, then return the
