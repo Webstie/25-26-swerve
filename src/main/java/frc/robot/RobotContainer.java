@@ -112,16 +112,16 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        Driver.y().onTrue(
-            Commands.runOnce(() -> {
-                drivetrain.setHubTargetIsRight(false);
-                System.out.println("Starting Hub targeting command");
-            })
-            .andThen(Commands.defer(this::runToClosestHub, Set.<Subsystem>of(drivetrain)))
-            .finallyDo((interrupted) -> {
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
+        // Driver.y().onTrue(
+        //     Commands.runOnce(() -> {
+        //         drivetrain.setHubTargetIsRight(false);
+        //         System.out.println("Starting Hub targeting command");
+        //     })
+        //     .andThen(Commands.defer(this::runToClosestHub, Set.<Subsystem>of(drivetrain)))
+        //     .finallyDo((interrupted) -> {
+        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+        //     })
+        // );
 
         //Operator
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));

@@ -25,7 +25,7 @@ import com.ctre.phoenix.led.TwinkleOffAnimation.TwinkleOffPercent;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-
+@SuppressWarnings("removal")
 public class CANdleSystem extends SubsystemBase {
     private final CANdle m_candle1 = new CANdle(Constants.CANDLE.CANdleID1, "canivore");
     private final CANdle m_candle2 = new CANdle(Constants.CANDLE.CANdleID2, "canivore");
@@ -49,11 +49,11 @@ public class CANdleSystem extends SubsystemBase {
         SetAll,
 
     }
-    
     private AnimationTypes m_currentAnimation;
 
     public boolean isflow = false;
     public Constants.RobotState.State m_current_state = Constants.RobotState.State.STATE1;
+
 
     public CANdleSystem() {
         //this.joystick = joy;
