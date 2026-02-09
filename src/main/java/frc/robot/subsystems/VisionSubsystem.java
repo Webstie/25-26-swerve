@@ -58,12 +58,12 @@ public class VisionSubsystem extends SubsystemBase {
 
                 // initialize camera system
         cameraEstimators.put(
-            new PhotonCamera("Camera_left"),
+            new PhotonCamera("Camera_up"),
             new PhotonPoseEstimator(
                 aprilTagFieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                 new Transform3d(
-                    new Translation3d(0.31, 0.31, 0.5),//z to elevator
+                    new Translation3d(0.0, 0.0, 0.5),//z to elevator
                     new Rotation3d(     
                     0,
                     Units.degreesToRadians(0),//pitch
@@ -71,20 +71,20 @@ public class VisionSubsystem extends SubsystemBase {
                 )
             )
         );
-        cameraEstimators.put(
-            new PhotonCamera("Camera_right"), 
-            new PhotonPoseEstimator(
-                aprilTagFieldLayout,
-                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                new Transform3d(
-                    new Translation3d(0.31, -0.31, 0.5),
-                    new Rotation3d(     
-                        0,
-                        Units.degreesToRadians(0),//pitch
-                        Units.degreesToRadians(0))//yaw
-                )
-            )
-        );
+        // cameraEstimators.put(
+        //     new PhotonCamera("Camera_right"), 
+        //     new PhotonPoseEstimator(
+        //         aprilTagFieldLayout,
+        //         PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+        //         new Transform3d(
+        //             new Translation3d(0.31, -0.31, 0.5),
+        //             new Rotation3d(     
+        //                 0,
+        //                 Units.degreesToRadians(0),//pitch
+        //                 Units.degreesToRadians(0))//yaw
+        //         )
+        //     )
+        // );
         System.out.println("finish camera initialization");
 
     }

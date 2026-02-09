@@ -30,8 +30,8 @@ public class MagicSequencingCommand {
                 .andThen(drive.translateToPositionWithPID(hubPosition.get()));
     }
 
-    public static final Command magicScoreNoScoreReefOnlyPID(CommandSwerveDrivetrain drive, Supplier<Pose2d> reefPosition) {
-        return drive.translateToPositionWithPID(reefPosition.get()); // 直接PID 移动
+    public static final Command magicScoreNoScoreHubOnlyPID(CommandSwerveDrivetrain drive, Supplier<Pose2d> hubPosition) {
+        return drive.translateToPositionWithPID(hubPosition.get()); // 直接PID 移动
     }
 
 }
