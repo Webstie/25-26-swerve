@@ -152,4 +152,11 @@ public class ShooterSubsystem extends SubsystemBase {
             }
         );
     }
+    public Command ShooterWarmupCommand() { 
+        return runOnce(
+            () -> { 
+                setShooterVelocity(Frictionwheelshootspeed);
+            }
+        );
+    }
 }

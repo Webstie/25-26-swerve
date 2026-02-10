@@ -44,7 +44,8 @@ public class Constants {
     }
 
     public static final class Shooter {
-        public static final double Frictionwheelshootspeed = 20.0;
+        public static final double Frictionwheelshootspeed = 80.0;
+        public static final double WarmupSecond = 1.0;
         public static final double Intakeballspeed = 30.0;
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
@@ -112,9 +113,9 @@ public class Constants {
         );
 
         //error tolerance for vision aiming
-        public static final double LINEUP_TOLERANCE_METERS = 0.03;
+        public static final double LINEUP_TOLERANCE_METERS = 0.02;
 
-        public static final double ANGLE_TOLERANCE_DEGREES = 2.0;
+        public static final double ANGLE_TOLERANCE_DEGREES = 1.0;
 
     }
 }

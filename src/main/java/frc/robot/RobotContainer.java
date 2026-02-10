@@ -117,6 +117,7 @@ public class RobotContainer {
                 Constants.Vision.BLUE_SCORING_NODES, 
                 Constants.Vision.BLUE_HUB_CENTER
             ))
+            .andThen(new ShootingCommand(Intake, Shooter, Transport))
             .finallyDo((interrupted) -> {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
