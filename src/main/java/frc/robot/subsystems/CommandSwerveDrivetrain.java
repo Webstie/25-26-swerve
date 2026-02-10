@@ -177,6 +177,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        
+        // Set PID controller tolerances
+        pidLineup.setTolerance(0.03);//m
+        angleController.setTolerance(Units.degreesToRadians(1));//°
+        angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        //auto builder 
         configureAutoBuilder();
     }
 
@@ -202,6 +209,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        // Set PID controller tolerances
+        pidLineup.setTolerance(0.03);//m
+        angleController.setTolerance(Units.degreesToRadians(1));//°
+        angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        //auto builder 
         configureAutoBuilder();
     }
 

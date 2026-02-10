@@ -125,8 +125,8 @@ public class Constants {
         public static final Translation2d BLUE_HUB_CENTER = new Translation2d(4.626, 4.035);
         // 假设周围三个点
         public static final List<Translation2d> BLUE_SCORING_NODES = Arrays.asList(
-            new Translation2d(2.6, 2.7),
-            new Translation2d(2.8, 1.7),
+            // new Translation2d(2.6, 2.7),
+            // new Translation2d(2.8, 1.7),
             new Translation2d(2.5, 3.3)
     );
 
