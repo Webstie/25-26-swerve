@@ -39,10 +39,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        LeftFricwhemotorConfigs.Slot0.kS = 0.0;
-        LeftFricwhemotorConfigs.Slot0.kV = 0.0;
+        LeftFricwhemotorConfigs.Slot0.kS = 1.5;
+        LeftFricwhemotorConfigs.Slot0.kV = 0.35;
         LeftFricwhemotorConfigs.Slot0.kA = 0;
-        LeftFricwhemotorConfigs.Slot0.kP = 5;
+        LeftFricwhemotorConfigs.Slot0.kP = 8;
         LeftFricwhemotorConfigs.Slot0.kI = 0;
         LeftFricwhemotorConfigs.Slot0.kD = 0;
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -54,10 +54,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
         var MiddleFricwhemotorConfigs = new TalonFXConfiguration();
         MiddleFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        MiddleFricwhemotorConfigs.Slot0.kS = 0.0;
-        MiddleFricwhemotorConfigs.Slot0.kV = 0.0;
+        MiddleFricwhemotorConfigs.Slot0.kS = 1.5;
+        MiddleFricwhemotorConfigs.Slot0.kV = 0.35;
         MiddleFricwhemotorConfigs.Slot0.kA = 0;
-        MiddleFricwhemotorConfigs.Slot0.kP = 5;
+        MiddleFricwhemotorConfigs.Slot0.kP = 8;
         MiddleFricwhemotorConfigs.Slot0.kI = 0;
         MiddleFricwhemotorConfigs.Slot0.kD = 0;
         MiddleFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -69,10 +69,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
         var RightFricwhemotorConfigs = new TalonFXConfiguration();
         RightFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        RightFricwhemotorConfigs.Slot0.kS = 0.0;
-        RightFricwhemotorConfigs.Slot0.kV = 0.0;
+        RightFricwhemotorConfigs.Slot0.kS = 1.5;
+        RightFricwhemotorConfigs.Slot0.kV = 0.1;
         RightFricwhemotorConfigs.Slot0.kA = 0;
-        RightFricwhemotorConfigs.Slot0.kP = 5;
+        RightFricwhemotorConfigs.Slot0.kP = 8;
         RightFricwhemotorConfigs.Slot0.kI = 0;
         RightFricwhemotorConfigs.Slot0.kD = 0;
         RightFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 

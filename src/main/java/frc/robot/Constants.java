@@ -45,7 +45,7 @@ public class Constants {
 
     public static final class Shooter {
         public static final double Frictionwheelshootspeed = 80.0;
-        public static final double WarmupSecond = 1.0;
+        public static final double WarmupSecond = 2.0;
         public static final double Intakeballspeed = 30.0;
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
@@ -60,10 +60,10 @@ public class Constants {
 
     public static final class Intake{
         public static final double IntakeSwingDownPosition = -14.0;
-        public static final double IntakeSwingUpPosition = -10.0;
+        public static final double IntakeSwingUpPosition = -12.0;
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.5;
-        public static final double SwingWaitTime = 0.25;
+        public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 50.0;
         public static final double IntakeVelocity = -50.0;
         
@@ -107,9 +107,11 @@ public class Constants {
         public static final Translation2d BLUE_HUB_CENTER = new Translation2d(4.626, 4.035);
         // 假设周围三个点
         public static final List<Translation2d> BLUE_SCORING_NODES = Arrays.asList(
-            new Translation2d(2.6, 2.7),
-            new Translation2d(2.8, 1.7),
-            new Translation2d(2.5, 3.3)
+            // new Translation2d(2.6, 2.7),
+            // new Translation2d(2.7, 1.6),
+            // new Translation2d(2.5, 3.3)
+
+            new Translation2d(2.0, 1.7)
         );
 
         //error tolerance for vision aiming
