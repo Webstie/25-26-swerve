@@ -92,7 +92,7 @@ public class MagicSequencingCommand {
             // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
             // 你可以根据需求选择只用 pathfind，或者 pathfind + PID
             return drive.pathfindToPose(targetPose)
-                   .andThen(drive.translateToPositionWithPID(targetPose));
+                   .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(3.0);
 
         }, Set.of(drive)); // 声明 subsystem 依赖
     }

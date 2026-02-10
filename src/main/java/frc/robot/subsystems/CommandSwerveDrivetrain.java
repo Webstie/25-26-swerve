@@ -178,8 +178,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         
         // Set PID controller tolerances
-        pidLineup.setTolerance(0.03);//m
-        angleController.setTolerance(Units.degreesToRadians(1));//°
+        pidLineup.setTolerance(Constants.Vision.LINEUP_TOLERANCE_METERS);//m
+        angleController.setTolerance(Units.degreesToRadians(Constants.Vision.ANGLE_TOLERANCE_DEGREES));//°
         angleController.enableContinuousInput(0, 2 * Math.PI);
 
         //auto builder 
@@ -210,8 +210,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         // Set PID controller tolerances
-        pidLineup.setTolerance(0.03);//m
-        angleController.setTolerance(Units.degreesToRadians(1));//°
+        pidLineup.setTolerance(Constants.Vision.LINEUP_TOLERANCE_METERS);//m
+        angleController.setTolerance(Units.degreesToRadians(Constants.Vision.ANGLE_TOLERANCE_DEGREES));//°
         angleController.enableContinuousInput(0, 2 * Math.PI);
 
         //auto builder 
@@ -250,8 +250,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         // Set PID controller tolerances
-        pidLineup.setTolerance(0.03);//m
-        angleController.setTolerance(Units.degreesToRadians(1));//°
+        pidLineup.setTolerance(Constants.Vision.LINEUP_TOLERANCE_METERS);//m
+        angleController.setTolerance(Units.degreesToRadians(Constants.Vision.ANGLE_TOLERANCE_DEGREES));//°
         angleController.enableContinuousInput(0, 2 * Math.PI);
 
         //auto builder 

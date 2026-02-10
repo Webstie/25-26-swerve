@@ -112,23 +112,18 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        // Driver.y().onTrue(
-        //     Commands.runOnce(() -> {
-        //         drivetrain.setHubTargetIsRight(false);
-        //         System.out.println("Starting Hub targeting command");
-        //     })
-        //     .andThen(Commands.defer(this::runToClosestHub, Set.<Subsystem>of(drivetrain)))
-        //     .finallyDo((interrupted) -> {
-        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-        //     })
-        // );
-
         Driver.y().onTrue(
-            MagicSequencingCommand.magicRunToClosestHardcodedPose(
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+            })
+            .andThen(MagicSequencingCommand.magicRunToClosestHardcodedPose(
                 drivetrain, 
                 Constants.Vision.BLUE_SCORING_NODES, 
                 Constants.Vision.BLUE_HUB_CENTER
-            )
+            ))
+            .finallyDo((interrupted) -> {
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            })
         );
 
         //Operator
