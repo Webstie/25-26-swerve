@@ -1,12 +1,15 @@
 package frc.robot;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 
 public class Constants {
@@ -117,6 +120,16 @@ public class Constants {
         
         //对正时的角度
         public static final Rotation2d SCORING_SIDE_FROM_FRONT_ROT = new Rotation2d(Math.PI);
+
+        // 蓝色联盟视角下的Hub center点和周围得分点（单位：米）
+        public static final Translation2d BLUE_HUB_CENTER = new Translation2d(4.626, 4.035);
+        // 假设周围三个点
+        public static final List<Translation2d> BLUE_SCORING_NODES = Arrays.asList(
+            new Translation2d(2.6, 2.7),
+            new Translation2d(2.8, 1.7),
+            new Translation2d(2.5, 3.3)
+    );
+
     
     }
 }

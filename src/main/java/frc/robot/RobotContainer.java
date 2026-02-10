@@ -100,12 +100,12 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-Driver.getLeftY(), -Driver.getLeftX()))
         ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        // // Run SysId routines when holding back/start and X/Y.
+        // // Note that each routine should be run exactly once in a single log.
+        // Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
         Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -122,6 +122,14 @@ public class RobotContainer {
         //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
         //     })
         // );
+
+        Driver.y().onTrue(
+            MagicSequencingCommand.magicRunToClosestHardcodedPose(
+                drivetrain, 
+                Constants.Vision.BLUE_SCORING_NODES, 
+                Constants.Vision.BLUE_HUB_CENTER
+            )
+        );
 
         //Operator
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
@@ -169,11 +177,6 @@ public class RobotContainer {
             drivetrain.addVisionMeasurement(m.pose, m.timestamp, m.stdDevs);
         }
 
-    }
-
-    // find the colset reef pose and run to it
-    private Command runToClosestHub() {
-        return  MagicSequencingCommand.magicScoreNoScoreHub(drivetrain, () -> drivetrain.closestHubPose(Vision.cameraEstimators));
     }
 
    public Command getAutonomousCommand() {

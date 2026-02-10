@@ -91,7 +91,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean hubTargetIsRight = true;
 
     // PID controller for translation to target position
-    private final PIDController pidLineup = new PIDController(4, 0, 0), angleController = new PIDController(4, 0, 0);
+    private final PIDController pidLineup = new PIDController(2, 0, 0), angleController = new PIDController(2, 0, 0);
     private boolean inPidTranslate = false;
     private static final double PID_TRANSLATION_SPEED_MPS = 1.5;// 最大线速度（m/s）
     private static final double PID_ROTATION_RAD_PER_SEC = Math.PI;// 最大角速度（rad/s）
@@ -235,6 +235,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        // Set PID controller tolerances
+        pidLineup.setTolerance(0.03);//m
+        angleController.setTolerance(Units.degreesToRadians(1));//°
+        angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        //auto builder 
         configureAutoBuilder();
     }
 
@@ -299,6 +306,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     @SuppressWarnings("removal")
     public Command translateToPositionWithPID(Pose2d pose) {
+        System.out.println("translateToPositionWithPID command started");
         DoubleSupplier theta = () -> new Pose2d(pose.getTranslation(), new Rotation2d())//计算目标方向角
                 .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
                 .getTranslation().getAngle().getRadians();
