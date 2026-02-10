@@ -112,7 +112,7 @@ public class Constants {
                 put(22, "2oC");
             }};
 
-        //到点容差半径
+        //到点容差半径，单位英寸
         public static final double SCORING_SIDE_RADIUS_ROBOT_IN = 18.25;
 
         //两侧挂珊瑚位置到tag中心偏移
