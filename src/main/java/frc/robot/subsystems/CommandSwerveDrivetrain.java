@@ -87,7 +87,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     @AutoLogOutput
-    private String closestHubName = "";
     private boolean hubTargetIsRight = true;
 
     // PID controller for translation to target position
@@ -418,7 +417,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // 筛选有效的hub tag并添加到合并列表中
             latestResult.getTargets().stream()
                 .filter(target -> target.getFiducialId() != -1)
-                .filter(target -> Constants.Vision.hubTagNames.containsKey(target.getFiducialId()))
                 .forEach(allValidTargets::add);
         });
         
@@ -438,7 +436,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         int targetTagId = closestTag.getFiducialId();
-        closestHubName = Constants.Vision.hubTagNames.get(targetTagId);
         
         // 获取tag的场地位置
         Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(targetTagId);
