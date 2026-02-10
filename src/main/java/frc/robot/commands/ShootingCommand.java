@@ -15,9 +15,12 @@ public class ShootingCommand extends SequentialCommandGroup {
         TransportSubsystem transportSubsystem
     ) {
         addCommands(
-            shooterSubsystem.ShooterWarmupCommand().withTimeout(Shooter.WarmupSecond),
+            shooterSubsystem.ShooterWarmupCommand(),
+            
+            new WaitCommand(Shooter.WarmupSecond),
+
             new ParallelCommandGroup(
-                intakeSubsystem.swing_IntakePosition().repeatedly(),
+                //intakeSubsystem.swing_IntakePosition().repeatedly(),
                 shooterSubsystem.ShooterCommand(),
                 transportSubsystem.TransportIntakeCommand()
             )

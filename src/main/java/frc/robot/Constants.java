@@ -44,7 +44,7 @@ public class Constants {
     }
 
     public static final class Shooter {
-        public static final double Frictionwheelshootspeed = 80.0;
+        public static final double Frictionwheelshootspeed = 70.0;
         public static final double WarmupSecond = 2.0;
         public static final double Intakeballspeed = 30.0;
         public static final double OuttakeBallspeed = -30.0;
@@ -72,7 +72,7 @@ public class Constants {
     }
 
     public static final class Transport{
-        public static int TransportSpeed = 40;
+        public static int TransportSpeed = 20;
 
         public static int TRANSPORT_MOTOR_ID = 8;
     }
