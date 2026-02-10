@@ -39,6 +39,7 @@ public class VisionSubsystem extends SubsystemBase {
     private boolean reefTargetIsRight = true;
     // private PhotonTrackedTarget closestReefTag = ;
     /* vision */
+    public final boolean use_vision = false; // set to false to disable vision fusion and just use odometry
     public final boolean kuse_vision = false;
     public final Map<PhotonCamera, PhotonPoseEstimator> cameraEstimators = new HashMap<>();
     private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);

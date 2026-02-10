@@ -260,8 +260,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             (speeds, feedforwards) -> driveRobotRelative(speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             new PPHolonomicDriveController(
-                new PIDConstants(5.0, 0.0, 0.0),
-                new PIDConstants(5.0, 0.0, 0.0)
+                new PIDConstants(2.0, 0.0, 0.0),
+                new PIDConstants(1.0, 0.0, 0.0)
             ),
             config, // The robot configuration
             () -> {
