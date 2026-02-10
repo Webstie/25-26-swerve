@@ -35,7 +35,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class VisionSubsystem extends SubsystemBase {
 
     @AutoLogOutput
-    private String closestReefName = "";
     private boolean reefTargetIsRight = true;
     // private PhotonTrackedTarget closestReefTag = ;
     /* vision */

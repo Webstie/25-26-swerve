@@ -96,22 +96,6 @@ public class Constants {
         // public Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start left
         // public Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start right
 
-        // The AprilTag IDs for scoring points
-        public static final Map<Integer, String> hubTagNames = new HashMap<>(){{
-                put(6, "8oC");
-                put(7, "6oC");
-                put(8, "4oC");
-                put(9, "2oC");
-                put(10, "12oC");
-                put(11, "10oC");
-                put(17, "4oC");
-                put(18, "6oC");
-                put(19, "8oC");
-                put(20, "10oC");
-                put(21, "12oC");
-                put(22, "2oC");
-            }};
-
         //到点容差半径，单位英寸
         public static final double SCORING_SIDE_RADIUS_ROBOT_IN = 18.25;
 
