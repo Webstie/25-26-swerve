@@ -1,6 +1,6 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.*;
+//import static edu.wpi.first.units.Units.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,7 +22,6 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.ctre.phoenix6.swerve.SwerveRequest.ApplyRobotSpeeds;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -42,8 +41,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import static edu.wpi.first.units.Units.Kilogram;
-import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -94,7 +91,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean inPidTranslate = false;
     private static final double PID_TRANSLATION_SPEED_MPS = 1.5;// 最大线速度（m/s）
     private static final double PID_ROTATION_RAD_PER_SEC = Math.PI;// 最大角速度（rad/s）
-    private static final double AUTON_PATH_CANCEL_RADIUS_M = 0.8; //到点容差半径，主要用在自动路径任务中作为提前结束的条件
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(

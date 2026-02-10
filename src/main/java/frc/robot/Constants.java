@@ -1,9 +1,7 @@
 package frc.robot;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -42,7 +40,6 @@ public class Constants {
     public static final class Climber{
         public static final double ClimberTopPosition = -120.0;
         public static final double ClimbPosition = 1.0;
-
         public static final int CLIMBER_MOTOR_ID = 1;
     }
 
