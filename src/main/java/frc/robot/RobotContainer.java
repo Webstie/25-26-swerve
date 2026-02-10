@@ -18,10 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Constants.Intake;
 import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
@@ -39,7 +36,6 @@ import frc.robot.subsystems.VisionSubsystem;
 import static frc.robot.Constants.Intake.*;
 
 import java.util.List;
-import java.util.Set;
 import static frc.robot.Constants.Shooter.shootingVoltage;
 
 
