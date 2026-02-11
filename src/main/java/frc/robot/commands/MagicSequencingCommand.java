@@ -17,11 +17,11 @@ import frc.robot.subsystems.Transport;
 
 public class MagicSequencingCommand {
 
-    // 标准 FRC 场地长度 (米)，用于红蓝联盟坐标镜像
+    //FRC 场地长度 (米)，用于红蓝联盟坐标镜像
     private static final double FIELD_LENGTH_METERS = 16.54099;
 
     /**
-     * 根据当前位置，自动选择最近的硬编码点，并面向中心点,到位之后开始射击
+     * 根据当前位置，自动选择最近的硬编码点，并面向Hub,到位之后开始射击
      * 
      * @param drive 底盘子系统
      * @param blueScoringPositions 蓝色联盟视角下的候选得分点列表 (Translation2d)

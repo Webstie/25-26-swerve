@@ -58,13 +58,28 @@ public class Vision extends SubsystemBase {
     }
 
     public Vision(){
+        // cameraEstimators.put(
+        //     new PhotonCamera("Camera_Up"),
+        //     new PhotonPoseEstimator(
+        //         aprilTagFieldLayout,
+        //         PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+        //         new Transform3d(
+        //             new Translation3d(0.0, 0.0, 0.5),//z to elevator
+        //             new Rotation3d(     
+        //             0,
+        //             Units.degreesToRadians(0),//pitch
+        //             Units.degreesToRadians(0))//yaw
+        //         )
+        //     )
+        // );
+
         cameraEstimators.put(
-            new PhotonCamera("Camera_up"),
+            new PhotonCamera("Camera_Left"),
             new PhotonPoseEstimator(
                 aprilTagFieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                 new Transform3d(
-                    new Translation3d(0.0, 0.0, 0.5),//z to elevator
+                    new Translation3d(0.32, 0.31672, 0.5),//z to elevator
                     new Rotation3d(     
                     0,
                     Units.degreesToRadians(0),//pitch
@@ -72,20 +87,21 @@ public class Vision extends SubsystemBase {
                 )
             )
         );
-        // cameraEstimators.put(
-        //     new PhotonCamera("Camera_right"), 
-        //     new PhotonPoseEstimator(
-        //         aprilTagFieldLayout,
-        //         PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-        //         new Transform3d(
-        //             new Translation3d(0.31, -0.31, 0.5),
-        //             new Rotation3d(     
-        //                 0,
-        //                 Units.degreesToRadians(0),//pitch
-        //                 Units.degreesToRadians(0))//yaw
-        //         )
-        //     )
-        // );
+
+        cameraEstimators.put(
+            new PhotonCamera("Camera_Right"), 
+            new PhotonPoseEstimator(
+                aprilTagFieldLayout,
+                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                new Transform3d(
+                    new Translation3d(0.32, -0.31672, 0.5),
+                    new Rotation3d(     
+                        0,
+                        Units.degreesToRadians(0),//pitch
+                        Units.degreesToRadians(0))//yaw
+                )
+            )
+        );
         System.out.println("Camera Init Finished");
     }
 
