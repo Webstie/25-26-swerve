@@ -139,7 +139,7 @@ public class RobotContainer {
 
         //test candle
         Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle)));
-        
+
         Operator.leftBumper().whileTrue(
             ShootingCommand.createShootingCommand(intake, launcher, transport)
         );
@@ -147,8 +147,8 @@ public class RobotContainer {
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
 
-        Operator.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-shootingVoltage));
-        Operator.povDown().whileTrue(launcher.AdjustAngleSingleCommand(shootingVoltage));
+        Operator.povUp().onTrue(launcher.AdjustAngleToPositionCommand(0.07));
+        Operator.povDown().onTrue(launcher.AdjustAngleToPositionCommand(0));
 
 
         //*****************************************************sysid ********************************************************************************/
