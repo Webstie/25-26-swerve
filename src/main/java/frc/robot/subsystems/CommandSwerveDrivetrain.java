@@ -174,8 +174,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         
         // Set PID controller tolerances
-        pidLineup.setTolerance(Constants.Vision.LINEUP_TOLERANCE_METERS);//m
-        angleController.setTolerance(Units.degreesToRadians(Constants.Vision.ANGLE_TOLERANCE_DEGREES));//°
+        pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
         angleController.enableContinuousInput(0, 2 * Math.PI);
 
         //auto builder 
@@ -206,8 +206,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         // Set PID controller tolerances
-        pidLineup.setTolerance(Constants.Vision.LINEUP_TOLERANCE_METERS);//m
-        angleController.setTolerance(Units.degreesToRadians(Constants.Vision.ANGLE_TOLERANCE_DEGREES));//°
+        pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
         angleController.enableContinuousInput(0, 2 * Math.PI);
 
         //auto builder 
@@ -246,8 +246,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         // Set PID controller tolerances
-        pidLineup.setTolerance(Constants.Vision.LINEUP_TOLERANCE_METERS);//m
-        angleController.setTolerance(Units.degreesToRadians(Constants.Vision.ANGLE_TOLERANCE_DEGREES));//°
+        pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
         angleController.enableContinuousInput(0, 2 * Math.PI);
 
         //auto builder 
@@ -446,14 +446,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         // 计算得分位置
         Pose2d closestPose = tagPose2d
                 .transformBy(new Transform2d(
-                    Units.inchesToMeters(Constants.Vision.SCORING_SIDE_RADIUS_ROBOT_IN),
-                    ((hubTargetIsRight ? Constants.Vision.TAG_TO_BRANCH_OFFSET_M : -Constants.Vision.TAG_TO_BRANCH_OFFSET_M)),
+                    Units.inchesToMeters(Constants.VisionConfig.SCORING_SIDE_RADIUS_ROBOT_IN),
+                    ((hubTargetIsRight ? Constants.VisionConfig.TAG_TO_BRANCH_OFFSET_M : -Constants.VisionConfig.TAG_TO_BRANCH_OFFSET_M)),
                     Rotation2d.kZero));
         
 
 
         return new Pose2d(closestPose.getTranslation(),
-                closestPose.getRotation().plus(Constants.Vision.SCORING_SIDE_FROM_FRONT_ROT));
+                closestPose.getRotation().plus(Constants.VisionConfig.SCORING_SIDE_FROM_FRONT_ROT));
     }
 
     /**

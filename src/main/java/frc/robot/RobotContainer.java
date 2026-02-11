@@ -24,30 +24,30 @@ import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CANdleSystem;
-import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.ShooterAngleSystem;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.TransportSubsystem;
-import frc.robot.subsystems.VisionSubsystem.VisionMeasurement;
-import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.Transport;
+import frc.robot.subsystems.Vision.VisionMeasurement;
+import frc.robot.subsystems.Vision;
 
-import static frc.robot.Constants.Intake.*;
+import static frc.robot.Constants.IntakeConfig.*;
 
 import java.util.List;
-import static frc.robot.Constants.Shooter.shootingVoltage;
+import static frc.robot.Constants.LauncherConfig.shootingVoltage;
 
 
 public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
-    public final ClimberSubsystem Climber = new ClimberSubsystem();
-    public final ShooterSubsystem Shooter = new ShooterSubsystem();
-    public final TransportSubsystem Transport = new TransportSubsystem();
-    public final IntakeSubsystem Intake = new IntakeSubsystem();
+    public final Climber Climber = new Climber();
+    public final Launcher Shooter = new Launcher();
+    public final Transport Transport = new Transport();
+    public final Intake Intake = new Intake();
     public final CANdleSystem Candle = new CANdleSystem();
     public final ShooterAngleSystem Angle = new ShooterAngleSystem();
-    public final VisionSubsystem Vision = new VisionSubsystem();
+    public final Vision Vision = new Vision();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -114,8 +114,8 @@ public class RobotContainer {
             })
             .andThen(MagicSequencingCommand.magicRunToClosestHardcodedPose(
                 drivetrain, 
-                Constants.Vision.BLUE_SCORING_NODES, 
-                Constants.Vision.BLUE_HUB_CENTER
+                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.BLUE_HUB_CENTER
             ))
             .andThen(new ShootingCommand(Intake, Shooter, Transport))
             .finallyDo((interrupted) -> {
@@ -125,14 +125,14 @@ public class RobotContainer {
 
         //Operator
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-        Operator.x().onTrue(Intake.changePitchPosition()
+        Operator.x().onTrue(Intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
-                        Intake.adjust_IntakePosition(IntakeUpPosition), 
-                        Intake.adjust_IntakePosition(IntakeDownPosition), 
+                        Intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
+                        Intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
                         ()->Intake.IntakepitchPositionFlag)));
         Operator.y().onTrue(
-            Intake.changeIntakeSpeed()
-                .andThen(Intake.IntakeCommand())
+            Intake.ChangeIntakeSpeedSingleCommand()
+                .andThen(Intake.IntakeSingleCommand())
                 .andThen(Commands.either(
                     new InstantCommand(() -> Candle.Changecolor(Constants.RobotState.State.STATE1), Candle),
                     new InstantCommand(() -> Candle.Changecolor(Constants.RobotState.State.STATE2), Candle),
@@ -151,8 +151,8 @@ public class RobotContainer {
             new ShootingCommand(Intake, Shooter, Transport)
         );
 
-        Operator.rightBumper().onTrue(Climber.StartClimb());
-        Operator.rightTrigger().onTrue(Climber.Climb());
+        Operator.rightBumper().onTrue(Climber.ClimbingProcessSingleCommand());
+        Operator.rightTrigger().onTrue(Climber.ClimbSingleCommand());
 
         Operator.povUp().whileTrue(Angle.AdjustShootingAngle(-shootingVoltage));
         Operator.povDown().whileTrue(Angle.AdjustShootingAngle(shootingVoltage));

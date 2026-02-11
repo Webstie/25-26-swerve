@@ -13,8 +13,8 @@ public class OuttakeCommand extends ParallelCommandGroup {
     ) {
         addCommands(
             //intakeSubsystem.swing_OuttakePosition().repeatedly(),
-            shooterSubsystem.ShooterOuttakeCommand(),
-            transportSubsystem.TransportOuttakeCommand()
+            shooterSubsystem.OuttakeSingleCommand(),
+            transportSubsystem.TransportOuttakeSingleCommand()
         );
     }
 }
