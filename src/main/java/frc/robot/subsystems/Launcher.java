@@ -4,6 +4,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -15,28 +16,32 @@ import static frc.robot.Constants.LauncherConfig.*;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 
+
 public class Launcher extends SubsystemBase {
+
+    private static final double ANGLE_TOLERANCE = 0.001;
+
 
     private double frictionWheelVelocityTarget = 0.0;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut Neutral_Request = new NeutralOut();
 
-    private final SparkMax angleAdjustment;
-
     private final TalonFX FeederMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
-
+    private final SparkMax angleAdjustment;
+    private final CANcoder angleEncoder;
+    
     private final VelocityTorqueCurrentFOC AllFrictionwheelMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final VelocityTorqueCurrentFOC FeederMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     
     public Launcher() {
         angleAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
-
+        angleEncoder = new CANcoder(ANGLE_CANCODER_ID, "canivore");
+        
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         LeftFricwhemotorConfigs.Slot0.kS = 1.5;
@@ -132,7 +137,22 @@ public class Launcher extends SubsystemBase {
         angleAdjustment.setVoltage(Voltage);
     }
 
-    /**
+    public Command AdjustAngleToPositionCommand(double targetPosition){
+        return run(
+            () -> {
+                if ((angleEncoder.getAbsolutePosition().getValueAsDouble() - targetPosition) >= 0){
+                    setAngleVoltage(12);
+                }else{
+                    setAngleVoltage(-12);
+                }
+            }
+        ).until(
+            () -> Math.abs(targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble()) <= ANGLE_TOLERANCE
+        ).andThen(
+            runOnce(() -> setAngleVoltage(0))
+        );
+    }
+/**
     发射机构角度调整单独命令
      */
     public Command AdjustAngleSingleCommand(double Voltage){
@@ -200,3 +220,4 @@ public class Launcher extends SubsystemBase {
         );
     }
 }
+

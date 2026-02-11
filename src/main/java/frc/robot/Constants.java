@@ -51,6 +51,7 @@ public class Constants {
         public static final double FrictionWheelVelocityRampRate = 50.0;
 
         public static final int SHOOTER_SPARKMAX_ID = 9;
+        public static final int ANGLE_CANCODER_ID = 1;
         public static final int FEEDER_MOTOR_ID = 2;
         public static final int LEFT_FRICTIONWHEEL_MOTOR_ID = 3;
         public static final int MIDDLE_FRICTIONWHEEL_MOTOR_ID = 4;
