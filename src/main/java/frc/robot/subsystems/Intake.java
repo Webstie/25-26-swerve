@@ -12,12 +12,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 
-import static frc.robot.Constants.Intake.*;
+import static frc.robot.Constants.IntakeConfig.*;
 
 
 
 
-public class IntakeSubsystem extends SubsystemBase {
+public class Intake extends SubsystemBase {
 
     private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("canivore"));
@@ -28,7 +28,7 @@ public class IntakeSubsystem extends SubsystemBase {
     public int Intake_press_times = 0;
     public boolean IntakepitchPositionFlag = true;
 
-    public IntakeSubsystem() {
+    public Intake() {
 
         var IntakePitchEncoderConfigs = new CANcoderConfiguration();
 
@@ -69,21 +69,31 @@ public class IntakeSubsystem extends SubsystemBase {
         Intake_pitch_motor.getConfigurator().apply(IntakePitchmotorConfigs);
     }
 
-
+    /**
+    Intake速度设置接口
+     */
     public void setIntakeMotorVelocity(double velocity) {
         Intake_motor.setControl(Intake_motor_Velocity_Request.withVelocity(velocity));
     }
 
+    /**
+    Intake Pitch位置设置接口
+     */
     public void setPitchMotorPosition(double position) {
         Intake_pitch_motor.setControl(Intake_pitch_motor_Voltage_Request.withPosition(position));
     }
 
+    /**
+    Intake Pitch位置获取接口
+     */
     public double get_PitchMotorPosition() {
         return Intake_pitch_motor.getPosition().getValueAsDouble();
     }
 
-
-    public Command IntakeCommand() {
+    /**
+    Intake单独命令
+     */
+    public Command IntakeSingleCommand() {
         return runOnce(
             () -> {if(Intake_press_times % 2 == 0){
                 setIntakeMotorVelocity(0);
@@ -95,7 +105,10 @@ public class IntakeSubsystem extends SubsystemBase {
         );
     }
 
-    public Command OuttakeCommand() {
+    /**
+    Outtake单独命令
+     */
+    public Command OuttakeSingleCommand() {
         return startEnd(
             () -> { setIntakeMotorVelocity(OuttakeVelocity);
                   },
@@ -105,8 +118,10 @@ public class IntakeSubsystem extends SubsystemBase {
             );
     }
 
-
-    public Command changePitchPosition() {
+    /**
+    切换Intake Pitch位置单独命令
+     */
+    public Command ChangePitchPositionSingleCommand() {
         return runOnce(
             () -> { 
                 IntakepitchPositionFlag = !IntakepitchPositionFlag; 
@@ -115,7 +130,10 @@ public class IntakeSubsystem extends SubsystemBase {
         );
     };
 
-    public Command changeIntakeSpeed() {
+    /**
+    切换Intake速度单独命令
+     */
+    public Command ChangeIntakeSpeedSingleCommand() {
         return runOnce(
             () -> { 
                 Intake_press_times += 1;
@@ -124,8 +142,10 @@ public class IntakeSubsystem extends SubsystemBase {
         );
     };
 
-
-    public Command adjust_IntakePosition(double expected_position) { 
+    /**
+    调整Intake位置单独命令
+     */
+    public Command AdjustIntakePositionSingleCommand(double expected_position) { 
         return runEnd(
             () -> {
                    setPitchMotorPosition(expected_position);
@@ -136,7 +156,10 @@ public class IntakeSubsystem extends SubsystemBase {
         ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
     }
 
-    private Command adjust_IntakePositionWithOuttake(double expected_position) {
+    /**
+    调整Intake位置并同时Outtake的单独命令
+     */
+    private Command AdjustIntakePosition_WithOuttakeSingleCommand(double expected_position) {
         return runEnd(
             () -> {
                 setPitchMotorPosition(expected_position);
@@ -149,23 +172,33 @@ public class IntakeSubsystem extends SubsystemBase {
         ).until(() -> Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
     }
 
-    private Command outtakeFor(double seconds) {
+    /**
+    Outtake持续时间单独命令
+     */
+    private Command OuttakeForSingleCommand(double seconds) {
         return startEnd(
             () -> setIntakeMotorVelocity(OuttakeVelocity),
             () -> setIntakeMotorVelocity(0)
         ).withTimeout(seconds);
     }
     
-    public Command swing_IntakePosition() {
-        return adjust_IntakePosition(IntakeSwingUpPosition)
+    /**
+    Intake摇摆单独命令
+     */
+    public Command IntakeSwingSingleCommand() {
+        return AdjustIntakePositionSingleCommand(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(adjust_IntakePosition(IntakeSwingDownPosition))
+            .andThen(AdjustIntakePositionSingleCommand(IntakeSwingDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
     }
-    public Command swing_OuttakePosition() {
-        return adjust_IntakePositionWithOuttake(IntakeSwingUpPosition)
-            .andThen(outtakeFor(SwingWaitTime))
-            .andThen(adjust_IntakePositionWithOuttake(IntakeSwingDownPosition))
-            .andThen(outtakeFor(SwingWaitTime));
+
+    /**
+    Outtake摇摆单独命令
+     */
+    public Command OuttakeSwingSingleCommand() {
+        return AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingUpPosition)
+            .andThen(OuttakeForSingleCommand(SwingWaitTime))
+            .andThen(AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingDownPosition))
+            .andThen(OuttakeForSingleCommand(SwingWaitTime));
     }
 }

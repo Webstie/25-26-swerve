@@ -10,7 +10,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import static frc.robot.Constants.Shooter.*;
+import static frc.robot.Constants.LauncherConfig.*;
 
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -18,24 +18,24 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 
-public class ShooterSubsystem extends SubsystemBase {
-    // private final SparkMax shooterAdjustment;
-    private double shooterVelocityTarget = 0.0;
-    private final SlewRateLimiter shooterVelocityLimiter =
-        new SlewRateLimiter(FrictionwheelVelocityRampRate);
+public class Launcher extends SubsystemBase {
+
+    private double frictionWheelVelocityTarget = 0.0;
+    private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut Neutral_Request = new NeutralOut();
 
-    private final TalonFX IntakeBallMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
+    private final SparkMax angleAdjustment;
+
+    private final TalonFX FeederMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX MiddleFrictionwheelMotor = new TalonFX(MIDDLE_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX RightFrictionwheelMotor = new TalonFX(RIGHT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
 
-   private final VelocityTorqueCurrentFOC AllFrictionwheelMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
-   private final VelocityTorqueCurrentFOC IntakeBallMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
-  
+    private final VelocityTorqueCurrentFOC AllFrictionwheelMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
+    private final VelocityTorqueCurrentFOC FeederMotor_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     
-    public ShooterSubsystem() {
-        // shooterAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
+    public Launcher() {
+        angleAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
 
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
@@ -82,80 +82,120 @@ public class ShooterSubsystem extends SubsystemBase {
         RightFricwhemotorConfigs.MotionMagic.MotionMagicJerk = 0; 
         RightFrictionwheelMotor.getConfigurator().apply(RightFricwhemotorConfigs);
 
-        var IntakeballmotorConfigs = new TalonFXConfiguration();
-        IntakeballmotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        IntakeballmotorConfigs.Slot0.kS = 0.0;
-        IntakeballmotorConfigs.Slot0.kV = 0.0;
-        IntakeballmotorConfigs.Slot0.kA = 0;
-        IntakeballmotorConfigs.Slot0.kP = 5;
-        IntakeballmotorConfigs.Slot0.kI = 0;
-        IntakeballmotorConfigs.Slot0.kD = 0;
-        IntakeballmotorConfigs.MotionMagic.MotionMagicAcceleration = 100;
-        IntakeballmotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
-        IntakeballmotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
-        IntakeballmotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
-        IntakeballmotorConfigs.MotionMagic.MotionMagicJerk = 0; 
-        IntakeBallMotor.getConfigurator().apply(IntakeballmotorConfigs);
+        var FeederMotorConfigs = new TalonFXConfiguration();
+        FeederMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        FeederMotorConfigs.Slot0.kS = 0.0;
+        FeederMotorConfigs.Slot0.kV = 0.0;
+        FeederMotorConfigs.Slot0.kA = 0;
+        FeederMotorConfigs.Slot0.kP = 5;
+        FeederMotorConfigs.Slot0.kI = 0;
+        FeederMotorConfigs.Slot0.kD = 0;
+        FeederMotorConfigs.MotionMagic.MotionMagicAcceleration = 100;
+        FeederMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
+        FeederMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
+        FeederMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
+        FeederMotorConfigs.MotionMagic.MotionMagicJerk = 0; 
+        FeederMotor.getConfigurator().apply(FeederMotorConfigs);
     }
 
     @Override
     public void periodic() {
-        if (shooterVelocityTarget == 0.0) {
-            applyShooterNeutral();
+        if (frictionWheelVelocityTarget == 0.0) {
+            applyFrictionWheelNeutral();
         } else {
-            double limitedVelocity = shooterVelocityLimiter.calculate(shooterVelocityTarget);
-            applyShooterVelocity(limitedVelocity);
+            double limitedVelocity = velocityLimiter.calculate(frictionWheelVelocityTarget);
+            applyFrictionWheelVelocity(limitedVelocity);
         }
     }
 
-    private void applyShooterVelocity(double Velocity) { 
+    /**
+    内部应用速度并设置限制函数
+     */
+    private void applyFrictionWheelVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         MiddleFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
-
-    public void applyShooterNeutral() {
+    /**
+    应用温和函数
+     */
+    public void applyFrictionWheelNeutral() {
         LeftFrictionwheelMotor.setControl(Neutral_Request);
         MiddleFrictionwheelMotor.setControl(Neutral_Request);
         RightFrictionwheelMotor.setControl(Neutral_Request);
     }
 
-    public void setShooterVelocity(double Velocity) { 
-        shooterVelocityTarget = Velocity;
+    /**
+    发射机构角度调整接口
+     */
+    public void setAngleVoltage(double Voltage){
+        angleAdjustment.setVoltage(Voltage);
     }
 
-    public void setIntakeVelocity(double Velocity) {
-        IntakeBallMotor.setControl(IntakeBallMotor_Request.withVelocity(Velocity));
+    /**
+    发射机构角度调整单独命令
+     */
+    public Command AdjustAngleSingleCommand(double Voltage){
+        return startEnd(
+            ()->setAngleVoltage(Voltage),
+            ()->setAngleVoltage(0)
+        );
     }
 
-    public Command ShooterCommand() { 
+    /**
+    发射机构摩擦轮速度调整接口
+     */
+    public void setFrictionWheelVelocity(double Velocity) { 
+        frictionWheelVelocityTarget = Velocity;
+    }
+
+
+    /**
+    发射机构进料速度调整接口
+     */
+    public void setFeederVelocity(double Velocity) {
+        FeederMotor.setControl(FeederMotor_Request.withVelocity(Velocity));
+    }
+
+    /**
+    发射(摩擦轮+intake)单独命令
+     */
+    public Command LaunchSingleCommand() { 
         return startEnd(
             () -> { 
-                setShooterVelocity(Frictionwheelshootspeed);
-                setIntakeVelocity(Intakeballspeed);
+                setFrictionWheelVelocity(FrictionWheelLaunchSpeed);
+                setFeederVelocity(IntakeSpeed);
             },
             () -> {
-                setShooterVelocity(0);
-                setIntakeVelocity(0);
+                setFrictionWheelVelocity(0);
+                setFeederVelocity(0);
             }
         );
     }
-    public Command ShooterOuttakeCommand(){
+
+    /**
+    Outtake单独命令（摩擦轮+intake反转）
+     */
+    public Command OuttakeSingleCommand(){
         return startEnd(
             ()->{
-                setShooterVelocity(-40.0);
-                setIntakeVelocity(OuttakeBallspeed);
+                setFrictionWheelVelocity(-40.0);
+                setFeederVelocity(OuttakeBallspeed);
             },
             ()->{
-                setShooterVelocity(0.0);
-                setIntakeVelocity(0.0);
+                setFrictionWheelVelocity(0.0);
+                setFeederVelocity(0.0);
             }
         );
     }
-    public Command ShooterWarmupCommand() { 
+    
+    /**
+    摩擦轮预热单独命令
+     */
+    public Command ShooterWarmupSingleCommand() { 
         return runOnce(
             () -> { 
-                setShooterVelocity(Frictionwheelshootspeed);
+                setFrictionWheelVelocity(FrictionWheelLaunchSpeed);
             }
         );
     }

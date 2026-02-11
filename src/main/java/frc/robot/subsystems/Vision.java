@@ -32,18 +32,20 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class VisionSubsystem extends SubsystemBase {
+public class Vision extends SubsystemBase {
 
     @AutoLogOutput
     private boolean reefTargetIsRight = true;
     // private PhotonTrackedTarget closestReefTag = ;
-    /* vision */
     public final boolean use_vision = false; // set to false to disable vision fusion and just use odometry
     public final boolean kuse_vision = false;
     public final Map<PhotonCamera, PhotonPoseEstimator> cameraEstimators = new HashMap<>();
     private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
-    public static class VisionMeasurement {//融合位姿时需要的视觉数据
+    /**
+    融合位姿时需要的视觉数据
+     */
+    public static class VisionMeasurement {
         public final Pose2d pose;
         public final double timestamp;
         public final Matrix<N3, N1> stdDevs;
@@ -55,9 +57,7 @@ public class VisionSubsystem extends SubsystemBase {
         }
     }
 
-    public VisionSubsystem(){
-
-                // initialize camera system
+    public Vision(){
         cameraEstimators.put(
             new PhotonCamera("Camera_up"),
             new PhotonPoseEstimator(
@@ -86,8 +86,7 @@ public class VisionSubsystem extends SubsystemBase {
         //         )
         //     )
         // );
-        System.out.println("finish camera initialization");
-
+        System.out.println("Camera Init Finished");
     }
 
     /**
@@ -205,7 +204,5 @@ public class VisionSubsystem extends SubsystemBase {
             .average()
             .orElse(0.0);
     }
-
-
 }
 

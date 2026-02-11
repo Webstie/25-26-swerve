@@ -11,10 +11,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.TransportSubsystem;
-import frc.robot.commands.ShootingCommand;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.Transport;
 
 public class MagicSequencingCommand {
 
@@ -101,9 +100,9 @@ public class MagicSequencingCommand {
      */
     public static Command createSequentialAutoScoreCommand(
         CommandSwerveDrivetrain drive,
-        IntakeSubsystem intakeSubsystem,
-        ShooterSubsystem shooterSubsystem,
-        TransportSubsystem transportSubsystem,
+        Intake intakeSubsystem,
+        Launcher shooterSubsystem,
+        Transport transportSubsystem,
         List<Translation2d> blueScoringPositions,
         Translation2d blueCenterPosition
     ) {

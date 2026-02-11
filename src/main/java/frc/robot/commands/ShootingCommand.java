@@ -2,12 +2,11 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.TransportSubsystem;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.Transport;
+
 import frc.robot.Constants;
 
 public class ShootingCommand extends SequentialCommandGroup {
@@ -38,28 +37,28 @@ public class ShootingCommand extends SequentialCommandGroup {
      * @return 一个Command对象，表示射击命令
      */
     public static Command createShootingCommand(
-        IntakeSubsystem intakeSubsystem,
-        ShooterSubsystem shooterSubsystem,
-        TransportSubsystem transportSubsystem
+        Intake intake,
+        Launcher launcher,
+        Transport transport
     ) {
         return Commands.startEnd(
             // 开始动作（按下按钮时执行）
             () -> {
                 // 1. 启动发射器预热
-                shooterSubsystem.setShooterVelocity(Constants.Shooter.Frictionwheelshootspeed);
+                launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
                 
                 // 2. 创建一个命令：等待预热时间后，同时启动摆动Intake和输料
                 Commands.sequence(
                     // 等待预热时间
-                    Commands.waitSeconds(Constants.Shooter.WarmupSecond),
+                    Commands.waitSeconds(Constants.LauncherConfig.WarmupSecond),
                     // 预热时间结束后，同时开始摆动和输料
                     Commands.parallel(
                         // Intake摆动（重复执行）
-                        intakeSubsystem.swing_IntakePosition().repeatedly(),
+                        intake.IntakeSwingSingleCommand().repeatedly(),
                         // 输料（传输带和进料器）
                         Commands.run(() -> {
-                            transportSubsystem.setTransportMotorVelocity(Constants.Transport.TransportSpeed);
-                            shooterSubsystem.setIntakeVelocity(Constants.Shooter.Intakeballspeed);
+                            transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+                            launcher.setFeederVelocity(Constants.IntakeConfig.IntakeVelocity);
                         })
                     )
                 ).schedule();
@@ -68,13 +67,13 @@ public class ShootingCommand extends SequentialCommandGroup {
             // 结束动作（松开按钮时执行）
             () -> {
                 // 停止所有电机，缓慢停止
-                shooterSubsystem.applyShooterNeutral();
-                transportSubsystem.setTransportMotorVelocity(0);
-                shooterSubsystem.setIntakeVelocity(0);
+                launcher.setFrictionWheelVelocity(0);
+                transport.setTransportVelocity(0);
+                launcher.setFeederVelocity(0);
                 
                 // 停止Intake摆动并回到下方位置
-                intakeSubsystem.setPitchMotorPosition(
-                    Constants.Intake.IntakeDownPosition
+                intake.setPitchMotorPosition(
+                    Constants.IntakeConfig.IntakeDownPosition
                 );
             }
         );
