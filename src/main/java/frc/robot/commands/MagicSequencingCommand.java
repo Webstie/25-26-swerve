@@ -115,6 +115,61 @@ public class MagicSequencingCommand {
             );
         }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
     }
+    //原地自瞄发射
+    public static Command turn2PositionCommand(
+            CommandSwerveDrivetrain drive, 
+            Translation2d blueCenterPosition) {
+        
+        // 使用 Commands.defer 确保逻辑在命令运行时才执行（因为那时才知道机器人在哪）
+        return Commands.defer(() -> {
+            
+            // 1. 获取联盟颜色
+            boolean isRed = false;
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+                isRed = true;
+            }
+
+            // 2. 获取当前机器人位置
+            Pose2d currentPose = drive.getPose();
+            Translation2d currentPosition = new Translation2d(currentPose.getX(), currentPose.getY());
+
+            // 4. 计算朝向：从该点(bestPoint) 面向 中心点(centerPosition)
+            Translation2d targetCenter = isRed ? 
+                new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
+                blueCenterPosition;
+
+            double dx = targetCenter.getX() - currentPose.getX();
+            double dy = targetCenter.getY() - currentPose.getY();
+            Rotation2d targetRotation = new Rotation2d(Math.atan2(dy, dx));
+
+            Pose2d targetPose = new Pose2d(currentPosition, targetRotation);
+
+            // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
+            // 你可以根据需求选择只用 pathfind，或者 pathfind + PID
+            return drive.pathfindToPose(targetPose)
+                   .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(3.0);// 设置超时为3秒，防止卡死
+
+        }, Set.of(drive)); // 声明 subsystem 依赖
+
+    }
+        public static Command createAutoTurnScoreCommand(
+        CommandSwerveDrivetrain drive,
+        Intake intakeSubsystem,
+        Launcher shooterSubsystem,
+        Transport transportSubsystem,
+        List<Translation2d> blueScoringPositions,
+        Translation2d blueCenterPosition
+    ) {
+        return Commands.defer(() -> {
+            return Commands.sequence(
+                // 第一阶段：移动到目标位置
+                MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
+                // 第二阶段：到达位置后开始射击
+                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem)
+            );
+        }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
+    }
 }
 
 
