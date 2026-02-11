@@ -114,7 +114,7 @@ public class ShooterSubsystem extends SubsystemBase {
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
 
-    private void applyShooterNeutral() {
+    public void applyShooterNeutral() {
         LeftFrictionwheelMotor.setControl(Neutral_Request);
         MiddleFrictionwheelMotor.setControl(Neutral_Request);
         RightFrictionwheelMotor.setControl(Neutral_Request);

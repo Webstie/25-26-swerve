@@ -79,7 +79,7 @@ public class RobotContainer {
 
     private void configureBindings() {
         
-        //Driver
+        /******************************************************Driver**********************************************************************/
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
@@ -96,34 +96,29 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-Driver.getLeftY(), -Driver.getLeftX()))
         ));
 
-        // // Run SysId routines when holding back/start and X/Y.
-        // // Note that each routine should be run exactly once in a single log.
-        // Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        // Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        // Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        // Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
         // reset the field-centric heading on left bumper press
         Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        Driver.y().onTrue(
+        Driver.y().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
             })
-            .andThen(MagicSequencingCommand.magicRunToClosestHardcodedPose(
+            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
                 drivetrain, 
+                Intake, 
+                Shooter, 
+                Transport,
                 Constants.Vision.BLUE_SCORING_NODES, 
                 Constants.Vision.BLUE_HUB_CENTER
             ))
-            .andThen(new ShootingCommand(Intake, Shooter, Transport))
             .finallyDo((interrupted) -> {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
         );
 
-        //Operator
+        /**********************************************************Operator**********************************************************/
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
         Operator.x().onTrue(Intake.changePitchPosition()
                     .andThen(Commands.either(
@@ -148,7 +143,8 @@ public class RobotContainer {
         Operator.b().onTrue((new InstantCommand(() -> Candle.Changecolor(Constants.RobotState.State.STATE1), Candle)));
         
         Operator.leftBumper().whileTrue(
-            new ShootingCommand(Intake, Shooter, Transport)
+            ShootingCommand.createShootingCommand(Intake, Shooter, Transport)
+            
         );
 
         Operator.rightBumper().onTrue(Climber.StartClimb());
@@ -156,6 +152,15 @@ public class RobotContainer {
 
         Operator.povUp().whileTrue(Angle.AdjustShootingAngle(-shootingVoltage));
         Operator.povDown().whileTrue(Angle.AdjustShootingAngle(shootingVoltage));
+
+
+        //*****************************************************sysid ********************************************************************************/
+        // // Run SysId routines when holding back/start and X/Y.
+        // // Note that each routine should be run exactly once in a single log.
+        // Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
 
     }
