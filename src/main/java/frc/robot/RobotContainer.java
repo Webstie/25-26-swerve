@@ -142,7 +142,6 @@ public class RobotContainer {
         
         Operator.leftBumper().whileTrue(
             ShootingCommand.createShootingCommand(intake, launcher, transport)
-            
         );
 
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());

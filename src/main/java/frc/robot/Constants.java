@@ -43,7 +43,7 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double FrictionWheelLaunchSpeed = 70.0;
+        public static final double FrictionWheelLaunchSpeed = 60.0;
         public static final double WarmupSecond = 2.0;
         public static final double IntakeSpeed = 30.0;
         public static final double OuttakeBallspeed = -30.0;
@@ -63,16 +63,16 @@ public class Constants {
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
-        public static final double OuttakeVelocity = 50.0;
-        public static final double IntakeVelocity = -50.0;
+        public static final double OuttakeVelocity = -50.0;
+        public static final double IntakeVelocity = 50.0;
     
         public static final int INTAKE_MOTOR_ID = 6;
         public static final int INTAKE_PITCH_MOTOR_ID = 7;
     }
 
     public static final class TransportConfig{
-        public static int TransportSpeed = 20;
-
+        public static int TransportSpeed = 40;
+        
         public static int TRANSPORT_MOTOR_ID = 8;
     }
 

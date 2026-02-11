@@ -51,16 +51,13 @@ public class ShootingCommand extends SequentialCommandGroup {
                 Commands.sequence(
                     // 等待预热时间
                     Commands.waitSeconds(Constants.LauncherConfig.WarmupSecond),
-                    // 预热时间结束后，同时开始摆动和输料
-                    Commands.parallel(
-                        // Intake摆动（重复执行）
-                        intake.IntakeSwingSingleCommand().repeatedly(),
-                        // 输料（传输带和进料器）
-                        Commands.run(() -> {
+                    
+                    Commands.runOnce(() -> {
                             transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
                             launcher.setFeederVelocity(Constants.IntakeConfig.IntakeVelocity);
-                        })
-                    )
+                            //intake.IntakeSwingSingleCommand().repeatedly();
+                    })
+
                 ).schedule();
             },
             
@@ -71,10 +68,10 @@ public class ShootingCommand extends SequentialCommandGroup {
                 transport.setTransportVelocity(0);
                 launcher.setFeederVelocity(0);
                 
-                // 停止Intake摆动并回到下方位置
-                intake.setPitchMotorPosition(
-                    Constants.IntakeConfig.IntakeDownPosition
-                );
+                // // 停止Intake摆动并回到下方位置
+                // intake.setPitchMotorPosition(
+                //     Constants.IntakeConfig.IntakeDownPosition
+                // );
             }
         );
     }

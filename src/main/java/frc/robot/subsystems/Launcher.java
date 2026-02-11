@@ -40,11 +40,11 @@ public class Launcher extends SubsystemBase {
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         LeftFricwhemotorConfigs.Slot0.kS = 1.5;
-        LeftFricwhemotorConfigs.Slot0.kV = 0.35;
+        LeftFricwhemotorConfigs.Slot0.kV = 0.15;
         LeftFricwhemotorConfigs.Slot0.kA = 0;
-        LeftFricwhemotorConfigs.Slot0.kP = 8;
+        LeftFricwhemotorConfigs.Slot0.kP = 5;
         LeftFricwhemotorConfigs.Slot0.kI = 0;
-        LeftFricwhemotorConfigs.Slot0.kD = 0;
+        LeftFricwhemotorConfigs.Slot0.kD = 0.2;
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
