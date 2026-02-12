@@ -54,7 +54,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                     
                     Commands.runOnce(() -> {
                             transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
-                            launcher.setFeederVelocity(Constants.IntakeConfig.IntakeVelocity);
+                            launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
                             //intake.IntakeSwingSingleCommand().repeatedly();
                     })
 

@@ -129,7 +129,7 @@ public class RobotContainer {
                 .andThen(Commands.either(
                     new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
                     new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
-                    () -> intake.Intake_press_times % 2 == 1
+                    () -> intake.Intake_press_times % 2 == 0
                 ))
         );
 
@@ -138,7 +138,7 @@ public class RobotContainer {
         );
 
         //test candle
-        Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle)));
+        Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
 
         Operator.leftBumper().whileTrue(
             ShootingCommand.createShootingCommand(intake, launcher, transport)
