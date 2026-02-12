@@ -10,70 +10,78 @@ import frc.robot.subsystems.Transport;
 import frc.robot.Constants;
 
 public class ShootingCommand extends SequentialCommandGroup {
-    // public ShootingCommand(
-    //     IntakeSubsystem intakeSubsystem,
-    //     ShooterSubsystem shooterSubsystem,
-    //     TransportSubsystem transportSubsystem
-    // ) {
-    //     addCommands(
-    //         shooterSubsystem.ShooterWarmupCommand(),
-            
-    //         new WaitCommand(Shooter.WarmupSecond),
-
-    //         new ParallelCommandGroup(
-    //             //intakeSubsystem.swing_IntakePosition().repeatedly(),
-    //             shooterSubsystem.ShooterCommand(),
-    //             transportSubsystem.TransportIntakeCommand()
-    //         )
-    //     );
-    // }
-
     /**
-     * 创建一个射击命令，包含预热、摆动Intake和输料的逻辑,按下按钮时开始射击，松开按钮时停止射击
-     * 
-     * @param intakeSubsystem Intake子系统实例
-     * @param shooterSubsystem Shooter子系统实例
-     * @param transportSubsystem Transport子系统实例
-     * @return 一个Command对象，表示射击命令
+     * 创建一个射击命令
+     * 逻辑：按下时：
+     * 1. Launcher: 先预热摩擦轮 -> (预热结束后) 摩擦轮继续转 + 供弹轮(Feeder)转
+     * 2. Transport: 等待预热时间 -> 开启输送带
+     * 3. Intake: 等待预热时间 -> 循环执行摆动
+     * 松开时：全部停止
      */
     public static Command createShootingCommand(
         Intake intake,
         Launcher launcher,
         Transport transport
     ) {
-        return Commands.startEnd(
-            // 开始动作（按下按钮时执行）
-            () -> {
-                // 1. 启动发射器预热
-                launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
-                
-                // 2. 创建一个命令：等待预热时间后，同时启动摆动Intake和输料
-                Commands.sequence(
-                    // 等待预热时间
-                    Commands.waitSeconds(Constants.LauncherConfig.WarmupSecond),
-                    
-                    Commands.runOnce(() -> {
-                            transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
-                            launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
-                            //intake.IntakeSwingSingleCommand().repeatedly();
-                    })
+        // 定义预热时间
+        double warmupTime = Constants.LauncherConfig.WarmupSecond;
 
-                ).schedule();
-            },
-            
-            // 结束动作（松开按钮时执行）
-            () -> {
-                // 停止所有电机，缓慢停止
-                launcher.setFrictionWheelVelocity(0);
-                transport.setTransportVelocity(0);
-                launcher.setFeederVelocity(0);
-                
-                // // 停止Intake摆动并回到下方位置
-                // intake.setPitchMotorPosition(
-                //     Constants.IntakeConfig.IntakeDownPosition
-                // );
-            }
+        // --- 1. Launcher 的逻辑流 (预热 -> 发射) ---
+        // 注意：摩擦轮在两个阶段都要转，Feeder 只在第二阶段转
+        Command launcherStream = Commands.sequence(
+            // 第一阶段：预热 (摩擦轮转，Feeder停)
+            Commands.run(
+                () -> {
+                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
+                    launcher.setFeederVelocity(0);
+                }, launcher
+            ).withTimeout(warmupTime), // 运行指定时间后自动进入下一阶段
+
+            // 第二阶段：发射 (摩擦轮转，Feeder转)
+            Commands.run(
+                () -> {
+                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
+                    launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                }, launcher
+            )
         );
+
+        // --- 2. Transport 的逻辑流 (等待 -> 运行) ---
+        Command transportStream = Commands.sequence(
+            Commands.waitSeconds(warmupTime), // 等待预热
+            Commands.run(
+                () -> 
+                {
+                    transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+                    //在启动传送带的同时启动Support电机
+                    intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+                }, transport
+            )
+        );
+
+        // --- 3. Intake 的逻辑流 (等待 -> 循环摆动) ---
+        Command intakeStream = Commands.sequence(
+            Commands.waitSeconds(warmupTime), // 等待预热
+            // 这里直接将 Command 对象放入 sequence，而不是在 lambda 中创建
+            intake.IntakeSwingSingleCommand().repeatedly()
+        );
+
+        // --- 组合所有流 ---
+        // 使用 ParallelCommandGroup 同时运行这三条线
+        return Commands.parallel(
+            launcherStream,
+            transportStream,
+            intakeStream
+        )
+        // 关键：finallyDo 确保无论命令是正常结束还是被中断(松开按键)，都会执行清理
+        .finallyDo((interrupted) -> {
+            launcher.setFrictionWheelVelocity(0);
+            launcher.setFeederVelocity(0);
+            transport.setTransportVelocity(0);
+            intake.setSupportMotorVelocity(0);
+            // 停止 Intake 摆动并复位
+            intake.setPitchMotorPosition(Constants.IntakeConfig.IntakeDownPosition);
+        });
     }
 }
 

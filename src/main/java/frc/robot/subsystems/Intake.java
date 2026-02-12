@@ -21,9 +21,11 @@ public class Intake extends SubsystemBase {
 
     private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("canivore"));
+    private final TalonFX Intake_support_motor = new TalonFX(INTAKE_SUPPORT_MOTOR_ID,new CANBus("canivore"));
 
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
+    private final VelocityTorqueCurrentFOC Intake_support_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
 
     public int Intake_press_times = 0;
     public boolean IntakepitchPositionFlag = true;
@@ -37,36 +39,49 @@ public class Intake extends SubsystemBase {
         IntakePitchEncoderConfigs.MagnetSensor.SensorDirection=SensorDirectionValue.Clockwise_Positive;
 
 
-        var IntakemotorConfigs = new TalonFXConfiguration();
-        IntakemotorConfigs.Slot0.kS = 0.0;
-        IntakemotorConfigs.Slot0.kV = 0.0;
-        IntakemotorConfigs.Slot0.kA = 0;
-        IntakemotorConfigs.Slot0.kP = 5;
-        IntakemotorConfigs.Slot0.kI = 0;
-        IntakemotorConfigs.Slot0.kD = 0;
-        IntakemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
-        IntakemotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
-        IntakemotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
-        IntakemotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
-        IntakemotorConfigs.MotionMagic.MotionMagicJerk = 0; 
+        var IntakeMotorConfigs = new TalonFXConfiguration();
+        IntakeMotorConfigs.Slot0.kS = 0.0;
+        IntakeMotorConfigs.Slot0.kV = 0.0;
+        IntakeMotorConfigs.Slot0.kA = 0;
+        IntakeMotorConfigs.Slot0.kP = 5;
+        IntakeMotorConfigs.Slot0.kI = 0;
+        IntakeMotorConfigs.Slot0.kD = 0;
+        IntakeMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
+        IntakeMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
+        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
+        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
+        IntakeMotorConfigs.MotionMagic.MotionMagicJerk = 0; 
+        Intake_motor.getConfigurator().apply(IntakeMotorConfigs);
 
-        Intake_motor.getConfigurator().apply(IntakemotorConfigs);
+        var IntakePitchMotorConfigs = new TalonFXConfiguration();
+        IntakePitchMotorConfigs.Slot0.kS = 0.0;
+        IntakePitchMotorConfigs.Slot0.kV = 0.0;
+        IntakePitchMotorConfigs.Slot0.kA = 0;
+        IntakePitchMotorConfigs.Slot0.kP = 5;
+        IntakePitchMotorConfigs.Slot0.kI = 0;
+        IntakePitchMotorConfigs.Slot0.kD = 0;
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
+        IntakePitchMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        Intake_pitch_motor.getConfigurator().apply(IntakePitchMotorConfigs);
 
-        var IntakePitchmotorConfigs = new TalonFXConfiguration();
-        IntakePitchmotorConfigs.Slot0.kS = 0.0;
-        IntakePitchmotorConfigs.Slot0.kV = 0.0;
-        IntakePitchmotorConfigs.Slot0.kA = 0;
-        IntakePitchmotorConfigs.Slot0.kP = 5;
-        IntakePitchmotorConfigs.Slot0.kI = 0;
-        IntakePitchmotorConfigs.Slot0.kD = 0;
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicAcceleration = 50; 
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 100; 
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
-        IntakePitchmotorConfigs.MotionMagic.MotionMagicJerk = 0;
-        IntakePitchmotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-
-        Intake_pitch_motor.getConfigurator().apply(IntakePitchmotorConfigs);
+        var IntakeSupportMotorConfigs = new TalonFXConfiguration();
+        IntakeSupportMotorConfigs.Slot0.kS = 0.0;
+        IntakeSupportMotorConfigs.Slot0.kV = 0.0;
+        IntakeSupportMotorConfigs.Slot0.kA = 0;
+        IntakeSupportMotorConfigs.Slot0.kP = 5;
+        IntakeSupportMotorConfigs.Slot0.kI = 0;
+        IntakeSupportMotorConfigs.Slot0.kD = 0;
+        IntakeSupportMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
+        IntakeSupportMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
+        IntakeSupportMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
+        IntakeSupportMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
+        IntakeSupportMotorConfigs.MotionMagic.MotionMagicJerk = 0;
+        IntakeSupportMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        Intake_support_motor.getConfigurator().apply(IntakeSupportMotorConfigs);
     }
 
     /**
@@ -88,6 +103,13 @@ public class Intake extends SubsystemBase {
      */
     public double get_PitchMotorPosition() {
         return Intake_pitch_motor.getPosition().getValueAsDouble();
+    }
+
+    /**
+    Intake Support设置接口
+     */
+    public void setSupportMotorVelocity(double velocity) {
+        Intake_support_motor.setControl(Intake_support_motor_Velocity_Request.withVelocity(velocity));
     }
 
     /**

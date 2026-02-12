@@ -132,10 +132,21 @@ public class RobotContainer {
                     () -> intake.Intake_press_times % 2 == 0
                 ))
         );
+        
 
         Operator.a().whileTrue(
             new OuttakeCommand(intake, launcher, transport)
         );
+
+        Operator.povRight().whileTrue(
+            Commands.runOnce(() -> {
+                System.out.println("SWING");
+            })
+            .andThen(
+                Commands.runOnce(()->
+                    intake.IntakeSwingSingleCommand().repeatedly())
+            ));
+
 
         //test candle
         Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
@@ -147,7 +158,7 @@ public class RobotContainer {
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
 
-        Operator.povUp().onTrue(launcher.AdjustAngleToPositionCommand(0.07));
+        Operator.povUp().onTrue(launcher.AdjustAngleToPositionCommand(0.02));
         Operator.povDown().onTrue(launcher.AdjustAngleToPositionCommand(0));
 
 

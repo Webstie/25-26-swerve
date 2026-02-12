@@ -43,7 +43,7 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double FrictionWheelLaunchSpeed = 60.0;
+        public static final double FrictionWheelLaunchSpeed = 55.0;
         public static final double WarmupSecond = 2.0;
         public static final double FeederSpeed = 50.0;
         public static final double OuttakeBallspeed = -30.0;
@@ -66,9 +66,11 @@ public class Constants {
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -30.0;
+        public static final double SupportVelocity = 10.0;
     
         public static final int INTAKE_MOTOR_ID = 6;
         public static final int INTAKE_PITCH_MOTOR_ID = 7;
+        public static final int INTAKE_SUPPORT_MOTOR_ID = 9;
     }
 
     public static final class TransportConfig{
@@ -110,10 +112,10 @@ public class Constants {
             // new Translation2d(2.7, 1.6),
             // new Translation2d(2.5, 3.3)
 
-            new Translation2d(2.0, 1.7)
+            new Translation2d(3.2, 2.6)
         );
 
-        //error tolerance for vision aiming
+        //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
         public static final double LINEUP_TOLERANCE_METERS = 0.02;
 
         public static final double ANGLE_TOLERANCE_DEGREES = 1.0;

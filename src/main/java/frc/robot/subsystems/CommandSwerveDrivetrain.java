@@ -87,7 +87,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean hubTargetIsRight = true;
 
     // PID controller for translation to target position
-    private final PIDController pidLineup = new PIDController(3, 0, 0), angleController = new PIDController(3, 0, 0);
+    private final PIDController pidLineup = new PIDController(3, 0.1, 0.1), angleController = new PIDController(2, 0, 0.1);
     private boolean inPidTranslate = false;
     private static final double PID_TRANSLATION_SPEED_MPS = 1.5;// 最大线速度（m/s）
     private static final double PID_ROTATION_RAD_PER_SEC = Math.PI;// 最大角速度（rad/s）
