@@ -104,6 +104,25 @@ public class RobotContainer {
                 System.out.println("Starting Hub targeting command");
             })
             .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+                0,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.BLUE_HUB_CENTER
+            ))
+            .finallyDo((interrupted) -> {
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            })
+        );
+
+        Driver.b().whileTrue(
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+            })
+            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+                1,
                 drivetrain, 
                 intake, 
                 launcher, 

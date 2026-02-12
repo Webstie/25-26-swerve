@@ -29,6 +29,7 @@ public class MagicSequencingCommand {
      * @return 一个动态命令，执行时会自动计算最近点并规划路径
      */
     public static Command magicRunToClosestHardcodedPose(
+            int position_index,
             CommandSwerveDrivetrain drive, 
             List<Translation2d> blueScoringPositions, 
             Translation2d blueCenterPosition) {
@@ -46,21 +47,37 @@ public class MagicSequencingCommand {
             // 2. 获取当前机器人位置
             Pose2d currentPose = drive.getPose();
             
+            // // 3. 寻找最近的目标点
+            // Translation2d bestPoint = null;
+            // double minDistance = Double.MAX_VALUE;
+
+            // for (Translation2d point : blueScoringPositions) {
+            //     // 如果是红方，进行场地镜像转换 (X轴翻转)
+            //     Translation2d targetPointToCheck = isRed ? 
+            //         new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
+            //         point;
+                
+            //     double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
+            //     if (distance < minDistance) {
+            //         minDistance = distance;
+            //         bestPoint = targetPointToCheck;
+            //     }
+            // }
+
             // 3. 寻找最近的目标点
             Translation2d bestPoint = null;
             double minDistance = Double.MAX_VALUE;
 
-            for (Translation2d point : blueScoringPositions) {
-                // 如果是红方，进行场地镜像转换 (X轴翻转)
-                Translation2d targetPointToCheck = isRed ? 
-                    new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
-                    point;
-                
-                double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    bestPoint = targetPointToCheck;
-                }
+            Translation2d point = blueScoringPositions.get(position_index);
+
+            Translation2d targetPointToCheck = isRed ? 
+                new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
+                point;
+            
+            double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
+            if (distance < minDistance) {
+                minDistance = distance;
+                bestPoint = targetPointToCheck;
             }
 
             // 如果列表为空或出错，原地不动
@@ -99,6 +116,7 @@ public class MagicSequencingCommand {
      * @return 一个Command对象，表示顺序执行的自动得分命令
      */
     public static Command createSequentialAutoScoreCommand(
+        int position_index,
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
         Launcher shooterSubsystem,
@@ -109,12 +127,18 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             return Commands.sequence(
                 // 第一阶段：移动到目标位置
-                MagicSequencingCommand.magicRunToClosestHardcodedPose(drive, blueScoringPositions, blueCenterPosition),
+                MagicSequencingCommand.magicRunToClosestHardcodedPose(position_index,drive, blueScoringPositions, blueCenterPosition),
                 // 第二阶段：到达位置后开始射击
                 ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem)
             );
         }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
     }
+
+
+
+
+
+
     //原地自瞄发射
     public static Command turn2PositionCommand(
             CommandSwerveDrivetrain drive, 

@@ -60,7 +60,7 @@ public class Constants {
 
     public static final class IntakeConfig{
         public static final double IntakeSwingDownPosition = -14.0;
-        public static final double IntakeSwingUpPosition = -12.0;
+        public static final double IntakeSwingUpPosition = -11.0;
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
@@ -112,7 +112,8 @@ public class Constants {
             // new Translation2d(2.7, 1.6),
             // new Translation2d(2.5, 3.3)
 
-            new Translation2d(3.2, 2.6)
+            new Translation2d(3.2, 2.6),
+            new Translation2d(2.8, 3.9)
         );
 
         //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
