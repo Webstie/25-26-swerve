@@ -87,10 +87,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean hubTargetIsRight = true;
 
     // PID controller for translation to target position
-    private final PIDController pidLineup = new PIDController(3, 0.1, 0.1), angleController = new PIDController(2, 0, 0.1);
+    //private final PIDController pidLineup = new PIDController(3, 0.1, 0.1), angleController = new PIDController(2, 0, 0.1);
     private boolean inPidTranslate = false;
     private static final double PID_TRANSLATION_SPEED_MPS = 1.5;// 最大线速度（m/s）
     private static final double PID_ROTATION_RAD_PER_SEC = Math.PI;// 最大角速度（rad/s）
+
+    // 在类成员变量区域
+    // 替换原来的 pidLineup
+    private final PIDController xController = new PIDController(3.0, 0.0, 0.0);
+    private final PIDController yController = new PIDController(3.0, 0.0, 0.0);
+    private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); // 稍微加一点 kI 消除角度静态误差
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -174,9 +180,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         
         // Set PID controller tolerances
-        pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
-        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
-        angleController.enableContinuousInput(0, 2 * Math.PI);
+        //pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        //angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
+        //angleController.enableContinuousInput(0, 2 * Math.PI);
+
+
+        xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
 
         //auto builder 
         configureAutoBuilder();
@@ -206,9 +218,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         // Set PID controller tolerances
-        pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
-        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
-        angleController.enableContinuousInput(0, 2 * Math.PI);
+        //pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        //angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
+        //angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
 
         //auto builder 
         configureAutoBuilder();
@@ -246,9 +263,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         // Set PID controller tolerances
-        pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
-        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
-        angleController.enableContinuousInput(0, 2 * Math.PI);
+        //pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        //angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
+        //angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
 
         //auto builder 
         configureAutoBuilder();
@@ -301,62 +323,104 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return run(() -> this.setControl(requestSupplier.get()));
     }
     
-    /**
-     * Translates the robot to a target position and orientation using PID control.
-     * <p>
-     * This command uses a linear PID controller for translation and a separate
-     * controller for rotation to move the robot from its current pose to the
-     * specified {@code pose}. It calculates the required field-relative chassis
-     * speeds based on the distance and angle to the target, and terminates when
-     * the position error is within the PID tolerance.
-     *
-     * @param pose The target pose (position and orientation) in field coordinates.
-     * @return A {@link Command} that drives the robot until it reaches the target pose.
-     */
-    @SuppressWarnings("removal")
-    public Command translateToPositionWithPID(Pose2d pose) {
-        System.out.println("translateToPositionWithPID command started");
-        DoubleSupplier theta = () -> new Pose2d(pose.getTranslation(), new Rotation2d())//计算目标方向角
-                .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
-                .getTranslation().getAngle().getRadians();
+    // /**
+    //  * Translates the robot to a target position and orientation using PID control.
+    //  * <p>
+    //  * This command uses a linear PID controller for translation and a separate
+    //  * controller for rotation to move the robot from its current pose to the
+    //  * specified {@code pose}. It calculates the required field-relative chassis
+    //  * speeds based on the distance and angle to the target, and terminates when
+    //  * the position error is within the PID tolerance.
+    //  *
+    //  * @param pose The target pose (position and orientation) in field coordinates.
+    //  * @return A {@link Command} that drives the robot until it reaches the target pose.
+    //  */
+    // @SuppressWarnings("removal")
+    // public Command translateToPositionWithPID(Pose2d pose) {
+    //     System.out.println("translateToPositionWithPID command started");
+    //     DoubleSupplier theta = () -> new Pose2d(pose.getTranslation(), new Rotation2d())//计算目标方向角
+    //             .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
+    //             .getTranslation().getAngle().getRadians();
         
-        DoubleSupplier driveYaw = () -> (getRotation().getRadians() + 2 * Math.PI) % (2 * Math.PI);//获取当前朝向角
+    //     DoubleSupplier driveYaw = () -> (getRotation().getRadians() + 2 * Math.PI) % (2 * Math.PI);//获取当前朝向角
         
-        DoubleSupplier distanceToTarget = () -> -new Pose2d(pose.getTranslation(), new Rotation2d())
-                .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
-                .getTranslation().getNorm();//当前位置与目标的距离
+    //     DoubleSupplier distanceToTarget = () -> -new Pose2d(pose.getTranslation(), new Rotation2d())
+    //             .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
+    //             .getTranslation().getNorm();//当前位置与目标的距离
         
-        return new PIDCommand(
-            pidLineup, // PID控制器
-            distanceToTarget, // 测量值供应商：当前距离
-            0, // 设定值：目标距离为0
-            (pidOutput) -> { // 控制输出处理
-                inPidTranslate = true;
+    //     return new PIDCommand(
+    //         pidLineup, // PID控制器
+    //         distanceToTarget, // 测量值供应商：当前距离
+    //         0, // 设定值：目标距离为0
+    //         (pidOutput) -> { // 控制输出处理
+    //             inPidTranslate = true;
                 
-                // 使用PID输出计算底盘速度
-                runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                    MathUtils.clamp(pidOutput * Math.cos(theta.getAsDouble()), 
-                        -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vx速度
-                    MathUtils.clamp(pidOutput * Math.sin(theta.getAsDouble()), 
-                        -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vy速度
-                    MathUtils.clamp(
-                        angleController.calculate(driveYaw.getAsDouble(), pose.getRotation().getRadians()),
-                        -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC)),//计算角速度
-                    getRotation()));
-            },
-            this // 子系统需求
-        )
-        .until(() -> pidLineup.atSetpoint()) // 使用until判断命令退出条件
-        .andThen(() -> {
-                // 命令结束后重置所有参数
-                inPidTranslate = false;
-                pidLineup.reset();
-                angleController.reset();
-                stop();
-                System.out.println("translateToPositionWithPID command completed");
-            });
+    //             // 使用PID输出计算底盘速度
+    //             runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
+    //                 MathUtils.clamp(pidOutput * Math.cos(theta.getAsDouble()), 
+    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vx速度
+    //                 MathUtils.clamp(pidOutput * Math.sin(theta.getAsDouble()), 
+    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vy速度
+    //                 MathUtils.clamp(
+    //                     angleController.calculate(driveYaw.getAsDouble(), pose.getRotation().getRadians()),
+    //                     -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC)),//计算角速度
+    //                 getRotation()));
+    //         },
+    //         this // 子系统需求
+    //     )
+    //     .until(() -> pidLineup.atSetpoint()) // 使用until判断命令退出条件
+    //     .andThen(() -> {
+    //             // 命令结束后重置所有参数
+    //             inPidTranslate = false;
+    //             pidLineup.reset();
+    //             angleController.reset();
+    //             stop();
+    //             System.out.println("translateToPositionWithPID command completed");
+    //         });
+    // }
+
+        /**
+     * 使用独立的 X, Y 和 Rotation PID 控制器将机器人移动到目标位姿。
+     */
+    public Command translateToPositionWithPID(Pose2d targetPose) {
+        return run(() -> {
+            // 1. 获取当前位姿
+            Pose2d currentPose = getPose();
+
+            // 2. 计算各个轴的反馈速度 (Field Relative)
+            // 注意：计算的是目标 - 当前，所以结果是正向速度
+            double xFeedback = xController.calculate(currentPose.getX(), targetPose.getX());
+            double yFeedback = yController.calculate(currentPose.getY(), targetPose.getY());
+            double rotFeedback = angleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
+
+            // 3. 限制最大速度 (Clamp)
+            double xSpeed = MathUtils.clamp(xFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
+            double ySpeed = MathUtils.clamp(yFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
+            double rotSpeed = MathUtils.clamp(rotFeedback, -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC);
+
+            // 4. 发送到底盘
+            // 因为我们计算的是 Field Relative 的误差，所以要转换成 ChassisSpeeds
+            // 这里的 runVelocity 内部调用的是 applyRequest (robot relative)，
+            // 所以我们需要将 场地的 x/y 转换为 机器人相对的 vx/vy
+            ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(xSpeed, ySpeed, rotSpeed);
+            ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, currentPose.getRotation());
+            
+            runVelocity(robotRelativeSpeeds);
+
+        })
+        // 退出条件：三个控制器都到达 Setpoint
+        .until(() -> xController.atSetpoint() && yController.atSetpoint() && angleController.atSetpoint())
+        .finallyDo(() -> {
+            // 结束时停车并重置
+            stop();
+            xController.reset();
+            yController.reset();
+            angleController.reset();
+            System.out.println("PID Translation Finished");
+        });
     }
 
+    
     /**
      * Returns a {@link BooleanSupplier} indicating whether both the translation and rotation
      * PID controllers are within their respective setpoint tolerances.
