@@ -87,13 +87,8 @@ public class Constants {
         // The layout of the AprilTags on the field
         public static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
                 .loadField(AprilTagFields.kDefaultField);
-        public static Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //blue start middle
-        // public Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //blue start left
-        // public Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //blue start right
-
-        //public static Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start middle
-        // public Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start left
-        // public Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start right
+        public static Pose2d m_initialPose = new Pose2d(0.866, 1.585, Rotation2d.fromDegrees(0)); //blue start
+        //public static Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start
 
         //到点容差半径，单位英寸
         public static final double SCORING_SIDE_RADIUS_ROBOT_IN = 18.25;

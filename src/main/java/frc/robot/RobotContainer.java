@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,6 +36,8 @@ import frc.robot.subsystems.Vision;
 import static frc.robot.Constants.IntakeConfig.*;
 
 import java.util.List;
+import java.util.Set;
+
 import static frc.robot.Constants.LauncherConfig.shootingVoltage;
 
 
@@ -65,6 +68,11 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public RobotContainer() {
+        //register the command for auto 
+        NamedCommands.registerCommand("ShootNamedCommand",
+            ShootingCommand.createShootingCommand(intake, launcher, transport).withTimeout(5.0)
+        );
+
         configureBindings();
         // Build an auto chooser. This will use Commands.none() as the default option.
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -203,10 +211,14 @@ public class RobotContainer {
 
     }
 
-   public Command getAutonomousCommand() {
-    // This method loads the auto when it is called, however, it is recommended
-    // to first load your paths/autos when code starts, then return the
-    // pre-loaded auto/path
-    return new PathPlannerAuto("New Auto");
-  }
+    public Command getAutoInitCommand(){
+        return AutoBuilder.resetOdom(Constants.VisionConfig.m_initialPose);
+    }
+
+    public Command getAutonomousCommand() {
+        // This method loads the auto when it is called, however, it is recommended
+        // to first load your paths/autos when code starts, then return the
+        // pre-loaded auto/path
+        return autoChooser.getSelected();
+    }
 }
