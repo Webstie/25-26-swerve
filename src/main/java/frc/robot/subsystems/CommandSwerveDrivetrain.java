@@ -94,8 +94,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     // 在类成员变量区域
     // 替换原来的 pidLineup
-    private final PIDController xController = new PIDController(3.0, 0.0, 0.0);
-    private final PIDController yController = new PIDController(3.0, 0.0, 0.0);
+    private final PIDController xController = new PIDController(8.0, 0, 0.2);
+    private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
     private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); // 稍微加一点 kI 消除角度静态误差
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
@@ -421,16 +421,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     
-    /**
-     * Returns a {@link BooleanSupplier} indicating whether both the translation and rotation
-     * PID controllers are within their respective setpoint tolerances.
-     *
-     * @return A boolean supplier that is {@code true} when both PID controllers have reached
-     *         their setpoints.
-     */
-    public BooleanSupplier translatePidInPosition() {
-        return () -> pidLineup.atSetpoint() && angleController.atSetpoint();
-    }
+    // /**
+    //  * Returns a {@link BooleanSupplier} indicating whether both the translation and rotation
+    //  * PID controllers are within their respective setpoint tolerances.
+    //  *
+    //  * @return A boolean supplier that is {@code true} when both PID controllers have reached
+    //  *         their setpoints.
+    //  */
+    // public BooleanSupplier translatePidInPosition() {
+    //     return () -> pidLineup.atSetpoint() && angleController.atSetpoint();
+    // }
 
     /**
      * Creates a command that uses pathfinding to move the robot to the given target pose.
