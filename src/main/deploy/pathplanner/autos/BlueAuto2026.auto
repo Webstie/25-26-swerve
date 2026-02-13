@@ -45,6 +45,12 @@
           "data": {
             "pathName": "ClimbPath1"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ClimbingNamedCommand"
+          }
         }
       ]
     }

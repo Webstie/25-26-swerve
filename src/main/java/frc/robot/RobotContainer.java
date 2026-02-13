@@ -77,7 +77,8 @@ public class RobotContainer {
 
         //自动intake调用命令
         NamedCommands.registerCommand("IntakeNamedCommand",
-            intake.ChangeIntakeSpeedSingleCommand()
+            intake.AdjustIntakePositionSingleCommand(IntakeDownPosition)
+            .andThen(intake.ChangeIntakeSpeedSingleCommand())
             .andThen(intake.IntakeSingleCommand())
             .andThen(Commands.either(
                 new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
@@ -85,6 +86,19 @@ public class RobotContainer {
                 () -> intake.Intake_press_times % 2 == 0
             ))
         );
+
+        NamedCommands.registerCommand("ClimbingNamedCommand", 
+            intake.AdjustIntakePositionSingleCommand(IntakeUpPosition)
+                        .andThen(intake.ChangeIntakeSpeedSingleCommand())
+            .andThen(intake.IntakeSingleCommand())
+            .andThen(Commands.either(
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
+                () -> intake.Intake_press_times % 2 == 0
+            ))
+            
+        );
+
 
         configureBindings();
         // Build an auto chooser. This will use Commands.none() as the default option.
