@@ -7,7 +7,31 @@
         {
           "type": "path",
           "data": {
-            "pathName": "ShootPath1"
+            "pathName": "IntakePath1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "IntakeNamedCommand"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "IntakePath2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "IntakeInsidePath"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Intake to Shoot"
           }
         },
         {

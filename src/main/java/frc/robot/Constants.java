@@ -65,7 +65,7 @@ public class Constants {
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
-        public static final double IntakeVelocity = -30.0;
+        public static final double IntakeVelocity = -70.0;
         public static final double SupportVelocity = 10.0;
     
         public static final int INTAKE_MOTOR_ID = 6;
@@ -87,7 +87,7 @@ public class Constants {
         // The layout of the AprilTags on the field
         public static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
                 .loadField(AprilTagFields.kDefaultField);
-        public static Pose2d m_initialPose = new Pose2d(0.866, 1.585, Rotation2d.fromDegrees(0)); //blue start
+        public static Pose2d m_initialPose = new Pose2d(3.67, 0.67, Rotation2d.fromDegrees(180)); //blue start
         //public static Pose2d m_initialPose = new Pose2d(7.68, 3.7, Rotation2d.fromDegrees(180)); //red start
 
         //到点容差半径，单位英寸

@@ -68,9 +68,22 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public RobotContainer() {
-        //register the command for auto 
+
+        //register the named commands for auto mode
+        //自动发射调用命令
         NamedCommands.registerCommand("ShootNamedCommand",
             ShootingCommand.createShootingCommand(intake, launcher, transport).withTimeout(5.0)
+        );
+
+        //自动intake调用命令
+        NamedCommands.registerCommand("IntakeNamedCommand",
+            intake.ChangeIntakeSpeedSingleCommand()
+            .andThen(intake.IntakeSingleCommand())
+            .andThen(Commands.either(
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
+                () -> intake.Intake_press_times % 2 == 0
+            ))
         );
 
         configureBindings();

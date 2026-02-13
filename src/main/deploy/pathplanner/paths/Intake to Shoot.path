@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.6694238261836185,
-        "y": 0.6715416666666669
+        "x": 0.9183596239540668,
+        "y": 5.947258333333333
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.47529977405475,
-        "y": 1.564714573457618
+        "x": 2.246008333333334,
+        "y": 4.745483333333334
       },
       "isLocked": false,
-      "linkedName": "start"
+      "linkedName": "IntakeInsideEnd"
     },
     {
       "anchor": {
@@ -20,8 +20,8 @@
         "y": 2.6
       },
       "prevControl": {
-        "x": 2.4349666666666665,
-        "y": 2.6669416666666668
+        "x": 3.1227750000000003,
+        "y": 3.0977666666666663
       },
       "nextControl": null,
       "isLocked": false,
@@ -32,7 +32,7 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.3953488372093023,
+      "minWaypointRelativePos": 0.40033222591362144,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
         "maxVelocity": 1.0,
@@ -69,7 +69,7 @@
   "folder": "Blue",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -179.39148126164346
+    "rotation": 179.88334612219998
   },
   "useDefaultConstraints": false
 }
