@@ -1,8 +1,21 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.*;
+//import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import java.util.Map;
+
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
@@ -13,23 +26,36 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.DriveFeedforwards;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
+
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.util.MathUtils;
+import frc.robot.Constants;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -52,6 +78,25 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
     private final SwerveRequest.ApplyRobotSpeeds m_autoSpeeds = new SwerveRequest.ApplyRobotSpeeds();
+
+    /* vision */
+    public  boolean kUseVision = true;
+    private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+
+    @AutoLogOutput
+    private boolean hubTargetIsRight = true;
+
+    // PID controller for translation to target position
+    //private final PIDController pidLineup = new PIDController(3, 0.1, 0.1), angleController = new PIDController(2, 0, 0.1);
+    private boolean inPidTranslate = false;
+    private static final double PID_TRANSLATION_SPEED_MPS = 1.5;// 最大线速度（m/s）
+    private static final double PID_ROTATION_RAD_PER_SEC = Math.PI;// 最大角速度（rad/s）
+
+    // 在类成员变量区域
+    // 替换原来的 pidLineup
+    private final PIDController xController = new PIDController(8.0, 0, 0.2);
+    private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
+    private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); // 稍微加一点 kI 消除角度静态误差
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -133,6 +178,19 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        
+        // Set PID controller tolerances
+        //pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        //angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
+        //angleController.enableContinuousInput(0, 2 * Math.PI);
+
+
+        xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+
+        //auto builder 
         configureAutoBuilder();
     }
 
@@ -158,6 +216,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        // Set PID controller tolerances
+        //pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        //angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
+        //angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+
+        //auto builder 
         configureAutoBuilder();
     }
 
@@ -191,6 +261,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        // Set PID controller tolerances
+        //pidLineup.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);//m
+        //angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));//°
+        //angleController.enableContinuousInput(0, 2 * Math.PI);
+
+        xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
+        angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+
+        //auto builder 
         configureAutoBuilder();
     }
 
@@ -216,8 +298,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             (speeds, feedforwards) -> driveRobotRelative(speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             new PPHolonomicDriveController(
-                new PIDConstants(5.0, 0.0, 0.0),
-                new PIDConstants(5.0, 0.0, 0.0)
+                new PIDConstants(3.0, 0.1, 0.1),
+                new PIDConstants(2.0, 0.0, 0.1)
             ),
             config, // The robot configuration
             () -> {
@@ -240,6 +322,212 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> this.setControl(requestSupplier.get()));
     }
+    
+    // /**
+    //  * Translates the robot to a target position and orientation using PID control.
+    //  * <p>
+    //  * This command uses a linear PID controller for translation and a separate
+    //  * controller for rotation to move the robot from its current pose to the
+    //  * specified {@code pose}. It calculates the required field-relative chassis
+    //  * speeds based on the distance and angle to the target, and terminates when
+    //  * the position error is within the PID tolerance.
+    //  *
+    //  * @param pose The target pose (position and orientation) in field coordinates.
+    //  * @return A {@link Command} that drives the robot until it reaches the target pose.
+    //  */
+    // @SuppressWarnings("removal")
+    // public Command translateToPositionWithPID(Pose2d pose) {
+    //     System.out.println("translateToPositionWithPID command started");
+    //     DoubleSupplier theta = () -> new Pose2d(pose.getTranslation(), new Rotation2d())//计算目标方向角
+    //             .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
+    //             .getTranslation().getAngle().getRadians();
+        
+    //     DoubleSupplier driveYaw = () -> (getRotation().getRadians() + 2 * Math.PI) % (2 * Math.PI);//获取当前朝向角
+        
+    //     DoubleSupplier distanceToTarget = () -> -new Pose2d(pose.getTranslation(), new Rotation2d())
+    //             .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
+    //             .getTranslation().getNorm();//当前位置与目标的距离
+        
+    //     return new PIDCommand(
+    //         pidLineup, // PID控制器
+    //         distanceToTarget, // 测量值供应商：当前距离
+    //         0, // 设定值：目标距离为0
+    //         (pidOutput) -> { // 控制输出处理
+    //             inPidTranslate = true;
+                
+    //             // 使用PID输出计算底盘速度
+    //             runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
+    //                 MathUtils.clamp(pidOutput * Math.cos(theta.getAsDouble()), 
+    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vx速度
+    //                 MathUtils.clamp(pidOutput * Math.sin(theta.getAsDouble()), 
+    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vy速度
+    //                 MathUtils.clamp(
+    //                     angleController.calculate(driveYaw.getAsDouble(), pose.getRotation().getRadians()),
+    //                     -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC)),//计算角速度
+    //                 getRotation()));
+    //         },
+    //         this // 子系统需求
+    //     )
+    //     .until(() -> pidLineup.atSetpoint()) // 使用until判断命令退出条件
+    //     .andThen(() -> {
+    //             // 命令结束后重置所有参数
+    //             inPidTranslate = false;
+    //             pidLineup.reset();
+    //             angleController.reset();
+    //             stop();
+    //             System.out.println("translateToPositionWithPID command completed");
+    //         });
+    // }
+
+        /**
+     * 使用独立的 X, Y 和 Rotation PID 控制器将机器人移动到目标位姿。
+     */
+    public Command translateToPositionWithPID(Pose2d targetPose) {
+        return run(() -> {
+            // 1. 获取当前位姿
+            Pose2d currentPose = getPose();
+
+            // 2. 计算各个轴的反馈速度 (Field Relative)
+            // 注意：计算的是目标 - 当前，所以结果是正向速度
+            double xFeedback = xController.calculate(currentPose.getX(), targetPose.getX());
+            double yFeedback = yController.calculate(currentPose.getY(), targetPose.getY());
+            double rotFeedback = angleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
+
+            // 3. 限制最大速度 (Clamp)
+            double xSpeed = MathUtils.clamp(xFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
+            double ySpeed = MathUtils.clamp(yFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
+            double rotSpeed = MathUtils.clamp(rotFeedback, -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC);
+
+            // 4. 发送到底盘
+            // 因为我们计算的是 Field Relative 的误差，所以要转换成 ChassisSpeeds
+            // 这里的 runVelocity 内部调用的是 applyRequest (robot relative)，
+            // 所以我们需要将 场地的 x/y 转换为 机器人相对的 vx/vy
+            ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(xSpeed, ySpeed, rotSpeed);
+            ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, currentPose.getRotation());
+            
+            runVelocity(robotRelativeSpeeds);
+
+        })
+        // 退出条件：三个控制器都到达 Setpoint
+        .until(() -> xController.atSetpoint() && yController.atSetpoint() && angleController.atSetpoint())
+        .finallyDo(() -> {
+            // 结束时停车并重置
+            stop();
+            xController.reset();
+            yController.reset();
+            angleController.reset();
+            System.out.println("PID Translation Finished");
+        });
+    }
+
+    
+    // /**
+    //  * Returns a {@link BooleanSupplier} indicating whether both the translation and rotation
+    //  * PID controllers are within their respective setpoint tolerances.
+    //  *
+    //  * @return A boolean supplier that is {@code true} when both PID controllers have reached
+    //  *         their setpoints.
+    //  */
+    // public BooleanSupplier translatePidInPosition() {
+    //     return () -> pidLineup.atSetpoint() && angleController.atSetpoint();
+    // }
+
+    /**
+     * Creates a command that uses pathfinding to move the robot to the given target pose.
+     * <p>
+     * This command uses predefined motion constraints to ensure the robot moves within
+     * safe velocity and acceleration limits.
+     *
+     * @param pose The desired target pose (position and orientation) on the field.
+     * @return A {@link Command} that will pathfind to the target pose.
+     */
+    public Command pathfindToPose(Pose2d pose) {
+        return AutoBuilder.pathfindToPose(pose, new PathConstraints(2, 2, Math.PI, 2 * Math.PI));
+    }
+
+    /**
+     * Determines the closest scoring position (hub pose) based on AprilTag vision data.
+     * <p>
+     * This method processes vision data from multiple cameras to identify valid AprilTag targets,
+     * selects the nearest hub tag, and calculates the optimal robot scoring position relative to it.
+     * If no valid tags are detected, a default tag ID is used as a fallback.
+     * <p>
+     * The scoring position is calculated by applying a transformation to the detected tag's pose,
+     * taking into account the robot's scoring side radius and branch offset.
+     *
+     * @param cameraEstimators A map of {@link PhotonCamera} to {@link PhotonPoseEstimator}, representing
+     *                         the cameras and their respective pose estimators.
+     * @return The closest hub scoring {@link Pose2d} relative to the field. If no valid tag is found,
+     *         the robot's current pose is returned as a fallback.
+     */
+    public Pose2d closestHubPose(Map<PhotonCamera, PhotonPoseEstimator> cameraEstimators) {
+        List<PhotonTrackedTarget> allValidTargets = new ArrayList<>();
+        
+        // 遍历所有相机，获取并合并所有有效的AprilTag目标
+        cameraEstimators.forEach((camera, estimator) -> {
+            // 使用getLatestResult()替代getAllUnreadResults()
+            PhotonPipelineResult latestResult = camera.getLatestResult();
+            
+            // 检查结果是否有效且包含目标
+            if (latestResult == null || !latestResult.hasTargets()) {
+                System.out.println("No valid targets for camera: " + camera.getName());
+                return;
+            }
+            
+            // 筛选有效的hub tag并添加到合并列表中
+            latestResult.getTargets().stream()
+                .filter(target -> target.getFiducialId() != -1)
+                .forEach(allValidTargets::add);
+        });
+        
+        // 从所有相机的结果中找到最近的有效AprilTag
+        PhotonTrackedTarget closestTag = allValidTargets.stream()
+            .min(Comparator.comparingDouble(target -> {
+                Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(target.getFiducialId());
+                return tagPose.map(pose -> pose.toPose2d().getTranslation().getDistance(getPose().getTranslation()))
+                            .orElse(Double.MAX_VALUE);
+            }))
+            .orElse(null);
+
+        // 如果没有找到有效tag，返回机器人当前位置
+        if (closestTag == null) {
+            System.out.println("No valid hub tags found, staying at current position");
+            return getPose();
+        }
+
+        int targetTagId = closestTag.getFiducialId();
+        
+        // 获取tag的场地位置
+        Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(targetTagId);
+        if (!tagPose.isPresent()) {
+            // 如果找不到tag位置，返回当前机器人位置作为fallback
+            System.err.println("Warning: Could not find pose for tag ID " + targetTagId);
+            return getPose();
+        }
+        
+        Pose2d tagPose2d = tagPose.get().toPose2d();
+        
+        // 计算得分位置
+        Pose2d closestPose = tagPose2d
+                .transformBy(new Transform2d(
+                    Units.inchesToMeters(Constants.VisionConfig.SCORING_SIDE_RADIUS_ROBOT_IN),
+                    ((hubTargetIsRight ? Constants.VisionConfig.TAG_TO_BRANCH_OFFSET_M : -Constants.VisionConfig.TAG_TO_BRANCH_OFFSET_M)),
+                    Rotation2d.kZero));
+        
+
+
+        return new Pose2d(closestPose.getTranslation(),
+                closestPose.getRotation().plus(Constants.VisionConfig.SCORING_SIDE_FROM_FRONT_ROT));
+    }
+
+    /**
+     * Returns the current rotation of the robot from odometry.
+     *
+     * @return the current robot rotation as a {@link Rotation2d}.
+     */
+    public Rotation2d getRotation() {
+        return getPose().getRotation();
+    }
 
     public Pose2d getPose() {
         return getState().Pose;
@@ -255,6 +543,23 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public void driveRobotRelative(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
         setControl(m_autoSpeeds.withSpeeds(speeds));
+    }
+
+    /**
+     * Sends the given robot-relative chassis speeds to the drivetrain.
+     *
+     * @param robotRelativeSpeeds The desired chassis speeds in the robot's reference frame
+     */
+    private void runVelocity(ChassisSpeeds robotRelativeSpeeds) {
+        // m_pathApplyRobotSpeeds 是你类里已存在的 ApplyRobotSpeeds 实例
+        this.setControl(m_autoSpeeds.withSpeeds(robotRelativeSpeeds));
+    }
+
+    /**
+     * Stops the drivetrain by setting all chassis velocities to zero.
+     */
+    private void stop() {
+        runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0));
     }
 
     /**
@@ -348,5 +653,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+    }
+
+    /**
+     * Sets whether the hub target is located on the right side.
+     *
+     * @param hubTargetIsRight true if the target is on the right, false if on the left
+     */
+    public void setHubTargetIsRight(boolean hubTargetIsRight) {
+        this.hubTargetIsRight = hubTargetIsRight;
     }
 }
