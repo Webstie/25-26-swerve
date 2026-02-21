@@ -6,9 +6,11 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,32 +18,37 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CANdleSystem;
-import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterAngleSystem;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.TransportSubsystem;
-import frc.robot.subsystems.PivotSubsystem;
-import static frc.robot.Constants.Intake.*;
-import static frc.robot.Constants.Shooter.shootingVoltage;
-import frc.robot.Constants.LightState;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.Transport;
+import frc.robot.subsystems.Vision.VisionMeasurement;
+import frc.robot.subsystems.Vision;
+
+import static frc.robot.Constants.IntakeConfig.*;
+
+import java.util.List;
+import java.util.Set;
+
+import static frc.robot.Constants.LauncherConfig.shootingVoltage;
 
 
 public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
-    public final ClimberSubsystem Climber = new ClimberSubsystem();
-    public final ShooterSubsystem Shooter = new ShooterSubsystem();
-    public final TransportSubsystem Transport = new TransportSubsystem();
-    public final IntakeSubsystem Intake = new IntakeSubsystem();
-    public final CANdleSystem Candle = new CANdleSystem();
-    public final ShooterAngleSystem Angle = new ShooterAngleSystem();
+    public final Climber climber = new Climber();
+    public final Launcher launcher = new Launcher();
+    public final Transport transport = new Transport();
+    public final Intake intake = new Intake();
+    public final CANdleSystem candle = new CANdleSystem();
+    public final Vision vision = new Vision();
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -61,6 +68,38 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public RobotContainer() {
+
+        //register the named commands for auto mode
+        //自动发射调用命令
+        NamedCommands.registerCommand("ShootNamedCommand",
+            ShootingCommand.createShootingCommand(intake, launcher, transport).withTimeout(5.0)
+        );
+
+        //自动intake调用命令
+        NamedCommands.registerCommand("IntakeNamedCommand",
+            intake.AdjustIntakePositionSingleCommand(IntakeDownPosition)
+            .andThen(intake.ChangeIntakeSpeedSingleCommand())
+            .andThen(intake.IntakeSingleCommand())
+            .andThen(Commands.either(
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
+                () -> intake.Intake_press_times % 2 == 0
+            ))
+        );
+
+        NamedCommands.registerCommand("ClimbingNamedCommand", 
+            intake.AdjustIntakePositionSingleCommand(IntakeUpPosition)
+                        .andThen(intake.ChangeIntakeSpeedSingleCommand())
+            .andThen(intake.IntakeSingleCommand())
+            .andThen(Commands.either(
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
+                () -> intake.Intake_press_times % 2 == 0
+            ))
+            
+        );
+
+
         configureBindings();
         // Build an auto chooser. This will use Commands.none() as the default option.
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -73,7 +112,7 @@ public class RobotContainer {
 
     private void configureBindings() {
         
-        //Driver
+        /******************************************************Driver**********************************************************************/
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
@@ -90,61 +129,123 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-Driver.getLeftY(), -Driver.getLeftX()))
         ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
         // reset the field-centric heading on left bumper press
         Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        
+        Driver.y().whileTrue(
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+            })
+            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+                0,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.BLUE_HUB_CENTER
+            ))
+            .finallyDo((interrupted) -> {
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            })
+        );
 
-        //Operator
+        Driver.b().whileTrue(
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+            })
+            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+                1,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.BLUE_HUB_CENTER
+            ))
+            .finallyDo((interrupted) -> {
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            })
+        );
+
+        /**********************************************************Operator**********************************************************/
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-        Operator.x().onTrue(Intake.changePitchPosition()
+        Operator.x().onTrue(intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
-                        Intake.adjust_IntakePosition(IntakeUpPosition), 
-                        Intake.adjust_IntakePosition(IntakeDownPosition), 
-                        ()->Intake.IntakepitchPositionFlag)));
+                        intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
+                        intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
+                        ()->intake.IntakepitchPositionFlag)));
         Operator.y().onTrue(
-            Intake.changeIntakeSpeed()
-                .andThen(Intake.IntakeCommand())
+            intake.ChangeIntakeSpeedSingleCommand()
+                .andThen(intake.IntakeSingleCommand())
                 .andThen(Commands.either(
-                    Candle.setLightStateCommand(LightState.INTAKING),
-                    Candle.setLightStateCommand(LightState.OFF),
-                    () -> Intake.Intake_press_times % 2 == 1
+                    new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
+                    new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
+                    () -> intake.Intake_press_times % 2 == 0
                 ))
         );
-    
+        
 
         Operator.a().whileTrue(
-            new OuttakeCommand(Intake, Shooter, Transport)
-                .alongWith(Candle.holdLightState(LightState.OUTTAKING))
+            new OuttakeCommand(intake, launcher, transport)
         );
-        Operator.b().onTrue(Candle.setRainbowCommand());
+
+        Operator.povRight().whileTrue(
+            Commands.runOnce(() -> {
+                System.out.println("SWING");
+            })
+            .andThen(
+                Commands.runOnce(()->
+                    intake.IntakeSwingSingleCommand().repeatedly())
+            ));
+
+
+        //test candle
+        Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
+
         Operator.leftBumper().whileTrue(
-            new ShootingCommand(Intake, Shooter, Transport)
-                .alongWith(Candle.holdLightState(LightState.SHOOTING))
+            ShootingCommand.createShootingCommand(intake, launcher, transport)
         );
 
-        Operator.rightBumper().onTrue(Climber.StartClimb().alongWith(Candle.setLightStateCommand(LightState.CLIMBING)));
-        Operator.rightTrigger().onTrue(Climber.Climb().alongWith(Candle.setLightStateCommand(LightState.CLIMBING)));
+        Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
+        Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
 
-        Operator.povUp().whileTrue(Angle.AdjustShootingAngle(-shootingVoltage));
-        Operator.povDown().whileTrue(Angle.AdjustShootingAngle(shootingVoltage));
+        Operator.povUp().onTrue(launcher.AdjustAngleToPositionCommand(0.02));
+        Operator.povDown().onTrue(launcher.AdjustAngleToPositionCommand(0));
+
+
+        //*****************************************************sysid ********************************************************************************/
+        // // Run SysId routines when holding back/start and X/Y.
+        // // Note that each routine should be run exactly once in a single log.
+        // Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
 
     }
     
-   public Command getAutonomousCommand() {
-    // This method loads the auto when it is called, however, it is recommended
-    // to first load your paths/autos when code starts, then return the
-    // pre-loaded auto/path
-    return new PathPlannerAuto("New Auto");
-  }
+    public void addMeasurements() {
+
+        SwerveDriveState driveState = drivetrain.getState();
+        List<VisionMeasurement> measurements = vision.processVisionData(driveState);
+
+        for (VisionMeasurement m : measurements) {
+            drivetrain.addVisionMeasurement(m.pose, m.timestamp, m.stdDevs);
+        }
+
+    }
+
+    public Command getAutoInitCommand(){
+        return AutoBuilder.resetOdom(Constants.VisionConfig.m_initialPose);
+    }
+
+    public Command getAutonomousCommand() {
+        // This method loads the auto when it is called, however, it is recommended
+        // to first load your paths/autos when code starts, then return the
+        // pre-loaded auto/path
+        return autoChooser.getSelected();
+    }
 }

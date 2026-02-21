@@ -4,11 +4,11 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
-import static frc.robot.Constants.Transport.*;
+import static frc.robot.Constants.TransportConfig.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class TransportSubsystem extends SubsystemBase {
+public class Transport extends SubsystemBase {
 
     private final TalonFX Transport_motor = new TalonFX(TRANSPORT_MOTOR_ID, new CANBus("canivore"));
 
@@ -16,7 +16,7 @@ public class TransportSubsystem extends SubsystemBase {
 
     public int transport_press_times = 0;
 
-    public TransportSubsystem() {
+    public Transport() {
 
         var TransportmotorConfigs = new TalonFXConfiguration();
         TransportmotorConfigs.Slot0.kS = 0.0;
@@ -34,31 +34,39 @@ public class TransportSubsystem extends SubsystemBase {
         Transport_motor.getConfigurator().apply(TransportmotorConfigs);
     }
 
-    public void setTransportMotorVelocity(double velocity) {
+    /**
+    传送带速度设置接口
+     */
+    public void setTransportVelocity(double velocity) {
         Transport_motor.setControl(Transport_motor_Velocity_Request.withVelocity(-velocity));
     }
 
-    
-    public Command TransportIntakeCommand() {
+    /**
+    传送带Intake单独命令
+     */
+    public Command TransportIntakeSingleCommand() {
         return startEnd(
             () -> { 
-                setTransportMotorVelocity(-TransportSpeed);
+                setTransportVelocity(TransportSpeed);
                   },
                   
             () -> {
-                setTransportMotorVelocity(0);
+                setTransportVelocity(0);
                   }
         );
     }
 
-    public Command TransportOuttakeCommand() {
+    /**
+    传送带Outtake单独命令
+     */
+    public Command TransportOuttakeSingleCommand() {
         return startEnd(
             () -> { 
-                setTransportMotorVelocity(TransportSpeed*3);
+                setTransportVelocity(-TransportSpeed);
                   },
                   
             () -> {
-                setTransportMotorVelocity(0);
+                setTransportVelocity(0);
                   }
         );
     }
