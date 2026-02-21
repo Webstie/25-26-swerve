@@ -8,6 +8,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import static frc.robot.Constants.Shooter.*;
 
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -17,7 +18,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 
 public class ShooterSubsystem extends SubsystemBase {
-    private final SparkMax shooterAdjustment;
+    private final SparkMax shooterAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
+;
 
     private final TalonFX IntakeBallMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
     private final TalonFX LeftFrictionwheelMotor = new TalonFX(LEFT_FRICTIONWHEEL_MOTOR_ID, new CANBus("canivore"));
@@ -29,8 +31,7 @@ public class ShooterSubsystem extends SubsystemBase {
   
     
     public ShooterSubsystem() {
-        shooterAdjustment = new SparkMax(SHOOTER_SPARKMAX_ID, MotorType.kBrushed);
-
+        
         var LeftFricwhemotorConfigs = new TalonFXConfiguration();
         LeftFricwhemotorConfigs.Slot0.kS = 0.0;
         LeftFricwhemotorConfigs.Slot0.kV = 0.0;
