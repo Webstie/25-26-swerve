@@ -59,8 +59,8 @@ public class Constants {
     }
 
     public static final class IntakeConfig{
-        public static final double IntakeSwingDownPosition = -14.0;
-        public static final double IntakeSwingUpPosition = -12.0;
+        public static final double IntakeSwingDownPosition = -15.0;
+        public static final double IntakeSwingUpPosition = -13.0;
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
