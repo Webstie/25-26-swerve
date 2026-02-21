@@ -1,0 +1,49 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "IntakeNamedCommand"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartToIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "IntakeToShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootNamedCommand"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "ShootToClimb"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ClimbingNamedCommand"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
