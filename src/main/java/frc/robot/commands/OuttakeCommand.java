@@ -12,7 +12,7 @@ public class OuttakeCommand extends ParallelCommandGroup {
         Transport transport
     ) {
         addCommands(
-            //intakeSubsystem.swing_OuttakePosition().repeatedly(),
+            intake.OuttakeSwingSingleCommand().repeatedly(),
             launcher.OuttakeSingleCommand(),
             transport.TransportOuttakeSingleCommand()
         );

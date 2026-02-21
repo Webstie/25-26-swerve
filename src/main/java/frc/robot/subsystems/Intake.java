@@ -21,7 +21,7 @@ import static frc.robot.Constants.IntakeConfig.*;
 public class Intake extends SubsystemBase {
 
     private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
-    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("canivore"));
+    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("rio"));
     private final TalonFX Intake_support_motor = new TalonFX(INTAKE_SUPPORT_MOTOR_ID,new CANBus("canivore"));
 
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);

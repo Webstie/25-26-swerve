@@ -60,7 +60,7 @@ public class Constants {
 
     public static final class IntakeConfig{
         public static final double IntakeSwingDownPosition = -14.0;
-        public static final double IntakeSwingUpPosition = -11.0;
+        public static final double IntakeSwingUpPosition = -12.0;
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
@@ -69,14 +69,14 @@ public class Constants {
         public static final double SupportVelocity = 10.0;
     
         public static final int INTAKE_MOTOR_ID = 6;
-        public static final int INTAKE_PITCH_MOTOR_ID = 7;
-        public static final int INTAKE_SUPPORT_MOTOR_ID = 9;
+        public static final int INTAKE_PITCH_MOTOR_ID = 9;
+        public static final int INTAKE_SUPPORT_MOTOR_ID = 7;
     }
 
     public static final class TransportConfig{
-        public static int TransportSpeed = 40;
+        public static double  TransportSpeed = 40.0;
         
-        public static int TRANSPORT_MOTOR_ID = 8;
+        public static int TRANSPORT_MOTOR_ID = 10;
     }
 
     public static final class Candle{

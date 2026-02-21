@@ -172,11 +172,15 @@ public class RobotContainer {
 
         /**********************************************************Operator**********************************************************/
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
+
+        //intake机构放下or回收
         Operator.x().onTrue(intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
                         intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
                         intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
                         ()->intake.IntakepitchPositionFlag)));
+
+        //吸球
         Operator.y().onTrue(
             intake.ChangeIntakeSpeedSingleCommand()
                 .andThen(intake.IntakeSingleCommand())
@@ -187,11 +191,13 @@ public class RobotContainer {
                 ))
         );
         
-
+        //吐球
         Operator.a().whileTrue(
             new OuttakeCommand(intake, launcher, transport)
+            
         );
 
+        //
         Operator.povRight().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("SWING");
@@ -202,7 +208,7 @@ public class RobotContainer {
             ));
 
 
-        //test candle
+        //canle
         Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
 
         Operator.leftBumper().whileTrue(
