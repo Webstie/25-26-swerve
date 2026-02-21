@@ -218,8 +218,8 @@ public class RobotContainer {
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
 
-        Operator.povUp().onTrue(launcher.AdjustAngleToPositionCommand(0.02));
-        Operator.povDown().onTrue(launcher.AdjustAngleToPositionCommand(0));
+        Operator.povUp().whileTrue(launcher.AdjustAngleSingleCommand(12));
+        Operator.povDown().whileTrue(launcher.AdjustAngleSingleCommand(-12));
 
 
         //*****************************************************sysid ********************************************************************************/

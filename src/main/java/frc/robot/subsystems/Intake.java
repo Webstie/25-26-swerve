@@ -61,8 +61,8 @@ public class Intake extends SubsystemBase {
         IntakePitchMotorConfigs.Slot0.kP = 5;
         IntakePitchMotorConfigs.Slot0.kI = 0;
         IntakePitchMotorConfigs.Slot0.kD = 0;
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 200; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 400; 
         IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
         IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
         IntakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;

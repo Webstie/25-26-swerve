@@ -43,7 +43,7 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double FrictionWheelLaunchSpeed = 55.0;
+        public static final double FrictionWheelLaunchSpeed = 50.0;
         public static final double WarmupSecond = 2.0;
         public static final double FeederSpeed = 50.0;
         public static final double OuttakeBallspeed = -30.0;

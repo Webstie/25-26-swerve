@@ -63,7 +63,9 @@ public class ShootingCommand extends SequentialCommandGroup {
         Command intakeStream = Commands.sequence(
             Commands.waitSeconds(warmupTime), // 等待预热
             // 这里直接将 Command 对象放入 sequence，而不是在 lambda 中创建
-            intake.IntakeSwingSingleCommand().repeatedly()
+            Commands.parallel(intake.IntakeSwingSingleCommand().repeatedly(),
+                            Commands.run(()->intake.setSupportMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
+           
         );
 
         // --- 组合所有流 ---
