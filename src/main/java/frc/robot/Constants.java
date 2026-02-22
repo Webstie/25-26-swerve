@@ -43,7 +43,7 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double FrictionWheelLaunchSpeed = 55.0;///////////////////////////////////////////////////
+        public static final double FrictionWheelLaunchSpeed = 50.0;///////////////////////////////////////////////////
         public static final double WarmupSecond = 2.5;////////////////////////////////////////////////////////////////
         public static final double FeederSpeed = 55.0;/////////////////////////////////////////////////////////////////
         public static final double OuttakeBallspeed = -30.0;
@@ -114,6 +114,6 @@ public class Constants {
         //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
 
-        public static final double ANGLE_TOLERANCE_DEGREES = 1.0;
+        public static final double ANGLE_TOLERANCE_DEGREES = 0.8;
     }
 }

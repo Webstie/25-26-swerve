@@ -96,7 +96,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // 替换原来的 pidLineup
     private final PIDController xController = new PIDController(8.0, 0, 0.2);
     private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
-    private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); // 稍微加一点 kI 消除角度静态误差
+    private final PIDController angleController = new PIDController(5.0, 0.0, 0.05); 
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(

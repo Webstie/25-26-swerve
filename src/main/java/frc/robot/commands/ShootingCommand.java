@@ -108,15 +108,7 @@ public class ShootingCommand extends SequentialCommandGroup {
         // --- 1. Launcher 的逻辑流 (预热 -> 发射) ---
         // 注意：摩擦轮在两个阶段都要转，Feeder 只在第二阶段转
         Command launcherStream = Commands.sequence(
-            // 第一阶段：预热 (摩擦轮转，Feeder停)
-            Commands.run(
-                () -> {
-                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
-                    launcher.setFeederVelocity(0);
-                }, launcher
-            ),
-
-            // 第二阶段：发射 (摩擦轮转，Feeder转)
+            // 第一阶段： (摩擦轮转，Feeder转)
             Commands.run(
                 () -> {
                     launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
@@ -132,7 +124,6 @@ public class ShootingCommand extends SequentialCommandGroup {
                 {
                     transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
                     //在启动传送带的同时启动Support电机
-                   
                 }, transport
             )
         );

@@ -29,6 +29,7 @@ public class MagicSequencingCommand {
      * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
      * @return 一个动态命令，执行时会自动计算最近点并规划路径
      */
+    //********************************************************常规自瞄********************************************************** */
     public static Command magicRunToClosestHardcodedPose(
             int position_index,
             CommandSwerveDrivetrain drive, 
@@ -110,7 +111,7 @@ public class MagicSequencingCommand {
      * 
      * @param drive 底盘子系统
      * @param intakeSubsystem Intake子系统实例
-     * @param shooterSubsystem Shooter子系统实例
+     * @param launcher Shooter子系统实例
      * @param transportSubsystem Transport子系统实例
      * @param blueScoringPositions 蓝色联盟视角下的候选得分点列表 (Translation2d)
      * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
@@ -120,7 +121,7 @@ public class MagicSequencingCommand {
         int position_index,
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
-        Launcher shooterSubsystem,
+        Launcher launcher,
         Transport transportSubsystem,
         List<Translation2d> blueScoringPositions,
         Translation2d blueCenterPosition
@@ -128,19 +129,21 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             return Commands.sequence(
                 // 第一阶段：移动到目标位置
-                MagicSequencingCommand.magicRunToClosestHardcodedPose(position_index,drive, blueScoringPositions, blueCenterPosition),
+                Commands.parallel(     
+                    Commands.runOnce(()->launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed)),//预热       
+                    MagicSequencingCommand.magicRunToClosestHardcodedPose(position_index,drive, blueScoringPositions, blueCenterPosition)//移动
+                
+                ),
                 // 第二阶段：到达位置后开始射击
-                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem)
-            );
-        }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem));
+        }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
     }
 
 
 
 
 
-
-    //原地自瞄发射
+    //*******************************************************************原地自瞄发射***************************************************************
     public static Command turn2PositionCommand(
             CommandSwerveDrivetrain drive, 
             Translation2d blueCenterPosition) {
@@ -181,23 +184,19 @@ public class MagicSequencingCommand {
         public static Command createAutoTurnScoreCommand(
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
-        Launcher launcher,
+        Launcher shooterSubsystem,
         Transport transportSubsystem,
         List<Translation2d> blueScoringPositions,
         Translation2d blueCenterPosition
     ) {
         return Commands.defer(() -> {
             return Commands.sequence(
-                // 第一阶段：移动到目标位置，同时轮子开始转动预热
-                Commands.parallel(
-                    MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
-                    Commands.runOnce(() -> launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed))
-                ),
-
-                // 第二阶段：到达位置后开始射击,无预热
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem)
+                // 第一阶段：移动到目标位置
+                MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
+                // 第二阶段：到达位置后开始射击
+                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem)
             );
-        }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
+        }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
     }
 }
 
