@@ -47,7 +47,7 @@ public class Launcher extends SubsystemBase {
         LeftFricwhemotorConfigs.Slot0.kS = 1.5;
         LeftFricwhemotorConfigs.Slot0.kV = 0.15;
         LeftFricwhemotorConfigs.Slot0.kA = 0;
-        LeftFricwhemotorConfigs.Slot0.kP = 7;
+        LeftFricwhemotorConfigs.Slot0.kP = 6.5;
         LeftFricwhemotorConfigs.Slot0.kI = 0;
         LeftFricwhemotorConfigs.Slot0.kD = 0.2;
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -62,7 +62,7 @@ public class Launcher extends SubsystemBase {
         MiddleFricwhemotorConfigs.Slot0.kS = 1.5;
         MiddleFricwhemotorConfigs.Slot0.kV = 0.15;
         MiddleFricwhemotorConfigs.Slot0.kA = 0;
-        MiddleFricwhemotorConfigs.Slot0.kP = 7;
+        MiddleFricwhemotorConfigs.Slot0.kP = 6.5;
         MiddleFricwhemotorConfigs.Slot0.kI = 0;
         MiddleFricwhemotorConfigs.Slot0.kD = 0.2;
         MiddleFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -77,7 +77,7 @@ public class Launcher extends SubsystemBase {
         RightFricwhemotorConfigs.Slot0.kS = 1.5;
         RightFricwhemotorConfigs.Slot0.kV = 0.15;
         RightFricwhemotorConfigs.Slot0.kA = 0;
-        RightFricwhemotorConfigs.Slot0.kP = 7;
+        RightFricwhemotorConfigs.Slot0.kP = 6.5;
         RightFricwhemotorConfigs.Slot0.kI = 0;
         RightFricwhemotorConfigs.Slot0.kD = 0.2;
         RightFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -141,9 +141,9 @@ public class Launcher extends SubsystemBase {
         return run(
             () -> {
                 if ((angleEncoder.getAbsolutePosition().getValueAsDouble() - targetPosition) >= 0){
-                    setAngleVoltage(12);
-                }else{
                     setAngleVoltage(-12);
+                }else{
+                    setAngleVoltage(12);
                 }
             }
         ).until(
@@ -180,7 +180,7 @@ public class Launcher extends SubsystemBase {
     /**
     发射(摩擦轮+intake)单独命令
      */
-    public Command LaunchSingleCommand() { 
+    public Command LaunchSingleCommand(double FrictionWheelLaunchSpeed) { 
         return startEnd(
             () -> { 
                 setFrictionWheelVelocity(FrictionWheelLaunchSpeed);
@@ -212,7 +212,7 @@ public class Launcher extends SubsystemBase {
     /**
     摩擦轮预热单独命令
      */
-    public Command ShooterWarmupSingleCommand() { 
+    public Command ShooterWarmupSingleCommand(double FrictionWheelLaunchSpeed) { 
         return runOnce(
             () -> { 
                 setFrictionWheelVelocity(FrictionWheelLaunchSpeed);

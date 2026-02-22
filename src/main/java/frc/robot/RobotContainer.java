@@ -72,7 +72,13 @@ public class RobotContainer {
         //register the named commands for auto mode
         //自动发射调用命令
         NamedCommands.registerCommand("ShootNamedCommand",
-            ShootingCommand.createShootingCommand(intake, launcher, transport).withTimeout(5.0)
+            ShootingCommand.createShootingCommand(
+                intake, 
+                launcher, 
+                transport, 
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed, 
+                Constants.LauncherConfig.Near_launch_angle)
+                .withTimeout(5.0)
         );
 
         //自动intake调用命令
@@ -134,6 +140,7 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
+        //半自动点位测试
         Driver.y().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
@@ -145,7 +152,9 @@ public class RobotContainer {
                 launcher, 
                 transport,
                 Constants.VisionConfig.BLUE_SCORING_NODES, 
-                Constants.VisionConfig.BLUE_HUB_CENTER
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
+                Constants.LauncherConfig.Near_launch_angle
             ))
             .finallyDo((interrupted) -> {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -157,13 +166,15 @@ public class RobotContainer {
                 System.out.println("Starting Hub targeting command");
             })
             .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
-                1,
+                3,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
                 Constants.VisionConfig.BLUE_SCORING_NODES, 
-                Constants.VisionConfig.BLUE_HUB_CENTER
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
+                Constants.LauncherConfig.Far_launch_angle
             ))
             .finallyDo((interrupted) -> {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -212,15 +223,17 @@ public class RobotContainer {
         Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
 
         Operator.leftBumper().whileTrue(
-            ShootingCommand.createShootingCommand(intake, launcher, transport)
+            ShootingCommand.createShootingCommand(intake, launcher, transport,Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed, Constants.LauncherConfig.Far_launch_angle)
         );
 
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
 
-        Operator.povUp().whileTrue(launcher.AdjustAngleSingleCommand(12));
-        Operator.povDown().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        Operator.povUp().whileTrue(launcher.AdjustAngleToPositionCommand(Constants.LauncherConfig.Far_launch_angle));
+        Operator.povDown().whileTrue(launcher.AdjustAngleToPositionCommand(Constants.LauncherConfig.Near_launch_angle));
 
+        Operator.povRight().whileTrue(launcher.AdjustAngleSingleCommand(12));
+        Operator.povLeft().whileTrue(launcher.AdjustAngleSingleCommand(-12));
 
         //*****************************************************sysid ********************************************************************************/
         // // Run SysId routines when holding back/start and X/Y.

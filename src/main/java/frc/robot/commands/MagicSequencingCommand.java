@@ -124,18 +124,22 @@ public class MagicSequencingCommand {
         Launcher launcher,
         Transport transportSubsystem,
         List<Translation2d> blueScoringPositions,
-        Translation2d blueCenterPosition
+        Translation2d blueCenterPosition,
+        double frictionWheelLaunchSpeed,
+        double launch_angle
+
     ) {
         return Commands.defer(() -> {
             return Commands.sequence(
                 // 第一阶段：移动到目标位置
                 Commands.parallel(     
-                    Commands.runOnce(()->launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed)),//预热       
+                    Commands.runOnce(()->launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),//预热       
+                    launcher.AdjustAngleToPositionCommand(launch_angle),
                     MagicSequencingCommand.magicRunToClosestHardcodedPose(position_index,drive, blueScoringPositions, blueCenterPosition)//移动
                 
                 ),
                 // 第二阶段：到达位置后开始射击
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem));
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem, frictionWheelLaunchSpeed));
         }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
     }
 
@@ -187,14 +191,16 @@ public class MagicSequencingCommand {
         Launcher shooterSubsystem,
         Transport transportSubsystem,
         List<Translation2d> blueScoringPositions,
-        Translation2d blueCenterPosition
+        Translation2d blueCenterPosition,
+        double frictionWheelLaunchSpeed,
+        double launch_angle
     ) {
         return Commands.defer(() -> {
             return Commands.sequence(
                 // 第一阶段：移动到目标位置
                 MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
                 // 第二阶段：到达位置后开始射击
-                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem)
+                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem, frictionWheelLaunchSpeed,launch_angle)
             );
         }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
     }

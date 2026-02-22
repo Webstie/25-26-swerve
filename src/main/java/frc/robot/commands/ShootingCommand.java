@@ -21,7 +21,9 @@ public class ShootingCommand extends SequentialCommandGroup {
     public static Command createShootingCommand(
         Intake intake,
         Launcher launcher,
-        Transport transport
+        Transport transport,
+        double frictionWheelLaunchSpeed,
+        double launch_angle
     ) {
         // 定义预热时间
         double warmupTime = Constants.LauncherConfig.WarmupSecond;
@@ -29,19 +31,23 @@ public class ShootingCommand extends SequentialCommandGroup {
         // --- 1. Launcher 的逻辑流 (预热 -> 发射) ---
         // 注意：摩擦轮在两个阶段都要转，Feeder 只在第二阶段转
         Command launcherStream = Commands.sequence(
-            // 第一阶段：预热 (摩擦轮转，Feeder停)
+            // 第一阶段：预热 (摩擦轮转，Feeder停,调整角度)
+        Commands.parallel(
             Commands.run(
-                () -> {
-                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
-                    launcher.setFeederVelocity(0);
-                }, launcher
-            )
+                    () -> {
+                            launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
+                            launcher.setFeederVelocity(0);
+                        }
+                    )
+                    .alongWith(launcher.AdjustAngleToPositionCommand(launch_angle))   
+        )
+
             .withTimeout(warmupTime), // 运行指定时间后自动进入下一阶段
 
             // 第二阶段：发射 (摩擦轮转，Feeder转)
             Commands.run(
                 () -> {
-                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
+                    launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
                     launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
                 }, launcher
             )
@@ -102,19 +108,25 @@ public class ShootingCommand extends SequentialCommandGroup {
     public static Command createAutoShootingCommand(
         Intake intake,
         Launcher launcher,
-        Transport transport
+        Transport transport,
+        double frictionWheelLaunchSpeed
+        
     ) {
 
         // --- 1. Launcher 的逻辑流 (预热 -> 发射) ---
         // 注意：摩擦轮在两个阶段都要转，Feeder 只在第二阶段转
         Command launcherStream = Commands.sequence(
-            // 第一阶段： (摩擦轮转，Feeder转)
-            Commands.run(
-                () -> {
-                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
-                    launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
-                }, launcher
+            // 第一阶段： (摩擦轮转，Feeder转,调整角度)
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                        launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
+                        launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                    }
+                )
+
             )
+
         );
 
         // --- 2. Transport 的逻辑流 (等待 -> 运行) ---
