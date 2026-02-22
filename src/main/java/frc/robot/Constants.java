@@ -15,7 +15,7 @@ public class Constants {
     //variables for robot state
     public static class RobotState{
         public enum State {
-            STATE1, STATE2, STATE3, STATE4;
+            Shooting, Intaking, ClimbingUp, Outtaking, ClimbingDown, Idle;
         };
     }
 
@@ -114,14 +114,15 @@ public class Constants {
             // new Translation2d(2.5, 3.3)
 
             //近处3个点
-            new Translation2d(3.2, 2.6),
-            new Translation2d(2.8, 3.9),
-            new Translation2d(3.3, 5.4),
+            new Translation2d(3.3, 5.4),//近左（0
+            new Translation2d(2.8, 3.9),//近中（1
+            new Translation2d(3.2, 2.6),//近右（2
+  
 
             //远处三个点
-            new Translation2d(2.17, 6.01),
-            new Translation2d(1.642, 3.61),
-            new Translation2d(2.039, 2.065)
+            new Translation2d(2.17, 6.01),//远左（3
+            new Translation2d(1.642, 3.61),//远中（4
+            new Translation2d(2.039, 2.065)//远右（5
 
 
         );
