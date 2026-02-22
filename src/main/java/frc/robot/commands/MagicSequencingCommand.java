@@ -14,6 +14,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
+import frc.robot.Constants;
 
 public class MagicSequencingCommand {
 
@@ -180,19 +181,23 @@ public class MagicSequencingCommand {
         public static Command createAutoTurnScoreCommand(
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
-        Launcher shooterSubsystem,
+        Launcher launcher,
         Transport transportSubsystem,
         List<Translation2d> blueScoringPositions,
         Translation2d blueCenterPosition
     ) {
         return Commands.defer(() -> {
             return Commands.sequence(
-                // 第一阶段：移动到目标位置
-                MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
-                // 第二阶段：到达位置后开始射击
-                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem)
+                // 第一阶段：移动到目标位置，同时轮子开始转动预热
+                Commands.parallel(
+                    MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
+                    Commands.runOnce(() -> launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed))
+                ),
+
+                // 第二阶段：到达位置后开始射击,无预热
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem)
             );
-        }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
+        }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
     }
 }
 

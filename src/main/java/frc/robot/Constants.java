@@ -43,9 +43,9 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double FrictionWheelLaunchSpeed = 50.0;
-        public static final double WarmupSecond = 2.0;
-        public static final double FeederSpeed = 50.0;
+        public static final double FrictionWheelLaunchSpeed = 55.0;///////////////////////////////////////////////////
+        public static final double WarmupSecond = 2.5;////////////////////////////////////////////////////////////////
+        public static final double FeederSpeed = 55.0;/////////////////////////////////////////////////////////////////
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
         public static final double FrictionWheelVelocityRampRate = 50.0;
@@ -66,7 +66,7 @@ public class Constants {
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -70.0;
-        public static final double SupportVelocity = 10.0;
+        public static final double SupportVelocity = 60.0;//////////////////////////////////////////////////////////(可以比较快)
     
         public static final int INTAKE_MOTOR_ID = 6;
         public static final int INTAKE_PITCH_MOTOR_ID = 9;
@@ -74,7 +74,7 @@ public class Constants {
     }
 
     public static final class TransportConfig{
-        public static double  TransportSpeed = 40.0;
+        public static double  TransportSpeed = 50.0;/////////////////////////////////////////////////////////////////////
         
         public static int TRANSPORT_MOTOR_ID = 10;
     }

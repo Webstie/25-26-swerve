@@ -35,7 +35,8 @@ public class ShootingCommand extends SequentialCommandGroup {
                     launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
                     launcher.setFeederVelocity(0);
                 }, launcher
-            ).withTimeout(warmupTime), // 运行指定时间后自动进入下一阶段
+            )
+            .withTimeout(warmupTime), // 运行指定时间后自动进入下一阶段
 
             // 第二阶段：发射 (摩擦轮转，Feeder转)
             Commands.run(
@@ -54,7 +55,6 @@ public class ShootingCommand extends SequentialCommandGroup {
                 {
                     transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
                     //在启动传送带的同时启动Support电机
-                    intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
                 }, transport
             )
         );
@@ -63,9 +63,12 @@ public class ShootingCommand extends SequentialCommandGroup {
         Command intakeStream = Commands.sequence(
             Commands.waitSeconds(warmupTime), // 等待预热
             // 这里直接将 Command 对象放入 sequence，而不是在 lambda 中创建
-            Commands.parallel(intake.IntakeSwingSingleCommand().repeatedly(),
-                            Commands.run(()->intake.setSupportMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
-           
+            Commands.parallel(intake.IntakeSwingSingleCommand().repeatedly()
+                        .alongWith(Commands.run(() -> {
+                            intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+                            intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+                        }))
+                        )       
         );
 
         // --- 组合所有流 ---
@@ -77,12 +80,96 @@ public class ShootingCommand extends SequentialCommandGroup {
         )
         // 关键：finallyDo 确保无论命令是正常结束还是被中断(松开按键)，都会执行清理
         .finallyDo((interrupted) -> {
+            System.out.println("finallydo xxxxxxxxxxxxxxxxxxxxxxxxxx");
+            //摩擦轮停
             launcher.setFrictionWheelVelocity(0);
+            //feeder轮停xxx
             launcher.setFeederVelocity(0);
+            //Transport停
             transport.setTransportVelocity(0);
+            //Intake停
+            intake.setIntakeMotorVelocity(0);
+            //搅拌停
             intake.setSupportMotorVelocity(0);
-            // 停止 Intake 摆动并复位
-            intake.setPitchMotorPosition(Constants.IntakeConfig.IntakeDownPosition);
+            //释放intakepitch
+            intake.applyIntakePitchMotorNeutral();
+
+        });
+    }
+
+
+    //自动发射（不等待预热，直接执行），路径移动时已经提前预热
+    public static Command createAutoShootingCommand(
+        Intake intake,
+        Launcher launcher,
+        Transport transport
+    ) {
+
+        // --- 1. Launcher 的逻辑流 (预热 -> 发射) ---
+        // 注意：摩擦轮在两个阶段都要转，Feeder 只在第二阶段转
+        Command launcherStream = Commands.sequence(
+            // 第一阶段：预热 (摩擦轮转，Feeder停)
+            Commands.run(
+                () -> {
+                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
+                    launcher.setFeederVelocity(0);
+                }, launcher
+            ),
+
+            // 第二阶段：发射 (摩擦轮转，Feeder转)
+            Commands.run(
+                () -> {
+                    launcher.setFrictionWheelVelocity(Constants.LauncherConfig.FrictionWheelLaunchSpeed);
+                    launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                }, launcher
+            )
+        );
+
+        // --- 2. Transport 的逻辑流 (等待 -> 运行) ---
+        Command transportStream = Commands.sequence(
+            Commands.run(
+                () -> 
+                {
+                    transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+                    //在启动传送带的同时启动Support电机
+                   
+                }, transport
+            )
+        );
+
+        // --- 3. Intake 的逻辑流 (等待 -> 循环摆动) ---
+        Command intakeStream = Commands.sequence(
+            // 这里直接将 Command 对象放入 sequence，而不是在 lambda 中创建
+        Commands.parallel(intake.IntakeSwingSingleCommand().repeatedly()
+                        .alongWith(Commands.run(() -> {
+                            intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+                            intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+                        }))
+                        )    
+        );
+
+        // --- 组合所有流 ---
+        // 使用 ParallelCommandGroup 同时运行这三条线
+        return Commands.parallel(
+            launcherStream,
+            transportStream,
+            intakeStream
+        )
+        // 关键：finallyDo 确保无论命令是正常结束还是被中断(松开按键)，都会执行清理
+        .finallyDo((interrupted) -> {
+            //摩擦轮停
+            launcher.setFrictionWheelVelocity(0);
+            //feeder轮停
+            launcher.setFeederVelocity(0);
+            //Transport停
+            transport.setTransportVelocity(0);
+            //Intake停
+            intake.setIntakeMotorVelocity(0);
+            //搅拌停
+            intake.setSupportMotorVelocity(0);
+            //释放intakepitch
+            intake.applyIntakePitchMotorNeutral();
+
         });
     }
 }

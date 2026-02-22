@@ -47,7 +47,7 @@ public class Launcher extends SubsystemBase {
         LeftFricwhemotorConfigs.Slot0.kS = 1.5;
         LeftFricwhemotorConfigs.Slot0.kV = 0.15;
         LeftFricwhemotorConfigs.Slot0.kA = 0;
-        LeftFricwhemotorConfigs.Slot0.kP = 5;
+        LeftFricwhemotorConfigs.Slot0.kP = 7;
         LeftFricwhemotorConfigs.Slot0.kI = 0;
         LeftFricwhemotorConfigs.Slot0.kD = 0.2;
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -62,7 +62,7 @@ public class Launcher extends SubsystemBase {
         MiddleFricwhemotorConfigs.Slot0.kS = 1.5;
         MiddleFricwhemotorConfigs.Slot0.kV = 0.15;
         MiddleFricwhemotorConfigs.Slot0.kA = 0;
-        MiddleFricwhemotorConfigs.Slot0.kP = 5;
+        MiddleFricwhemotorConfigs.Slot0.kP = 7;
         MiddleFricwhemotorConfigs.Slot0.kI = 0;
         MiddleFricwhemotorConfigs.Slot0.kD = 0.2;
         MiddleFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -77,7 +77,7 @@ public class Launcher extends SubsystemBase {
         RightFricwhemotorConfigs.Slot0.kS = 1.5;
         RightFricwhemotorConfigs.Slot0.kV = 0.15;
         RightFricwhemotorConfigs.Slot0.kA = 0;
-        RightFricwhemotorConfigs.Slot0.kP = 5;
+        RightFricwhemotorConfigs.Slot0.kP = 7;
         RightFricwhemotorConfigs.Slot0.kI = 0;
         RightFricwhemotorConfigs.Slot0.kD = 0.2;
         RightFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -122,7 +122,7 @@ public class Launcher extends SubsystemBase {
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
     /**
-    应用温和函数
+    缓慢释放电机
      */
     public void applyFrictionWheelNeutral() {
         LeftFrictionwheelMotor.setControl(Neutral_Request);

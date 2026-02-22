@@ -192,11 +192,11 @@ public class RobotContainer {
         );
         
         //吐球
-        Operator.a().whileTrue(
-            new OuttakeCommand(intake, launcher, transport)
+        Operator.a().whileTrue(OuttakeCommand.create(intake, launcher, transport));
+        // Operator.a().whileTrue(
+        //     new OuttakeCommand(intake, launcher, transport)
             
-        );
-
+        // );
         //
         Operator.povRight().whileTrue(
             Commands.runOnce(() -> {
