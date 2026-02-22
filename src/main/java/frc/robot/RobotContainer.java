@@ -61,8 +61,9 @@ public class RobotContainer {
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
-
-    private final CommandXboxController joystick = new CommandXboxController(0);
+    
+    private final CommandXboxController Driver = new CommandXboxController(0);
+    private final CommandXboxController Operator = new CommandXboxController(1);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
@@ -117,22 +118,15 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.5) // Drive forward with negative Y (forward)
+                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.5) // Drive left with negative X (left)
+                    .withRotationalRate(-Driver.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
-        RobotModeTriggers.disabled().whileTrue(
-            drivetrain.applyRequest(() -> idle).ignoringDisable(true)
-        );
-
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
+        Driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        Driver.b().whileTrue(drivetrain.applyRequest(() ->
+            point.withModuleDirection(new Rotation2d(-Driver.getLeftY(), -Driver.getLeftX()))
         ));
 
         // reset the field-centric heading on left bumper press
@@ -178,15 +172,11 @@ public class RobotContainer {
 
         /**********************************************************Operator**********************************************************/
         // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-
-        //intake机构放下or回收
         Operator.x().onTrue(intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
                         intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
                         intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
                         ()->intake.IntakepitchPositionFlag)));
-
-        //吸球
         Operator.y().onTrue(
             intake.ChangeIntakeSpeedSingleCommand()
                 .andThen(intake.IntakeSingleCommand())
@@ -197,13 +187,11 @@ public class RobotContainer {
                 ))
         );
         
-        //吐球
+
         Operator.a().whileTrue(
             new OuttakeCommand(intake, launcher, transport)
-            
         );
 
-        //
         Operator.povRight().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("SWING");
@@ -214,7 +202,7 @@ public class RobotContainer {
             ));
 
 
-        //canle
+        //test candle
         Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
 
         Operator.leftBumper().whileTrue(
@@ -224,8 +212,8 @@ public class RobotContainer {
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
 
-        Operator.povUp().whileTrue(launcher.AdjustAngleSingleCommand(12));
-        Operator.povDown().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        Operator.povUp().onTrue(launcher.AdjustAngleToPositionCommand(0.02));
+        Operator.povDown().onTrue(launcher.AdjustAngleToPositionCommand(0));
 
 
         //*****************************************************sysid ********************************************************************************/
