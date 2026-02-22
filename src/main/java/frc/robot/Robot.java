@@ -20,18 +20,47 @@ public class Robot extends TimedRobot {
         .withTimestampReplay()
         .withJoystickReplay();
 
-    public Robot() {
-        m_robotContainer = new RobotContainer();
+  @Override
+  public void robotPeriodic() {
+    CommandScheduler.getInstance().run(); 
+  }
+
+  @Override
+  public void disabledInit() {}
+
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
+  public void disabledExit() {}
+
+  @Override
+  public void autonomousInit() {
+    CommandScheduler.getInstance().schedule(m_robotContainer.getAutoInitCommand());
+
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    if (m_autonomousCommand != null) {
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
 
-    @Override
-    public void robotPeriodic() {
-        m_timeAndJoystickReplay.update();
-        CommandScheduler.getInstance().run(); 
+  @Override
+  public void autonomousPeriodic() {
+    m_robotContainer.addMeasurements();
+  }
+
+  @Override
+  public void autonomousExit() {}
+
+  @Override
+  public void teleopInit() {
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.cancel();
     }
 
-    @Override
-    public void disabledInit() {}
+  @Override
+  public void teleopPeriodic() {
+    m_robotContainer.addMeasurements();
+  }
 
     @Override
     public void disabledPeriodic() {}
