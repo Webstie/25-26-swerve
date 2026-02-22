@@ -32,13 +32,8 @@ import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
 import frc.robot.subsystems.Vision.VisionMeasurement;
 import frc.robot.subsystems.Vision;
-
 import static frc.robot.Constants.IntakeConfig.*;
-
 import java.util.List;
-import java.util.Set;
-
-import static frc.robot.Constants.LauncherConfig.shootingVoltage;
 
 
 public class RobotContainer {
@@ -66,6 +61,9 @@ public class RobotContainer {
     private final CommandXboxController Operator = new CommandXboxController(1);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+
+    //是否融合视觉位姿
+    public boolean isVisionPoseFusion = true;
 
     public RobotContainer() {
 
@@ -107,20 +105,18 @@ public class RobotContainer {
 
 
         configureBindings();
+
         // Build an auto chooser. This will use Commands.none() as the default option.
         autoChooser = AutoBuilder.buildAutoChooser();
+        // Another option that allows you to specify the default auto by its name
+        // autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+    }
 
-            // Another option that allows you to specify the default auto by its name
-            // autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
-
-            SmartDashboard.putData("Auto Chooser", autoChooser);
-        }
-
+    //按键绑定
     private void configureBindings() {
         
-        /******************************************************Driver**********************************************************************/
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
+        /******************************************************（Driver）**********************************************************************/
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -130,20 +126,19 @@ public class RobotContainer {
             )
         );
 
-        Driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        Driver.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-Driver.getLeftY(), -Driver.getLeftX()))
-        ));
+        // 切换是否使用视觉位姿融合
+        Driver.a().onTrue( Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion ));
 
         // reset the field-centric heading on left bumper press
         Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        //半自动点位测试
+        //半自动点位测试（近1）
         Driver.y().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true; // 进入半自动模式，开启视觉位姿融合
             })
             .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
                 0,
@@ -161,9 +156,11 @@ public class RobotContainer {
             })
         );
 
+        //半自动点位测试（远1）
         Driver.b().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
             })
             .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
                 3,
@@ -181,9 +178,7 @@ public class RobotContainer {
             })
         );
 
-        /**********************************************************Operator**********************************************************/
-        // Operator.a().onTrue(Intake.Intake_up_presstimes().andThen(Intake.IntakeCommand()));
-
+        /*****************************************************（Operator）**********************************************************/
         //intake机构放下or回收
         Operator.x().onTrue(intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
@@ -208,34 +203,38 @@ public class RobotContainer {
         //     new OuttakeCommand(intake, launcher, transport)
             
         // );
-        //
-        Operator.povRight().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("SWING");
-            })
-            .andThen(
-                Commands.runOnce(()->
-                    intake.IntakeSwingSingleCommand().repeatedly())
-            ));
+        // Operator.povRight().whileTrue(
+        //     Commands.runOnce(() -> {
+        //         System.out.println("SWING");
+        //     })
+        //     .andThen(
+        //         Commands.runOnce(()->
+        //             intake.IntakeSwingSingleCommand().repeatedly())
+        //     ));
 
 
-        //canle
+        //测试灯带
         Operator.b().onTrue((new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE4), candle)));
-
+        
+        //单独执行发射命令
         Operator.leftBumper().whileTrue(
             ShootingCommand.createShootingCommand(intake, launcher, transport,Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed, Constants.LauncherConfig.Far_launch_angle)
         );
-
+        
+        //爬升
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.rightTrigger().onTrue(climber.ClimbSingleCommand());
-
+        
+        //电推杆到某个位置
         Operator.povUp().whileTrue(launcher.AdjustAngleToPositionCommand(Constants.LauncherConfig.Far_launch_angle));
         Operator.povDown().whileTrue(launcher.AdjustAngleToPositionCommand(Constants.LauncherConfig.Near_launch_angle));
-
+            
+        //电推杆微调
         Operator.povRight().whileTrue(launcher.AdjustAngleSingleCommand(12));
         Operator.povLeft().whileTrue(launcher.AdjustAngleSingleCommand(-12));
 
-        //*****************************************************sysid ********************************************************************************/
+
+        //********************************************************** (Sysidroutine) ******************************************************
         // // Run SysId routines when holding back/start and X/Y.
         // // Note that each routine should be run exactly once in a single log.
         // Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -243,9 +242,9 @@ public class RobotContainer {
         // Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         // Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-
     }
     
+    //融合视觉位姿
     public void addMeasurements() {
 
         SwerveDriveState driveState = drivetrain.getState();
@@ -257,10 +256,12 @@ public class RobotContainer {
 
     }
 
+    //初始重置odom位置，防止启动区看不到tag导致乱跑
     public Command getAutoInitCommand(){
         return AutoBuilder.resetOdom(Constants.VisionConfig.m_initialPose);
     }
 
+    //返回选择的auto命令
     public Command getAutonomousCommand() {
         // This method loads the auto when it is called, however, it is recommended
         // to first load your paths/autos when code starts, then return the

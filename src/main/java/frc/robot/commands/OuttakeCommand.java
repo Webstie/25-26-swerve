@@ -4,25 +4,8 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
-
-// public class OuttakeCommand extends ParallelCommandGroup {
-//     public OuttakeCommand(
-//         Intake intake,
-//         Launcher launcher,
-//         Transport transport
-//     ) {
-//         addCommands(
-//             intake.OuttakeSwingSingleCommand().repeatedly(),
-//             launcher.OuttakeSingleCommand(),
-//             transport.TransportOuttakeSingleCommand()
-//         );
-       
-//     }
-// }
-
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+
 
 public class OuttakeCommand { // 注意：这里不再 extends ParallelCommandGroup
 

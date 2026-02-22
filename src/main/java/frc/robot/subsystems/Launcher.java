@@ -23,7 +23,6 @@ public class Launcher extends SubsystemBase {
 
     private static final double ANGLE_TOLERANCE = 0.001;
 
-
     private double frictionWheelVelocityTarget = 0.0;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut Neutral_Request = new NeutralOut();
@@ -114,7 +113,7 @@ public class Launcher extends SubsystemBase {
     }
 
     /**
-    内部应用速度并设置限制函数
+    设置速度
      */
     private void applyFrictionWheelVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
@@ -152,8 +151,9 @@ public class Launcher extends SubsystemBase {
             runOnce(() -> setAngleVoltage(0))
         );
     }
-/**
-    发射机构角度调整单独命令
+
+    /**
+    发射机构电推杆角度调整单独命令
      */
     public Command AdjustAngleSingleCommand(double Voltage){
         return startEnd(
@@ -171,7 +171,7 @@ public class Launcher extends SubsystemBase {
 
 
     /**
-    发射机构进料速度调整接口
+    发射机构feeder速度调整接口
      */
     public void setFeederVelocity(double Velocity) {
         FeederMotor.setControl(FeederMotor_Request.withVelocity(Velocity));

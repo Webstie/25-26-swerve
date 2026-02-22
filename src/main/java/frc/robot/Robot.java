@@ -58,7 +58,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    m_robotContainer.addMeasurements();
+    
+    //是否使用视觉位姿
+    //System.out.println("FLAG"+m_robotContainer.isVisionPoseFusion);
+    if(m_robotContainer.isVisionPoseFusion){
+      m_robotContainer.addMeasurements();
+    }
+
   }
 
   @Override
