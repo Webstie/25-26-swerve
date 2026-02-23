@@ -74,7 +74,7 @@ public class Vision extends SubsystemBase {
         // );
 
         cameraEstimators.put(
-            new PhotonCamera("Camera_Left"),
+            new PhotonCamera("Camera_FL"),
             new PhotonPoseEstimator(
                 aprilTagFieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
@@ -89,7 +89,7 @@ public class Vision extends SubsystemBase {
         );
 
         cameraEstimators.put(
-            new PhotonCamera("Camera_Right"), 
+            new PhotonCamera("Camera_FR"), 
             new PhotonPoseEstimator(
                 aprilTagFieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
@@ -99,6 +99,36 @@ public class Vision extends SubsystemBase {
                         0,
                         Units.degreesToRadians(0),//pitch
                         Units.degreesToRadians(0))//yaw
+                )
+            )
+        );
+
+        cameraEstimators.put(
+            new PhotonCamera("Camera_BL"), 
+            new PhotonPoseEstimator(
+                aprilTagFieldLayout,
+                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                new Transform3d(
+                    new Translation3d(-0.32704, 0.27873, 0.5),
+                    new Rotation3d(     
+                        0,
+                        Units.degreesToRadians(0),//pitch
+                        Units.degreesToRadians(180))//yaw
+                )
+            )
+        );
+
+        cameraEstimators.put(
+            new PhotonCamera("Camera_BR"), 
+            new PhotonPoseEstimator(
+                aprilTagFieldLayout,
+                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                new Transform3d(
+                    new Translation3d(-0.32704, -0.27873, 0.5),
+                    new Rotation3d(     
+                        0,
+                        Units.degreesToRadians(0),//pitch
+                        Units.degreesToRadians(180))//yaw
                 )
             )
         );

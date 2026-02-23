@@ -15,7 +15,7 @@ public class Constants {
     //variables for robot state
     public static class RobotState{
         public enum State {
-            STATE1, STATE2, STATE3, STATE4;
+            Shooting, Intaking, ClimbingUp, Outtaking, ClimbingDown, Idle;
         };
     }
 
@@ -43,9 +43,15 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double FrictionWheelLaunchSpeed = 55.0;
-        public static final double WarmupSecond = 2.0;
-        public static final double FeederSpeed = 50.0;
+        public static final double Near_FrictionWheelLaunchSpeed = 50;///////////////////////////////////////////////////
+        public static final double Far_FrictionWheelLaunchSpeed = 53.5;///////////////////////////////////////////////////
+
+        //远处近处不同点位对应的电推杆角度
+        public static final double Near_launch_angle = -0.0015;
+        public static final double Far_launch_angle  = -0.032;
+
+        public static final double WarmupSecond = 2.5;////////////////////////////////////////////////////////////////
+        public static final double FeederSpeed = 55.0;/////////////////////////////////////////////////////////////////
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
         public static final double FrictionWheelVelocityRampRate = 50.0;
@@ -59,24 +65,24 @@ public class Constants {
     }
 
     public static final class IntakeConfig{
-        public static final double IntakeSwingDownPosition = -14.0;
-        public static final double IntakeSwingUpPosition = -11.0;
+        public static final double IntakeSwingDownPosition = -15.0;
+        public static final double IntakeSwingUpPosition = -13.0;
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -70.0;
-        public static final double SupportVelocity = 10.0;
+        public static final double SupportVelocity = 60.0;//////////////////////////////////////////////////////////(可以比较快)
     
         public static final int INTAKE_MOTOR_ID = 6;
-        public static final int INTAKE_PITCH_MOTOR_ID = 7;
-        public static final int INTAKE_SUPPORT_MOTOR_ID = 9;
+        public static final int INTAKE_PITCH_MOTOR_ID = 9;
+        public static final int INTAKE_SUPPORT_MOTOR_ID = 7;
     }
 
     public static final class TransportConfig{
-        public static int TransportSpeed = 40;
+        public static double  TransportSpeed = 50.0;/////////////////////////////////////////////////////////////////////
         
-        public static int TRANSPORT_MOTOR_ID = 8;
+        public static int TRANSPORT_MOTOR_ID = 10;
     }
 
     public static final class Candle{
@@ -107,13 +113,47 @@ public class Constants {
             // new Translation2d(2.7, 1.6),
             // new Translation2d(2.5, 3.3)
 
-            new Translation2d(3.2, 2.6),
-            new Translation2d(2.8, 3.9)
+            //近处3个点
+            new Translation2d(3.3, 5.4),//近左（0
+            new Translation2d(2.8, 4.03),//近中（1
+            new Translation2d(3.2, 2.6),//近右（2
+  
+
+            //远处三个点
+            new Translation2d(2.17, 6.01),//远左（3
+            new Translation2d(1.642, 3.61),//远中（4
+            new Translation2d(2.039, 2.065)//远右（5
         );
+
+        //不同距离映射的pitch角度
+        public static final double[][] DISTANCE_DATA_TABLE = {
+            // {距离, Pitch角度,射速}
+            {0.375, -0.0015,50}, // 第 1 点
+            {0.750, -0.0015,50}, // 第 2 点
+            {1.125, -0.0015,50}, // 第 3 点
+            {1.5, -0.0015,50},   // 第 4 点
+            {1.875, -0.0015,50}, // 第 5 点
+            {2.25, -0.0015,50},  // 第 6 点
+            {2.625, -0.0015,50}, // 第 7 点
+            {3.0, -0.0015,50},   // 第 8 点
+            {3.375, -0.0015,50}, // 第 9 点
+            {3.83, -0.0015,50},  // 第 10 点
+            {4.2, -0.032,60}, // 第 11 点
+            {4.5, -0.032,50},   // 第 12 点
+            {4.875, -0.032,50}, // 第 13 点
+            {5.25, -0.032,50},  // 第 14 点
+            {5.625, -0.032,50}, // 第 15 点
+            {6.0, -0.032,50},   // 第 16 点
+            {6.375,-0.032,50}, // 第 17 点
+            {6.75, -0.032,50},  // 第 18 点
+            {7.125, -0.032,50}, // 第 19 点
+            {7.5, -0.032,50}    // 第 20 点
+        };
+
 
         //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
 
-        public static final double ANGLE_TOLERANCE_DEGREES = 1.0;
+        public static final double ANGLE_TOLERANCE_DEGREES = 0.8;
     }
 }

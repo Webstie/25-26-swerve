@@ -23,7 +23,6 @@ public class Launcher extends SubsystemBase {
 
     private static final double ANGLE_TOLERANCE = 0.001;
 
-
     private double frictionWheelVelocityTarget = 0.0;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut Neutral_Request = new NeutralOut();
@@ -47,7 +46,7 @@ public class Launcher extends SubsystemBase {
         LeftFricwhemotorConfigs.Slot0.kS = 1.5;
         LeftFricwhemotorConfigs.Slot0.kV = 0.15;
         LeftFricwhemotorConfigs.Slot0.kA = 0;
-        LeftFricwhemotorConfigs.Slot0.kP = 5;
+        LeftFricwhemotorConfigs.Slot0.kP = 6.5;
         LeftFricwhemotorConfigs.Slot0.kI = 0;
         LeftFricwhemotorConfigs.Slot0.kD = 0.2;
         LeftFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -62,7 +61,7 @@ public class Launcher extends SubsystemBase {
         MiddleFricwhemotorConfigs.Slot0.kS = 1.5;
         MiddleFricwhemotorConfigs.Slot0.kV = 0.15;
         MiddleFricwhemotorConfigs.Slot0.kA = 0;
-        MiddleFricwhemotorConfigs.Slot0.kP = 5;
+        MiddleFricwhemotorConfigs.Slot0.kP = 6.5;
         MiddleFricwhemotorConfigs.Slot0.kI = 0;
         MiddleFricwhemotorConfigs.Slot0.kD = 0.2;
         MiddleFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -77,7 +76,7 @@ public class Launcher extends SubsystemBase {
         RightFricwhemotorConfigs.Slot0.kS = 1.5;
         RightFricwhemotorConfigs.Slot0.kV = 0.15;
         RightFricwhemotorConfigs.Slot0.kA = 0;
-        RightFricwhemotorConfigs.Slot0.kP = 5;
+        RightFricwhemotorConfigs.Slot0.kP = 6.5;
         RightFricwhemotorConfigs.Slot0.kI = 0;
         RightFricwhemotorConfigs.Slot0.kD = 0.2;
         RightFricwhemotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
@@ -114,7 +113,7 @@ public class Launcher extends SubsystemBase {
     }
 
     /**
-    内部应用速度并设置限制函数
+    设置速度
      */
     private void applyFrictionWheelVelocity(double Velocity) { 
         LeftFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(Velocity));
@@ -122,7 +121,7 @@ public class Launcher extends SubsystemBase {
         RightFrictionwheelMotor.setControl(AllFrictionwheelMotor_Request.withVelocity(-Velocity));
     }
     /**
-    应用温和函数
+    缓慢释放电机
      */
     public void applyFrictionWheelNeutral() {
         LeftFrictionwheelMotor.setControl(Neutral_Request);
@@ -141,9 +140,9 @@ public class Launcher extends SubsystemBase {
         return run(
             () -> {
                 if ((angleEncoder.getAbsolutePosition().getValueAsDouble() - targetPosition) >= 0){
-                    setAngleVoltage(12);
-                }else{
                     setAngleVoltage(-12);
+                }else{
+                    setAngleVoltage(12);
                 }
             }
         ).until(
@@ -152,8 +151,9 @@ public class Launcher extends SubsystemBase {
             runOnce(() -> setAngleVoltage(0))
         );
     }
-/**
-    发射机构角度调整单独命令
+
+    /**
+    发射机构电推杆角度调整单独命令
      */
     public Command AdjustAngleSingleCommand(double Voltage){
         return startEnd(
@@ -171,7 +171,7 @@ public class Launcher extends SubsystemBase {
 
 
     /**
-    发射机构进料速度调整接口
+    发射机构feeder速度调整接口
      */
     public void setFeederVelocity(double Velocity) {
         FeederMotor.setControl(FeederMotor_Request.withVelocity(Velocity));
@@ -180,7 +180,7 @@ public class Launcher extends SubsystemBase {
     /**
     发射(摩擦轮+intake)单独命令
      */
-    public Command LaunchSingleCommand() { 
+    public Command LaunchSingleCommand(double FrictionWheelLaunchSpeed) { 
         return startEnd(
             () -> { 
                 setFrictionWheelVelocity(FrictionWheelLaunchSpeed);
@@ -212,7 +212,7 @@ public class Launcher extends SubsystemBase {
     /**
     摩擦轮预热单独命令
      */
-    public Command ShooterWarmupSingleCommand() { 
+    public Command ShooterWarmupSingleCommand(double FrictionWheelLaunchSpeed) { 
         return runOnce(
             () -> { 
                 setFrictionWheelVelocity(FrictionWheelLaunchSpeed);

@@ -4,6 +4,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -21,7 +22,7 @@ import static frc.robot.Constants.IntakeConfig.*;
 public class Intake extends SubsystemBase {
 
     private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
-    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("canivore"));
+    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("rio"));
     private final TalonFX Intake_support_motor = new TalonFX(INTAKE_SUPPORT_MOTOR_ID,new CANBus("canivore"));
 
     private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
@@ -30,6 +31,8 @@ public class Intake extends SubsystemBase {
 
     public int Intake_press_times = 0;
     public boolean IntakepitchPositionFlag = true;
+
+    private final NeutralOut Neutral_Request = new NeutralOut();//intake机构自然下放
 
     public Intake() {
 
@@ -61,8 +64,8 @@ public class Intake extends SubsystemBase {
         IntakePitchMotorConfigs.Slot0.kP = 5;
         IntakePitchMotorConfigs.Slot0.kI = 0;
         IntakePitchMotorConfigs.Slot0.kD = 0;
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 200; 
+        IntakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 400; 
         IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
         IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
         IntakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
@@ -83,6 +86,14 @@ public class Intake extends SubsystemBase {
         IntakeSupportMotorConfigs.MotionMagic.MotionMagicJerk = 0;
         IntakeSupportMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         Intake_support_motor.getConfigurator().apply(IntakeSupportMotorConfigs);
+    }
+
+
+    /**
+    缓慢释放电机
+     */
+    public void applyIntakePitchMotorNeutral() {
+        Intake_pitch_motor.setControl(Neutral_Request);
     }
 
     /**
@@ -166,7 +177,7 @@ public class Intake extends SubsystemBase {
     };
 
     /**
-    调整Intake位置单独命令
+    调整Intake位置单独命令,下放时到位后释放电机
      */
     public Command AdjustIntakePositionSingleCommand(double expected_position) { 
         return runEnd(
@@ -176,7 +187,12 @@ public class Intake extends SubsystemBase {
             () -> {
                    setPitchMotorPosition(get_PitchMotorPosition());
                   }
-        ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
+        ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5)
+        .finallyDo(
+            ()->{if (expected_position == Constants.IntakeConfig.IntakeDownPosition){
+                    applyIntakePitchMotorNeutral();
+                    }
+                });
     }
 
     /**
@@ -219,9 +235,9 @@ public class Intake extends SubsystemBase {
     Outtake摇摆单独命令
      */
     public Command OuttakeSwingSingleCommand() {
-        return AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingUpPosition)
+        return AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingUpPosition)//up
             .andThen(OuttakeForSingleCommand(SwingWaitTime))
-            .andThen(AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingDownPosition))
+            .andThen(AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingDownPosition))//down
             .andThen(OuttakeForSingleCommand(SwingWaitTime));
     }
 }
