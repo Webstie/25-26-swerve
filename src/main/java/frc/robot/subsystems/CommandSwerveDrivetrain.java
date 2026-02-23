@@ -562,22 +562,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0));
     }
 
-    public Pose2d getPose() {
-        return getState().Pose;
-    }
-
-    public void resetPose(Pose2d pose) {
-        super.resetPose(pose);
-    }
-
-    public ChassisSpeeds getRobotRelativeSpeeds() {
-        return getState().Speeds;
-    }
-
-    public void driveRobotRelative(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
-        setControl(m_autoSpeeds.withSpeeds(speeds));
-    }
-
     /**
      * Runs the SysId Quasistatic test in the given direction for the routine
      * specified by {@link #m_sysIdRoutineToApply}.
