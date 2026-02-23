@@ -23,8 +23,8 @@ public class ShootingCommand extends SequentialCommandGroup {
         Intake intake,
         Launcher launcher,
         Transport transport,
-        double frictionWheelLaunchSpeed,
-        double launch_angle
+        double frictionWheelLaunchSpeed
+        // double launch_angle
     ) {
         // 定义预热时间
         double warmupTime = Constants.LauncherConfig.WarmupSecond;
@@ -40,7 +40,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                                 launcher.setFeederVelocity(0);
                             }
                         )
-                        .alongWith(launcher.AdjustAngleToPositionCommand(launch_angle))   
+                        // .alongWith(launcher.AdjustAngleToPositionCommand(launch_angle))   
             ).withTimeout(warmupTime), // 运行指定时间后自动进入下一阶段
 
             // 第二阶段：发射 (摩擦轮转，Feeder转)

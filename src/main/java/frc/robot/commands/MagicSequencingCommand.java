@@ -200,7 +200,7 @@ public class MagicSequencingCommand {
                 // 第一阶段：移动到目标位置
                 MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition),
                 // 第二阶段：到达位置后开始射击
-                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem, frictionWheelLaunchSpeed,launch_angle)
+                ShootingCommand.createShootingCommand(intakeSubsystem, shooterSubsystem, transportSubsystem, frictionWheelLaunchSpeed)
             );
         }, Set.of(drive, intakeSubsystem, shooterSubsystem, transportSubsystem));
     }

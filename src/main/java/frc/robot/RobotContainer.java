@@ -74,8 +74,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport, 
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed, 
-                Constants.LauncherConfig.Near_launch_angle)
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed)
+                // Constants.LauncherConfig.Near_launch_angle)
                 .withTimeout(5.0)
         );
 
@@ -142,8 +142,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed, 
-                Constants.LauncherConfig.Far_launch_angle)
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed) 
+                // Constants.LauncherConfig.Far_launch_angle)
                 
         );
 
@@ -231,7 +231,7 @@ public class RobotContainer {
                 transport,
                 Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Near_launch_angle
             ))
             .finallyDo((interrupted) -> {
@@ -256,7 +256,7 @@ public class RobotContainer {
                 transport,
                 Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Near_launch_angle
             ))
             .finallyDo((interrupted) -> {
@@ -312,6 +312,7 @@ public class RobotContainer {
             .finallyDo((interrupted) -> {
                 isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                launcher.setFrictionWheelVelocity(0);
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
         );

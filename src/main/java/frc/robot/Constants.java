@@ -43,11 +43,11 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double Near_FrictionWheelLaunchSpeed = 50.0;///////////////////////////////////////////////////
-        public static final double Far_FrictionWheelLaunchSpeed = 55.0;///////////////////////////////////////////////////
+        public static final double Near_FrictionWheelLaunchSpeed = 50;///////////////////////////////////////////////////
+        public static final double Far_FrictionWheelLaunchSpeed = 53.5;///////////////////////////////////////////////////
 
         //远处近处不同点位对应的电推杆角度
-        public static final double Near_launch_angle = -0.020;
+        public static final double Near_launch_angle = -0.0015;
         public static final double Far_launch_angle  = -0.032;
 
         public static final double WarmupSecond = 2.5;////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ public class Constants {
 
             //近处3个点
             new Translation2d(3.3, 5.4),//近左（0
-            new Translation2d(2.8, 3.9),//近中（1
+            new Translation2d(2.8, 4.03),//近中（1
             new Translation2d(3.2, 2.6),//近右（2
   
 
