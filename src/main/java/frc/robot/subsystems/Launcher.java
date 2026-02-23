@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.LauncherConfig.*;
@@ -21,7 +22,7 @@ import com.revrobotics.spark.SparkMax;
 
 public class Launcher extends SubsystemBase {
 
-    private static final double ANGLE_TOLERANCE = 0.001;
+    private static final double ANGLE_TOLERANCE = 0.0003;
 
     private double frictionWheelVelocityTarget = 0.0;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
@@ -110,6 +111,8 @@ public class Launcher extends SubsystemBase {
             double limitedVelocity = velocityLimiter.calculate(frictionWheelVelocityTarget);
             applyFrictionWheelVelocity(limitedVelocity);
         }
+        
+        SmartDashboard.putNumber("shooting_Pitch",angleEncoder.getAbsolutePosition().getValueAsDouble());
     }
 
     /**
@@ -140,15 +143,17 @@ public class Launcher extends SubsystemBase {
         return run(
             () -> {
                 if ((angleEncoder.getAbsolutePosition().getValueAsDouble() - targetPosition) >= 0){
-                    setAngleVoltage(-12);
+                    setAngleVoltage(-8);
                 }else{
-                    setAngleVoltage(12);
+                    setAngleVoltage(8);
                 }
             }
         ).until(
             () -> Math.abs(targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble()) <= ANGLE_TOLERANCE
         ).andThen(
-            runOnce(() -> setAngleVoltage(0))
+            runOnce(() -> setAngleVoltage(0)
+                //SmartDashboard.putNumber("shooting_Pitch",angleEncoder.getAbsolutePosition().getValueAsDouble());
+            )
         );
     }
 
@@ -158,7 +163,9 @@ public class Launcher extends SubsystemBase {
     public Command AdjustAngleSingleCommand(double Voltage){
         return startEnd(
             ()->setAngleVoltage(Voltage),
-            ()->setAngleVoltage(0)
+            ()->{setAngleVoltage(0);
+                SmartDashboard.putNumber("shooting_Pitch",angleEncoder.getAbsolutePosition().getValueAsDouble());
+            }
         );
     }
 

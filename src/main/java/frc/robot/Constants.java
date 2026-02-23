@@ -50,7 +50,7 @@ public class Constants {
         public static final double Near_launch_angle = -0.0015;
         public static final double Far_launch_angle  = -0.032;
 
-        public static final double WarmupSecond = 2.5;////////////////////////////////////////////////////////////////
+        public static final double WarmupSecond = 3;////////////////////////////////////////////////////////////////
         public static final double FeederSpeed = 55.0;/////////////////////////////////////////////////////////////////
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
@@ -132,11 +132,11 @@ public class Constants {
             {0.750, -0.0015,50}, // 第 2 点
             {1.125, -0.0015,50}, // 第 3 点
             {1.5, -0.0015,50},   // 第 4 点
-            {1.875, -0.0015,50}, // 第 5 点
-            {2.25, -0.0015,50},  // 第 6 点
-            {2.625, -0.0015,50}, // 第 7 点
-            {3.0, -0.0015,50},   // 第 8 点
-            {3.375, -0.0015,50}, // 第 9 点
+            {1.8, -0.0015,50}, // 第 5 点*
+            {2.25, -0.00071,55},  // 第 6 点*
+            {2.625, -0.004,56.5}, // 第 7 点*
+            {3.0, -0.007,59.5},   // 第 8 点
+            {3.3, -0.007,60}, // 第 9 点
             {3.83, -0.0015,50},  // 第 10 点
             {4.2, -0.032,60}, // 第 11 点
             {4.5, -0.032,50},   // 第 12 点
