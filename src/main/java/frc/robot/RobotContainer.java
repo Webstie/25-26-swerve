@@ -62,12 +62,9 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-<<<<<<< HEAD
-=======
     //是否融合视觉位姿
     public boolean isVisionPoseFusion = true;
 
->>>>>>> visiontest
     public RobotContainer() {
 
         //register the named commands for auto mode
@@ -114,14 +111,8 @@ public class RobotContainer {
     //按键绑定
     private void configureBindings() {
         
-<<<<<<< HEAD
-        /******************************************************Driver**********************************************************************/
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
-=======
         /******************************************************（Driver）**********************************************************************/
         // 这个是默认的开环底盘控制，使用左操纵杆控制平移，右操纵杆控制旋转
->>>>>>> visiontest
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -130,20 +121,6 @@ public class RobotContainer {
                     .withRotationalRate(-Driver.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-<<<<<<< HEAD
-
-        Driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        Driver.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-Driver.getLeftY(), -Driver.getLeftX()))
-        ));
-
-        // reset the field-centric heading on left bumper press
-        Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
-        drivetrain.registerTelemetry(logger::telemeterize);
-
-        Driver.y().whileTrue(
-=======
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // 在视觉位姿关闭后的定头
@@ -216,7 +193,6 @@ public class RobotContainer {
 
         //半自动点位近左
         Operator.x().whileTrue(
->>>>>>> visiontest
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true; // 进入半自动模式，开启视觉位姿融合
