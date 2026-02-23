@@ -210,7 +210,7 @@ public class RobotContainer {
                 Constants.LauncherConfig.Near_launch_angle
             ))
             .finallyDo((interrupted) -> {
-                isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -236,7 +236,7 @@ public class RobotContainer {
                 Constants.LauncherConfig.Near_launch_angle
             ))
             .finallyDo((interrupted) -> {
-                isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -262,7 +262,7 @@ public class RobotContainer {
                 Constants.LauncherConfig.Near_launch_angle
             ))
             .finallyDo((interrupted) -> {
-                isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -288,7 +288,7 @@ public class RobotContainer {
                 Constants.LauncherConfig.Far_launch_angle
             ))
             .finallyDo((interrupted) -> {
-                isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -314,7 +314,7 @@ public class RobotContainer {
                 Constants.LauncherConfig.Far_launch_angle
             ))
             .finallyDo((interrupted) -> {
-                isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -340,7 +340,30 @@ public class RobotContainer {
                 Constants.LauncherConfig.Far_launch_angle
             ))
             .finallyDo((interrupted) -> {
-                isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            })
+        );
+
+        //半自动原地瞄准
+        Operator.a().whileTrue(
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+            })
+            .andThen(MagicSequencingCommand.createAutoTurnScoreCommand(
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.BLUE_HUB_CENTER
+            ))
+            .finallyDo((interrupted) -> {
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
