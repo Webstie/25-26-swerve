@@ -94,9 +94,21 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     // 在类成员变量区域
     // 替换原来的 pidLineup
+<<<<<<< HEAD
     private final PIDController xController = new PIDController(8.0, 0, 0.2);
     private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
     private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); // 稍微加一点 kI 消除角度静态误差
+=======
+    // 跑点位的pid
+    // private final PIDController xController = new PIDController(8.0, 0, 0.2);
+    // private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
+    // private final PIDController angleController = new PIDController(8.0, 0.0, 0.05); 
+
+    //原地发射的pid
+    private final PIDController xController = new PIDController(2.0, 0, 0.2);
+    private final PIDController yController = new PIDController(2.0, 0.1, 0.1);
+    private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); 
+>>>>>>> visiontest
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -379,7 +391,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     //         });
     // }
 
-        /**
+    /**
      * 使用独立的 X, Y 和 Rotation PID 控制器将机器人移动到目标位姿。
      */
     public Command translateToPositionWithPID(Pose2d targetPose) {
@@ -417,6 +429,48 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             yController.reset();
             angleController.reset();
             System.out.println("PID Translation Finished");
+        });
+    }
+
+
+    /**
+     * 原地瞄准，只需要pid进行角度调整。
+     */
+    public Command translateToRotationWithPID(Pose2d targetPose) {
+        return run(() -> {
+            // 1. 获取当前位姿
+            Pose2d currentPose = getPose();
+
+            // 2. 计算各个轴的反馈速度 (Field Relative)
+            // 注意：计算的是目标 - 当前，所以结果是正向速度
+            double xFeedback = xController.calculate(currentPose.getX(), targetPose.getX());
+            double yFeedback = yController.calculate(currentPose.getY(), targetPose.getY());
+            double rotFeedback = angleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
+
+            // 3. 限制最大速度 (Clamp)
+            double xSpeed = MathUtils.clamp(xFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
+            double ySpeed = MathUtils.clamp(yFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
+            double rotSpeed = MathUtils.clamp(rotFeedback, -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC);
+
+            // 4. 发送到底盘
+            // 因为我们计算的是 Field Relative 的误差，所以要转换成 ChassisSpeeds
+            // 这里的 runVelocity 内部调用的是 applyRequest (robot relative)，
+            // 所以我们需要将 场地的 x/y 转换为 机器人相对的 vx/vy
+            ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(0.0, 0.0, rotSpeed);
+            ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, currentPose.getRotation());
+            
+            runVelocity(robotRelativeSpeeds);
+
+        })
+        // 退出条件：三个控制器都到达 Setpoint
+        .until(() -> angleController.atSetpoint())
+        .finallyDo(() -> {
+            // 结束时停车并重置
+            stop();
+            xController.reset();
+            yController.reset();
+            angleController.reset();
+            System.out.println("PID Rotation Finished");
         });
     }
 

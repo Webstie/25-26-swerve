@@ -27,8 +27,8 @@ import frc.robot.Constants;
 
 @SuppressWarnings("removal")
 public class CANdleSystem extends SubsystemBase {
-    private final CANdle m_candle1 = new CANdle(Constants.CANDLE.CANdleID1, "canivore");
-    private final CANdle m_candle2 = new CANdle(Constants.CANDLE.CANdleID2, "canivore");
+    private final CANdle m_candle1 = new CANdle(Constants.CANDLE.CANdleID1, "rio");
+    private final CANdle m_candle2 = new CANdle(Constants.CANDLE.CANdleID2, "rio");
     private final int LedCount = 300;
     //private CommandXboxController joystick;
 
@@ -52,7 +52,7 @@ public class CANdleSystem extends SubsystemBase {
     private AnimationTypes m_currentAnimation;
 
     public boolean isflow = false;
-    public Constants.RobotState.State m_current_state = Constants.RobotState.State.STATE1;
+    public Constants.RobotState.State m_current_state = Constants.RobotState.State.Idle;//default state
 
 
     public CANdleSystem() {
@@ -70,36 +70,6 @@ public class CANdleSystem extends SubsystemBase {
         m_candle2.configAllSettings(configAll, 100);
     }
 
-    public void incrementAnimation() {
-        m_current_state = Constants.RobotState.State.STATE1;
-        switch(m_currentAnimation) {
-            case ColorFlow: changeAnimation(AnimationTypes.Fire); break;
-            case Fire: changeAnimation(AnimationTypes.Larson); break;
-            case Larson: changeAnimation(AnimationTypes.Rainbow); break;
-            case Rainbow: changeAnimation(AnimationTypes.RgbFade); break;
-            case RgbFade: changeAnimation(AnimationTypes.SingleFade); break;
-            case SingleFade: changeAnimation(AnimationTypes.Strobe); break;
-            case Strobe: changeAnimation(AnimationTypes.Twinkle); break;
-            case Twinkle: changeAnimation(AnimationTypes.TwinkleOff); break;
-            case TwinkleOff: changeAnimation(AnimationTypes.ColorFlow); break;
-            case SetAll: changeAnimation(AnimationTypes.ColorFlow); break;
-        }
-    }
-    public void decrementAnimation() {
-        m_current_state = Constants.RobotState.State.STATE2;
-        switch(m_currentAnimation) {
-            case ColorFlow: changeAnimation(AnimationTypes.TwinkleOff); break;
-            case Fire: changeAnimation(AnimationTypes.ColorFlow); break;
-            case Larson: changeAnimation(AnimationTypes.Fire); break;
-            case Rainbow: changeAnimation(AnimationTypes.Larson); break;
-            case RgbFade: changeAnimation(AnimationTypes.Rainbow); break;
-            case SingleFade: changeAnimation(AnimationTypes.RgbFade); break;
-            case Strobe: changeAnimation(AnimationTypes.SingleFade); break;
-            case Twinkle: changeAnimation(AnimationTypes.Strobe); break;
-            case TwinkleOff: changeAnimation(AnimationTypes.Twinkle); break;
-            case SetAll: changeAnimation(AnimationTypes.ColorFlow); break;
-        }
-    }
     public void Changecolor(Constants.RobotState.State state) {//change color according to the position of elevator
         m_current_state = state;
  
@@ -239,16 +209,19 @@ public class CANdleSystem extends SubsystemBase {
     public void periodic() {
         //System.out.println("m_currentstate: " + m_elevator.m_current_state);
         switch(m_current_state) {
-            case STATE1:
+            case Idle:
                 setOff();
                 break;
-            case STATE2:
+            case Shooting:
                 setOrange();
                 break;
-            case STATE3:
+            case Intaking:
                 setRed();
                 break;
-            case STATE4:
+            case Outtaking:
+                setBlue();
+                break;
+            case ClimbingDown:
                 m_candle1.animate(new RainbowAnimation(1, 1, LedCount));//single showoff lights
                 m_candle2.animate(new RainbowAnimation(1, 1, LedCount));
                 break;
