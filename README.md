@@ -1,3 +1,39 @@
+# 25-26 Swerve (FRC)
+
+这是本赛季（2026）基于 swerve 底盘的 FRC 机器人工程，使用 WPILib Gradle 项目结构与多种第三方库（详见 vendordeps）。
+
+## 快速概览
+- **语言与构建**: Java
+- **主要目录**: `src/main/java/frc/robot` 包含 `Constants.java`、`Robot.java`、`RobotContainer.java`、子系统与命令实现。
+- **路径与自动化**: `src/main/deploy/pathplanner` 包含 PathPlanner 的路径与设置（`navgrid.json`, `settings.json`, `autos/`, `paths/`）。
+- **在线/本地工具**: PhotonVision、Phoenix Tuner、PathPlanner 等用于视觉与电机调优。
+
+## 运行与调试
+- 代码入口: `frc.robot.Main` / `frc.robot.Robot`。
+- 机器人容器: `frc.robot.RobotContainer` 包含按键绑定、命令调度与子系统实例。
+- 生成的调参常量: `frc.robot.generated.TunerConstants`（由调试工具 / 生成脚本填充），请勿手动修改生成文件。
+
+## PathPlanner 与轨迹
+- 路径与自动：`src/main/deploy/pathplanner/paths` 和 `autos`。
+- 打包到部署目录后，机器人可通过 PathPlanner 路径进行自动模式。
+
+## 依赖项 & 第三方库
+- 本仓库包含 `vendordeps/`，列出了使用的库版本（例如 `Phoenix5`/`Phoenix6`、`REVLib`、`photonlib`、`PathplannerLib` 等）。
+
+## 开发建议
+- 在更改电机/控制参数前，先在本地或仿真环境验证逻辑。
+- 对于驱动与控制算法的调整，优先使用 SysID / 自动化工具获取物理量，再更新 `TunerConstants`。
+
+## 常用文件参考
+- `src/main/java/frc/robot/Constants.java` — 全局常量。
+- `src/main/java/frc/robot/RobotContainer.java` — 按键与命令绑定。
+- `src/main/deploy/pathplanner` — PathPlanner 配置与路径。
+
+## 调试与校准（保留原始调试备忘录）
+
+以下内容为原项目调试备忘录，保持不变以便查阅与延续记录：
+
+````markdown
 # 调试备忘录
 
 仅记录官方引导不清楚以及复杂之处，其他与官方引导同步即可
