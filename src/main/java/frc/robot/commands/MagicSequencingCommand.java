@@ -175,7 +175,7 @@ public class MagicSequencingCommand {
             Translation2d targetCenter = isRed ? 
                 new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
                 blueCenterPosition;
-
+            
             double dx = targetCenter.getX() - currentPose.getX();
             double dy = targetCenter.getY() - currentPose.getY();
             Rotation2d targetRotation = new Rotation2d(Math.atan2(dy, dx));
@@ -226,22 +226,25 @@ public class MagicSequencingCommand {
             // 5. 查表逻辑 (最近邻查找)
             double bestPitch = 0.0;
             double bestSpeed = 0.0;
-            double minDistanceDiff = Double.MAX_VALUE;
+            // double minDistanceDiff = Double.MAX_VALUE;
 
-            // 遍历新的 DISTANCE_DATA_TABLE
-            for (double[] row : Constants.VisionConfig.DISTANCE_DATA_TABLE) {
-                double tableDist = row[0];  // 第1列：距离
-                double tablePitch = row[1]; // 第2列：Pitch
-                double tableSpeed = row[2]; // 第3列：速度
+            // // 遍历新的 DISTANCE_DATA_TABLE
+            // for (double[] row : Constants.VisionConfig.DISTANCE_DATA_TABLE) {
+            //     double tableDist = row[0];  // 第1列：距离
+            //     double tablePitch = row[1]; // 第2列：Pitch
+            //     double tableSpeed = row[2]; // 第3列：速度
                 
-                double diff = Math.abs(distanceToTarget - tableDist);
+            //     double diff = Math.abs(distanceToTarget - tableDist);
                 
-                if (diff < minDistanceDiff) {
-                    minDistanceDiff = diff;
-                    bestPitch = tablePitch;
-                    bestSpeed = tableSpeed;
-                }
-            }
+            //     if (diff < minDistanceDiff) {
+            //         minDistanceDiff = diff;
+            //         bestPitch = tablePitch;
+            //         bestSpeed = tableSpeed;
+            //     }
+            // }
+            bestPitch = Constants.VisionConfig.PitchSlope * distanceToTarget + Constants.VisionConfig.PitchYIntercept;
+            bestSpeed = Constants.VisionConfig.SpeedSlope * distanceToTarget + Constants.VisionConfig.SpeedYIntercept;
+
 
             // 打印调试信息 (不再使用 System.out.println)
             SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);

@@ -136,6 +136,15 @@ public class Launcher extends SubsystemBase {
         angleAdjustment.setVoltage(Voltage);
     }
 
+    public void setAngleToTarget(double targetPosition){
+        double error = angleEncoder.getAbsolutePosition().getValueAsDouble() - targetPosition;
+        if (Math.abs(error) <= ANGLE_TOLERANCE) {
+            setAngleVoltage(0);
+            return;
+        }
+        setAngleVoltage(error >= 0 ? -12 : 12);
+    }
+
     public Command AdjustAngleToPositionCommand(double targetPosition){
         return run(
             () -> {

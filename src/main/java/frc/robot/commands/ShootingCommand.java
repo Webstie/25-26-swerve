@@ -1,5 +1,10 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -7,10 +12,12 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
 import frc.robot.subsystems.CANdleSystem;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 import frc.robot.Constants;
 
 public class ShootingCommand extends SequentialCommandGroup {
+    private static final double FIELD_LENGTH_METERS = 16.54099;
     /**
      * 创建一个射击命令
      * 逻辑：按下时：
@@ -23,14 +30,14 @@ public class ShootingCommand extends SequentialCommandGroup {
         Intake intake,
         Launcher launcher,
         Transport transport,
-        double frictionWheelLaunchSpeed
-        // double launch_angle
+        double frictionWheelLaunchSpeed,
+        double launch_angle
     ) {
         // 定义预热时间
         double warmupTime = Constants.LauncherConfig.WarmupSecond;
 
         // --- 1. Launcher 的逻辑流 (预热 -> 发射) ---
-        // 注意：摩擦轮在两个阶段都要转，Feeder 只在第二阶段转
+        // 注意：摩擦轮在两个阶段都要转，Feeder 只$在第二阶段转
         Command launcherStream = Commands.sequence(
             // 第一阶段：预热 (摩擦轮转，Feeder停,调整角度)
             Commands.parallel(
@@ -40,7 +47,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                                 launcher.setFeederVelocity(0);
                             }
                         )
-                        // .alongWith(launcher.AdjustAngleToPositionCommand(launch_angle))   
+                        .alongWith(launcher.AdjustAngleToPositionCommand(launch_angle))   
             ).withTimeout(warmupTime), // 运行指定时间后自动进入下一阶段
 
             // 第二阶段：发射 (摩擦轮转，Feeder转)
@@ -166,6 +173,97 @@ public class ShootingCommand extends SequentialCommandGroup {
             //释放intakepitch
             intake.applyIntakePitchMotorNeutral();
 
+        });
+    }
+
+    public static Command createDynamicShootingCommand(
+        CommandSwerveDrivetrain drive,
+        Intake intake,
+        Launcher launcher,
+        Transport transport,
+        Translation2d blueCenterPosition
+    ) {
+        double warmupSeconds = Constants.LauncherConfig.WarmupSecond;
+        Timer warmupTimer = new Timer();
+
+        Command launcherStream = Commands.run(
+            () -> {
+                boolean isRed = false;
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+                    isRed = true;
+                }
+
+                Pose2d currentPose = drive.getPose();
+                Translation2d targetCenter = isRed
+                    ? new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY())
+                    : blueCenterPosition;
+
+                double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
+
+                double bestPitch = 0.0;
+                double bestSpeed = 0.0;
+                double minDistanceDiff = Double.MAX_VALUE;
+
+                for (double[] row : Constants.VisionConfig.DISTANCE_DATA_TABLE) {
+                    double tableDist = row[0];
+                    double tablePitch = row[1];
+                    double tableSpeed = row[2];
+
+                    double diff = Math.abs(distanceToTarget - tableDist);
+                    if (diff < minDistanceDiff) {
+                        minDistanceDiff = diff;
+                        bestPitch = tablePitch;
+                        bestSpeed = tableSpeed;
+                    }
+                }
+
+                launcher.setFrictionWheelVelocity(bestSpeed);
+                launcher.setAngleToTarget(bestPitch);
+                launcher.setFeederVelocity(
+                    warmupTimer.hasElapsed(warmupSeconds)
+                        ? Constants.LauncherConfig.FeederSpeed
+                        : 0
+                );
+            },
+            launcher
+        );
+
+        Command transportStream = Commands.sequence(
+            Commands.waitSeconds(warmupSeconds),
+            Commands.run(
+                () -> transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed),
+                transport
+            )
+        );
+
+        Command intakeStream = Commands.sequence(
+            Commands.waitSeconds(warmupSeconds),
+            Commands.parallel(
+                intake.IntakeSwingSingleCommand().repeatedly()
+                    .alongWith(Commands.run(() -> {
+                        intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+                        intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+                    }, intake))
+            )
+        );
+
+        return Commands.parallel(
+            launcherStream,
+            transportStream,
+            intakeStream
+        ).beforeStarting(() -> {
+            warmupTimer.reset();
+            warmupTimer.start();
+        }).finallyDo((interrupted) -> {
+            warmupTimer.stop();
+            launcher.setFrictionWheelVelocity(0);
+            launcher.setFeederVelocity(0);
+            launcher.setAngleVoltage(0);
+            transport.setTransportVelocity(0);
+            intake.setIntakeMotorVelocity(0);
+            intake.setSupportMotorVelocity(0);
+            intake.applyIntakePitchMotorNeutral();
         });
     }
 }
