@@ -37,7 +37,7 @@ public class Constants {
     }
 
     public static final class ClimberConfig{
-        public static final double ClimberTopPosition = -120.0;
+        public static final double ClimberTopPosition = 120.0;
         public static final double ClimbPosition = 1.0;
         public static final int CLIMBER_MOTOR_ID = 1;
     }
@@ -130,15 +130,15 @@ public class Constants {
             // {距离, Pitch角度,射速}
             {0.375, -0.0015,50}, // 第 1 点
             {0.750, -0.0015,50}, // 第 2 点
-            {1.125, -0.0015,50}, // 第 3 点
-            {1.5, -0.0015,50},   // 第 4 点
-            {1.875, -0.0015,50}, // 第 5 点
-            {2.25, -0.0015,50},  // 第 6 点
-            {2.625, -0.0015,50}, // 第 7 点
-            {3.0, -0.0015,50},   // 第 8 点
-            {3.375, -0.0015,50}, // 第 9 点
-            {3.83, -0.0015,50},  // 第 10 点
-            {4.2, -0.032,60}, // 第 11 点
+            {1.125, 0.003, 47.5}, // 第 3 点
+            {1.5, 0.003, 50},   // 第 4 点
+            {1.875, -0.001, 50}, // 第 5 点
+            {2.25, -0.008, 53.75},  // 第 6 点
+            {2.625, -0.014, 55}, // 第 7 点
+            {3.0, -0.015, 57.5},   // 第 8 点
+            {3.375, -0.015, 60}, // 第 9 点
+            {3.75, -0.016, 62.5},  // 第 10 点
+            {4.125, -0.032,60}, // 第 11 点
             {4.5, -0.032,50},   // 第 12 点
             {4.875, -0.032,50}, // 第 13 点
             {5.25, -0.032,50},  // 第 14 点
@@ -155,5 +155,9 @@ public class Constants {
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
 
         public static final double ANGLE_TOLERANCE_DEGREES = 0.8;
+        public static final double PitchSlope = -0.00843836;
+        public static final double PitchYIntercept = 0.0133425;
+        public static final double SpeedSlope = 5.69635;
+        public static final double SpeedYIntercept = 40.73202;
     }
 }

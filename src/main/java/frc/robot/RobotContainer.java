@@ -14,13 +14,17 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.LauncherConfig;
 import frc.robot.commands.MagicSequencingCommand;
+import frc.robot.commands.MoveWhileAimCommand;
 import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
 import frc.robot.generated.TunerConstants;
@@ -32,8 +36,11 @@ import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
 import frc.robot.subsystems.Vision.VisionMeasurement;
 import frc.robot.subsystems.Vision;
+
+import static frc.robot.Constants.ClimberConfig.ClimbPosition;
 import static frc.robot.Constants.IntakeConfig.*;
 import java.util.List;
+import java.util.Locale.LanguageRange;
 
 
 public class RobotContainer {
@@ -62,6 +69,9 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    private double launchSpeed = 50;
+    private double launchAngle = -0.01;
+
     //是否融合视觉位姿
     public boolean isVisionPoseFusion = true;
 
@@ -74,8 +84,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport, 
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed)
-                // Constants.LauncherConfig.Near_launch_angle)
+                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
+                Constants.LauncherConfig.Near_launch_angle)
                 .withTimeout(5.0)
         );
 
@@ -109,6 +119,11 @@ public class RobotContainer {
     }
 
     //按键绑定
+    public void updateDashboard() {
+        SmartDashboard.putNumber("Launcher/LaunchSpeed", launchSpeed);
+        SmartDashboard.putNumber("Launcher/LaunchAngle", launchAngle);
+    }
+    // Bindings
     private void configureBindings() {
         
         /******************************************************（Driver）**********************************************************************/
@@ -124,27 +139,32 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // 在视觉位姿关闭后的定头
-        Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        // Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // 切换是否使用视觉位姿融合
         Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion ));
 
         //电推杆微调
-        Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(12));
-        Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
 
         //装福灯
         Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
 
+        Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
+        Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
+
+        Driver.leftBumper().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
+        Driver.leftTrigger().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
         //单独执行发射命令
         Driver.rightTrigger().whileTrue(
-            ShootingCommand.createShootingCommand(
-                intake, 
-                launcher, 
+            new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                intake,
+                launcher,
                 transport,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed) 
-                // Constants.LauncherConfig.Far_launch_angle)
-                
+                launchSpeed,
+                launchAngle
+            ))
         );
 
         //intake机构放下or回收
@@ -188,10 +208,18 @@ public class RobotContainer {
         //爬升
         Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand()
                                     .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingUp),candle)));
-        Operator.rightTrigger().onTrue(climber.ClimbSingleCommand()
-                                    .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle)));
+        Operator.rightTrigger().whileTrue(
+            Commands.run(() -> climber.setPosition(ClimbPosition))
+        ).onFalse(
+            Commands.sequence(
+                Commands.runOnce(()->climber.releaseClimber()),
+                Commands.waitSeconds(0.1),
+                Commands.runOnce(() -> climber.setPosition(climber.getCurrentPosition()))
+            )
+        );
 
-        //半自动点位近左
+
+        // 半自动点位近左
         Operator.x().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
@@ -350,6 +378,7 @@ public class RobotContainer {
         //半自动原地瞄准
         Operator.a().whileTrue(
             Commands.runOnce(() -> {
+                if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
@@ -369,6 +398,25 @@ public class RobotContainer {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
         );
+
+        // // 操作手按住右扳机时：原地转向 + 动态发射（参考 MagicSequencingCommand 原地发射逻辑）
+        // Operator.leftTrigger().whileTrue(
+        //     MoveWhileAimCommand.create(
+        //         drivetrain,
+        //         () -> -Driver.getLeftY() * MaxSpeed * 0.5,
+        //         () -> -Driver.getLeftX() * MaxSpeed * 0.5,
+        //         MaxAngularRate,
+        //         Constants.VisionConfig.BLUE_HUB_CENTER
+        //     ).alongWith(
+        //         ShootingCommand.createDynamicShootingCommand(
+        //             drivetrain,
+        //             intake,
+        //             launcher,
+        //             transport,
+        //             Constants.VisionConfig.BLUE_HUB_CENTER
+        //         )
+        //     )
+        // );
             
             
             

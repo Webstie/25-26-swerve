@@ -95,14 +95,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // 在类成员变量区域
     // 替换原来的 pidLineup
     // 跑点位的pid
-    // private final PIDController xController = new PIDController(8.0, 0, 0.2);
-    // private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
-    // private final PIDController angleController = new PIDController(8.0, 0.0, 0.05); 
+    private final PIDController xController = new PIDController(8.0, 0, 0.2);
+    private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
+    private final PIDController angleController = new PIDController(8.0, 0.0, 0.05); 
 
     //原地发射的pid
-    private final PIDController xController = new PIDController(2.0, 0, 0.2);
-    private final PIDController yController = new PIDController(2.0, 0.1, 0.1);
-    private final PIDController angleController = new PIDController(3.0, 0.0, 0.05); 
+    private final PIDController turnxController = new PIDController(2.0, 0, 0.2);
+    private final PIDController turnyController = new PIDController(2.0, 0.1, 0.1);
+    private final PIDController turnAngleController = new PIDController(5.0, 0.0, 0.05); 
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -437,9 +437,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
             // 2. 计算各个轴的反馈速度 (Field Relative)
             // 注意：计算的是目标 - 当前，所以结果是正向速度
-            double xFeedback = xController.calculate(currentPose.getX(), targetPose.getX());
-            double yFeedback = yController.calculate(currentPose.getY(), targetPose.getY());
-            double rotFeedback = angleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
+            double xFeedback = turnxController.calculate(currentPose.getX(), targetPose.getX());
+            double yFeedback = turnyController.calculate(currentPose.getY(), targetPose.getY());
+            double rotFeedback = turnAngleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
 
             // 3. 限制最大速度 (Clamp)
             double xSpeed = MathUtils.clamp(xFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);

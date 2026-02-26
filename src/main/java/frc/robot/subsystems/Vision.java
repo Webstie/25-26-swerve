@@ -79,7 +79,7 @@ public class Vision extends SubsystemBase {
                 aprilTagFieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                 new Transform3d(
-                    new Translation3d(0.32, 0.31672, 0.5),//z to elevator
+                    new Translation3d(-0.01578, 0.20388, 0.53436),//z to elevator
                     new Rotation3d(     
                     0,
                     Units.degreesToRadians(0),//pitch
@@ -94,7 +94,7 @@ public class Vision extends SubsystemBase {
                 aprilTagFieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
                 new Transform3d(
-                    new Translation3d(0.32, -0.31672, 0.5),
+                    new Translation3d(-0.01578, -0.20388, 0.53436),
                     new Rotation3d(     
                         0,
                         Units.degreesToRadians(0),//pitch
