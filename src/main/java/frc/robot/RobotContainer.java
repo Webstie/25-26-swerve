@@ -131,8 +131,8 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-Driver.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.75) // Drive forward with negative Y (forward)
+                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.75) // Drive left with negative X (left)
                     .withRotationalRate(-Driver.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
@@ -154,8 +154,8 @@ public class RobotContainer {
         Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
         Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
 
-        Driver.leftBumper().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
-        Driver.leftTrigger().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
+        // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
+        // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
         //单独执行发射命令
         Driver.rightTrigger().whileTrue(
             new ProxyCommand(() -> ShootingCommand.createShootingCommand(
@@ -376,7 +376,7 @@ public class RobotContainer {
         );
 
         //半自动原地瞄准
-        Operator.a().whileTrue(
+        Driver.leftTrigger().whileTrue(
             Commands.runOnce(() -> {
                 if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
                 System.out.println("Starting Hub targeting command");
