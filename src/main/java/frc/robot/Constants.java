@@ -128,8 +128,6 @@ public class Constants {
         //不同距离映射的pitch角度
         public static final double[][] DISTANCE_DATA_TABLE = {
             // {距离, Pitch角度,射速}
-            {0.375, -0.0015,50}, // 第 1 点
-            {0.750, -0.0015,50}, // 第 2 点
             {1.125, 0.003, 47.5}, // 第 3 点
             {1.5, 0.003, 50},   // 第 4 点
             {1.875, -0.001, 50}, // 第 5 点
@@ -138,16 +136,10 @@ public class Constants {
             {3.0, -0.015, 57.5},   // 第 8 点
             {3.375, -0.015, 60}, // 第 9 点
             {3.75, -0.016, 62.5},  // 第 10 点
-            {4.125, -0.032,60}, // 第 11 点
-            {4.5, -0.032,50},   // 第 12 点
-            {4.875, -0.032,50}, // 第 13 点
-            {5.25, -0.032,50},  // 第 14 点
-            {5.625, -0.032,50}, // 第 15 点
-            {6.0, -0.032,50},   // 第 16 点
-            {6.375,-0.032,50}, // 第 17 点
-            {6.75, -0.032,50},  // 第 18 点
-            {7.125, -0.032,50}, // 第 19 点
-            {7.5, -0.032,50}    // 第 20 点
+            {4.125, -0.020, 63.75}, // 第 11 点
+            {4.5, -0.022, 67.5},   // 第 12 点
+            {4.875, -0.025, 69}, // 第 13 点
+            {5.25, -0.025, 70},  // 第 14 点
         };
 
 
@@ -155,6 +147,7 @@ public class Constants {
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
 
         public static final double ANGLE_TOLERANCE_DEGREES = 0.8;
+
         public static final double PitchSlope = -0.00843836;
         public static final double PitchYIntercept = 0.0133425;
         public static final double SpeedSlope = 5.69635;
