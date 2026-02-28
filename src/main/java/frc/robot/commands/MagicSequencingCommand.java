@@ -148,7 +148,7 @@ public class MagicSequencingCommand {
     // }
 
     //********************************************************移动到固定点位自瞄发射********************************************************** */
-    public static Command magicRunToClosestHardcodedPose(
+    public static Command runToClosestPosition(
             int position_index,
             CommandSwerveDrivetrain drive, 
             double[][] pointsParamsTable, 
@@ -223,7 +223,7 @@ public class MagicSequencingCommand {
      * @param pointsParamsTable 包含点位信息及发射参数的映射表 (即 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE)
      * @return 一个Command对象，表示顺序执行的自动得分命令
      */
-    public static Command createSequentialAutoScoreCommand(
+    public static Command createFixedPointAutoScoreCommand(
         int position_index,
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
@@ -243,7 +243,7 @@ public class MagicSequencingCommand {
                 Commands.parallel(     
                     Commands.runOnce(()->launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),//预热       
                     launcher.AdjustAngleToPositionCommand(launch_angle), // 调整角度
-                    MagicSequencingCommand.magicRunToClosestHardcodedPose(
+                    MagicSequencingCommand.runToClosestPosition(
                         position_index, 
                         drive, 
                         pointsParamsTable, 
@@ -302,7 +302,7 @@ public class MagicSequencingCommand {
     }
 
     //对于pitch电推杆的角度调整目前放在了command中，也可以考虑放在某个子系统的periodic里面实时计算，然后拿结果
-    public static Command createAutoTurnScoreCommand(
+    public static Command createAnyPointAutoScoreCommand(
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
         Launcher launcher,

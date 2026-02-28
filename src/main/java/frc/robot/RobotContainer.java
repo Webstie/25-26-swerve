@@ -85,16 +85,30 @@ public class RobotContainer {
         );
 
         //自动发射调用命令
-        NamedCommands.registerCommand("Shoot_Auto",
-            MagicSequencingCommand.createAutoTurnScoreCommand(
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+            })
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+                3,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER
-            ).withTimeout(5.0)
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(5.0)
             .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
+
+            
 
         //自动intake调用命令
         NamedCommands.registerCommand("Intake_Auto",
@@ -233,7 +247,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true; // 进入半自动模式，开启视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 0,
                 drivetrain, 
                 intake, 
@@ -257,7 +271,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 1,
                 drivetrain, 
                 intake, 
@@ -281,7 +295,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 2,
                 drivetrain, 
                 intake, 
@@ -305,7 +319,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 3,
                 drivetrain, 
                 intake, 
@@ -329,7 +343,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 4,
                 drivetrain, 
                 intake, 
@@ -353,7 +367,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 5,
                 drivetrain, 
                 intake, 
@@ -378,7 +392,7 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createAutoTurnScoreCommand(
+            .andThen(MagicSequencingCommand.createAnyPointAutoScoreCommand(
                 drivetrain, 
                 intake, 
                 launcher, 

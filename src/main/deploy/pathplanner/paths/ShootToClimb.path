@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.3745,
-        "y": 5.3350333333333335
+        "x": 3.3,
+        "y": 5.4
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.502991666666666,
-        "y": 4.881533333333334
+        "x": 3.428491666666666,
+        "y": 4.946500000000001
       },
       "isLocked": false,
       "linkedName": "BlueShoot1"
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -179.42127443439225
   },
   "reversed": false,
   "folder": "Blue1",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -29.640896330324587
+    "rotation": -47.316495313634945
   },
   "useDefaultConstraints": false
 }
