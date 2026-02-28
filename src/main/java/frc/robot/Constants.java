@@ -8,6 +8,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.XboxController;
 
 public class Constants {
@@ -64,7 +65,7 @@ public class Constants {
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
-        public static final double IntakeVelocity = -70.0;
+        public static final double IntakeVelocity = -100.0;
         public static final double SupportVelocity = 60.0;//////////////////////////////////////////////////////////(可以比较快)
     
         public static final int INTAKE_MOTOR_ID = 6;
@@ -108,12 +109,12 @@ public class Constants {
             {2.8, 4.03, -0.0015, 50},   // 第 2 点
             {3.2, 2.6, -0.0015, 50}, // 第 3 点
 
-            {2.17, 6.01, -0.032, 53.5},  // 第 4 点
-            {1.642, 3.61, -0.032, 53.5}, // 第 5 点
-            {2.039, 2.065, -0.032, 53.5},   // 第 6 点
+            {2.17, 6.01, -0.015, 58.5},  // 第 4 点
+            {1.642, 3.61, -0.015, 58.5}, // 第 5 点
+            {2.039, 2.065, -0.015, 58.5},   // 第 6 点
         };
 
-        //红色还没测
+        //TODO红色还没测
         public static final double[][] POINTS_PARAMS_TABLE_RED = {
             // {距离, Pitch角度,射速}
             {3.3, 5.4, -0.0015, 50}, // 第 1 点
@@ -141,7 +142,28 @@ public class Constants {
             {4.875, -0.025, 69}, // 第 13 点
             {5.25, -0.025, 70},  // 第 14 点
         };
+        
+        // ==========================================
+        // [新增] 声明两个全局静态的插值表
+        // ==========================================
+        public static final InterpolatingDoubleTreeMap distanceToPitchMap = new InterpolatingDoubleTreeMap();
+        public static final InterpolatingDoubleTreeMap distanceToSpeedMap = new InterpolatingDoubleTreeMap();
 
+        // ==========================================
+        // [新增] 静态初始化块 (Static Initialization Block)
+        // 当程序启动，JVM加载 Constants 类时，这段代码会自动且只执行一次。
+        // 它会自动遍历上面的 DISTANCE_PARAMS_TABLE，把数据塞进插值表里。
+        // ==========================================
+        static {
+            for (double[] point : DISTANCE_PARAMS_TABLE) {
+                double distance = point[0];
+                double pitch = point[1];
+                double speed = point[2];
+                
+                distanceToPitchMap.put(distance, pitch);
+                distanceToSpeedMap.put(distance, speed);
+            }
+        }
 
         //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
         public static final double LINEUP_TOLERANCE_METERS = 0.015;

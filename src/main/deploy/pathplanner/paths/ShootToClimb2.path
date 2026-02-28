@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.904241666666667,
-        "y": 5.7885333333333335
+        "x": 3.2,
+        "y": 2.6
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.342625000000001,
-        "y": 6.824025000000001
+        "x": 3.0245834531208047,
+        "y": 2.7781264581160787
       },
       "isLocked": false,
-      "linkedName": "BlueBack1"
+      "linkedName": "BlueShoot2"
     },
     {
       "anchor": {
-        "x": 7.710683333333334,
-        "y": 5.644925000000001
+        "x": 1.6489000000000003,
+        "y": 3.778016666666667
       },
       "prevControl": {
-        "x": 7.657775000000001,
-        "y": 6.997866666666667
+        "x": 2.093329130555798,
+        "y": 3.8432113438946085
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueIntake1"
+      "linkedName": "BlueClimb"
     }
   ],
   "rotationTargets": [],
@@ -33,8 +33,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 2.0,
+    "maxAcceleration": 2.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Blue1",
+  "folder": "Blue2",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -46.30195267257888
+    "rotation": 45.4675979965987
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
