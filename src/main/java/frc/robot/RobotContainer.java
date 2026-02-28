@@ -78,26 +78,34 @@ public class RobotContainer {
     public RobotContainer() {
 
         //register the named commands for auto mode
+
         //自动发射调用命令
-        NamedCommands.registerCommand("ShootNamedCommand",
-            ShootingCommand.createShootingCommand(
+        NamedCommands.registerCommand("WarmUp_Auto",
+            Commands.runOnce(()->launcher.setFrictionWheelVelocity(50))
+        );
+
+        //自动发射调用命令
+        NamedCommands.registerCommand("Shoot_Auto",
+            MagicSequencingCommand.createAutoTurnScoreCommand(
+                drivetrain, 
                 intake, 
                 launcher, 
-                transport, 
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle)
-                .withTimeout(5.0)
+                transport,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
+                Constants.VisionConfig.BLUE_HUB_CENTER
+            ).withTimeout(5.0)
+            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
         //自动intake调用命令
-        NamedCommands.registerCommand("IntakeNamedCommand",
+        NamedCommands.registerCommand("Intake_Auto",
             intake.AdjustIntakePositionSingleCommand(IntakeDownPosition)
-            .andThen(intake.ChangeIntakeSpeedSingleCommand())
+            .andThen(intake.SetIntakeSpeedOneSingleCommand())
             .andThen(intake.IntakeSingleCommand())
         );
 
         
-        // NamedCommands.registerCommand("ClimbingNamedCommand", 
+        // NamedCommands.registerCommand("Climb_Auto", 
         //     intake.AdjustIntakePositionSingleCommand(IntakeUpPosition)
         //                 .andThen(intake.ChangeIntakeSpeedSingleCommand())
         //     .andThen(intake.IntakeSingleCommand())
@@ -232,7 +240,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
                 Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Near_launch_angle
@@ -258,7 +266,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
                 Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Near_launch_angle
@@ -284,7 +292,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
                 Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Near_launch_angle
@@ -310,7 +318,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
                 Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Far_launch_angle
@@ -336,7 +344,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
                 Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Far_launch_angle
@@ -362,7 +370,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
                 Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
                 Constants.LauncherConfig.Far_launch_angle
@@ -388,7 +396,7 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
+                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER
             ))
             .finallyDo((interrupted) -> {

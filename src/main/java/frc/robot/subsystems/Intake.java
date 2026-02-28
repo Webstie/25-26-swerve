@@ -177,6 +177,31 @@ public class Intake extends SubsystemBase {
     };
 
     /**
+    自动时打开Intake单独命令
+     */
+    public Command SetIntakeSpeedOneSingleCommand() {
+        return runOnce(
+            () -> { 
+                Intake_press_times = 1;
+            }
+            
+        );
+    };
+
+    /**
+    自动时关闭Intake单独命令
+     */
+    public Command SetIntakeSpeedZeroSingleCommand() {
+        return runOnce(
+            () -> { 
+                Intake_press_times = 0;
+            }
+            
+        );
+    };
+
+
+    /**
     调整Intake位置单独命令,下放时到位后释放电机
      */
     public Command AdjustIntakePositionSingleCommand(double expected_position) { 

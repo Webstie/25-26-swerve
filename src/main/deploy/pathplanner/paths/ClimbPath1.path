@@ -12,7 +12,7 @@
         "y": 2.7966075647716195
       },
       "isLocked": false,
-      "linkedName": "shootpath1end"
+      "linkedName": null
     },
     {
       "anchor": {
@@ -47,7 +47,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "ClimbingNamedCommand",
+      "name": "",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
       "command": null

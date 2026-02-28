@@ -30,7 +30,8 @@ public class MagicSequencingCommand {
      * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
      * @return 一个动态命令，执行时会自动计算最近点并规划路径
      */
-    //********************************************************常规自瞄********************************************************** */
+
+    //********************************************************移动到固定点位自瞄发射********************************************************** */
     public static Command magicRunToClosestHardcodedPose(
             int position_index,
             CommandSwerveDrivetrain drive, 
@@ -147,12 +148,7 @@ public class MagicSequencingCommand {
     }
 
 
-
-
-
-
-
-//*******************************************************************原地自瞄发射***************************************************************
+//*******************************************************************任意点位原地自瞄发射***************************************************************
     public static Command turn2PositionCommand(
             CommandSwerveDrivetrain drive, 
             Translation2d blueCenterPosition) {
@@ -227,7 +223,7 @@ public class MagicSequencingCommand {
             double bestPitch = 0.0;
             double bestSpeed = 0.0;
 
-            double[][] table = Constants.VisionConfig.DISTANCE_DATA_TABLE;
+            double[][] table = Constants.VisionConfig.DISTANCE_PARAMS_TABLE;
             int lastIndex = table.length - 1;
 
             double[] lower = table[Math.max(0, lastIndex - 1)];

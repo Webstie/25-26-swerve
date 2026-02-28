@@ -3,45 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.667201986754967,
-        "y": 7.352789735099337
+        "x": 7.710683333333334,
+        "y": 5.644925000000001
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.663110376966198,
-        "y": 7.352789735099337
+        "x": 6.901941666666667,
+        "y": 5.6676
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueIntake1"
     },
     {
       "anchor": {
-        "x": 5.692723509933774,
-        "y": 7.243890728476821
+        "x": 0.47887101859585135,
+        "y": 5.947258333333333
       },
       "prevControl": {
-        "x": 5.078323675496689,
-        "y": 7.650447019867549
-      },
-      "nextControl": {
-        "x": 6.30712334437086,
-        "y": 6.837334437086092
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 8.052201986754968,
-        "y": 5.537806291390727
-      },
-      "prevControl": {
-        "x": 7.052201986754968,
-        "y": 5.537806291390727
+        "x": 1.5582,
+        "y": 5.894349999999999
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Path1end"
+      "linkedName": "BlueWarehouse"
     }
   ],
   "rotationTargets": [],
@@ -58,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 179.88334612219998
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Blue1",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.8,
-        "y": 3.9
+        "x": 2.3745,
+        "y": 5.3350333333333335
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0512138420585617,
-        "y": 3.7975865128660153
+        "x": 2.502991666666666,
+        "y": 4.881533333333334
       },
       "isLocked": false,
-      "linkedName": "ShootEndPoint"
+      "linkedName": "BlueShoot1"
     },
     {
       "anchor": {
-        "x": 1.7029015084294583,
-        "y": 3.7171073646850035
+        "x": 1.664016666666667,
+        "y": 3.7402249999999997
       },
       "prevControl": {
-        "x": 2.520724750405403,
-        "y": 3.804786677315386
+        "x": 2.3745,
+        "y": 3.7628999999999992
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueClimb"
     }
   ],
   "rotationTargets": [],
@@ -48,7 +48,7 @@
   "folder": "Blue1",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -29.640896330324587
   },
   "useDefaultConstraints": false
 }
