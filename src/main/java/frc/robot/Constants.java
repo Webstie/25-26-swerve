@@ -43,15 +43,14 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
-        public static final double Near_FrictionWheelLaunchSpeed = 50;///////////////////////////////////////////////////
-        public static final double Far_FrictionWheelLaunchSpeed = 53.5;///////////////////////////////////////////////////
+        //远处近处不同点位对应的参数
+        // public static final double Near_FrictionWheelLaunchSpeed = 50;
+        // public static final double Far_FrictionWheelLaunchSpeed = 53.5;      
+        // public static final double Near_launch_angle = -0.0015;
+        // public static final double Far_launch_angle  = -0.032;
 
-        //远处近处不同点位对应的电推杆角度
-        public static final double Near_launch_angle = -0.0015;
-        public static final double Far_launch_angle  = -0.032;
-
-        public static final double WarmupSecond = 2.5;////////////////////////////////////////////////////////////////
-        public static final double FeederSpeed = 55.0;/////////////////////////////////////////////////////////////////
+        public static final double WarmupSecond = 2.5;
+        public static final double FeederSpeed = 55.0;
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
         public static final double FrictionWheelVelocityRampRate = 50.0;
@@ -108,39 +107,41 @@ public class Constants {
         //蓝色联盟视角下的Hub center点和周围得分点（单位：米）
         public static final Translation2d BLUE_HUB_CENTER = new Translation2d(4.626, 4.035);
 
-        //供自动和固定点位自瞄发射时使用的点位与射击参数的映射表
-        public static final List<Translation2d> POINTS_PARAMS_TABLE = Arrays.asList(
-            //近处3个点
-            new Translation2d(3.3, 5.4),//近左（0
-            new Translation2d(2.8, 4.03),//近中（1
-            new Translation2d(3.2, 2.6),//近右（2
+        // //供自动和固定点位自瞄发射时使用的点位与射击参数的映射表
+        // public static final List<Translation2d> POINTS_PARAMS_TABLE = Arrays.asList(
+        //     //近处3个点
+        //     new Translation2d(3.3, 5.4),//近左（0
+        //     new Translation2d(2.8, 4.03),//近中（1
+        //     new Translation2d(3.2, 2.6),//近右（2
   
-            //远处三个点
-            new Translation2d(2.17, 6.01),//远左（3
-            new Translation2d(1.642, 3.61),//远中（4
-            new Translation2d(2.039, 2.065)//远右（5
-        );
+        //     //远处三个点
+        //     new Translation2d(2.17, 6.01),//远左（3
+        //     new Translation2d(1.642, 3.61),//远中（4
+        //     new Translation2d(2.039, 2.065)//远右（5
+        // );
 
         //供自动和固定点位自瞄发射时使用的点位与射击参数的映射表
         public static final double[][] POINTS_PARAMS_TABLE_BLUE = {
             // {距离, Pitch角度,射速}
-            {3.3, 5.4, -0.0014, 65}, // 第 1 点
-            {2.8, 4.03, -0.0014, 65},   // 第 2 点
-            {3.2, 2.6, -0.0014, 65}, // 第 3 点
-            {2.17, 6.01, -0.0014, 65},  // 第 4 点
-            {1.642, 3.61, -0.0014, 65}, // 第 5 点
-            {2.039, 2.065, -0.0014, 65},   // 第 6 点
+            {3.3, 5.4, -0.0015, 50}, // 第 1 点
+            {2.8, 4.03, -0.0015, 50},   // 第 2 点
+            {3.2, 2.6, -0.0015, 50}, // 第 3 点
+
+            {2.17, 6.01, -0.032, 53.5},  // 第 4 点
+            {1.642, 3.61, -0.032, 53.5}, // 第 5 点
+            {2.039, 2.065, -0.032, 53.5},   // 第 6 点
         };
 
-        public static final double[][] POINTS_PARAMS_TABLE_RED = {
-            // {距离, Pitch角度,射速}
-            {3.3, 5.4, -0.0014, 65}, // 第 1 点
-            {2.8, 4.03, -0.0014, 65},   // 第 2 点
-            {3.2, 2.6, -0.0014, 65}, // 第 3 点
-            {2.17, 6.01, -0.0014, 65},  // 第 4 点
-            {1.642, 3.61, -0.0014, 65}, // 第 5 点
-            {2.039, 2.065, -0.0014, 65},   // 第 6 点
-        };
+        // public static final double[][] POINTS_PARAMS_TABLE_RED = {
+        //     // {距离, Pitch角度,射速}
+        //     {3.3, 5.4, -0.0015, 50}, // 第 1 点
+        //     {2.8, 4.03, -0.0015, 50},   // 第 2 点
+        //     {3.2, 2.6, -0.0015, 50}, // 第 3 点
+
+        //     {2.17, 6.01, -0.032, 53.5},  // 第 4 点
+        //     {1.642, 3.61, -0.032, 53.5}, // 第 5 点
+        //     {2.039, 2.065, -0.032, 53.5},   // 第 6 点
+        // };
 
         //供任意点位原地自瞄发射使用的距离与射击参数的映射表
         public static final double[][] DISTANCE_PARAMS_TABLE = {

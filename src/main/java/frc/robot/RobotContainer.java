@@ -91,7 +91,6 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER
             ).withTimeout(5.0)
             .andThen(intake.SetIntakeSpeedZeroSingleCommand())
@@ -240,10 +239,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -266,10 +263,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -292,10 +287,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -318,10 +311,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Far_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -344,10 +335,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Far_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -370,10 +359,8 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Far_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -396,7 +383,6 @@ public class RobotContainer {
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE, 
                 Constants.VisionConfig.BLUE_HUB_CENTER
             ))
             .finallyDo((interrupted) -> {
