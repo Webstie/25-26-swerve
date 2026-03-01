@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.LauncherConfig;
@@ -119,7 +120,7 @@ public class RobotContainer {
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(10.0)
+            }).withTimeout(9.0)
             .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
@@ -168,7 +169,7 @@ public class RobotContainer {
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(7.0)
+            }).withTimeout(9.0)
             .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
@@ -455,48 +456,48 @@ public class RobotContainer {
             })
         );
 
-        //半自动原地瞄准
-        Driver.leftTrigger().whileTrue(
-            Commands.runOnce(() -> {
-                if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-            })
-            .andThen(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle))
-            .andThen(MagicSequencingCommand.createAnyPointAutoScoreCommand(
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER
-            ))
-            .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting));
-            })
-        );
-
-        // // 操作手按住右扳机时：原地转向 + 动态发射（参考 MagicSequencingCommand 原地发射逻辑）
-        // Operator.leftTrigger().whileTrue(
-        //     MoveWhileAimCommand.create(
-        //         drivetrain,
-        //         () -> -Driver.getLeftY() * MaxSpeed * 0.5,
-        //         () -> -Driver.getLeftX() * MaxSpeed * 0.5,
-        //         MaxAngularRate,
+        // //半自动原地瞄准
+        // Driver.leftTrigger().whileTrue(
+        //     Commands.runOnce(() -> {
+        //         if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
+        //         System.out.println("Starting Hub targeting command");
+        //         isVisionPoseFusion = true;
+        //     })
+        //     .andThen(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle))
+        //     .andThen(MagicSequencingCommand.createAnyPointAutoScoreCommand(
+        //         drivetrain, 
+        //         intake, 
+        //         launcher, 
+        //         transport,
         //         Constants.VisionConfig.BLUE_HUB_CENTER
-        //     ).alongWith(
-        //         ShootingCommand.createDynamicShootingCommand(
-        //             drivetrain,
-        //             intake,
-        //             launcher,
-        //             transport,
-        //             Constants.VisionConfig.BLUE_HUB_CENTER
-        //         )
-        //     )
+        //     ))
+        //     .finallyDo((interrupted) -> {
+        //         candle.Changecolor(Constants.RobotState.State.Idle);
+        //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+        //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+        //         new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting));
+        //     })
         // );
+
+        // 操作手按住右扳机时：原地转向 + 动态发射（参考 MagicSequencingCommand 原地发射逻辑）
+        Driver.leftTrigger().whileTrue(
+            Commands.parallel(MoveWhileAimCommand.create(
+                    drivetrain,
+                    () -> -Driver.getLeftY() * MaxSpeed * 0.125,
+                    () -> -Driver.getLeftX() * MaxSpeed * 0.125,
+                    MaxAngularRate,
+                    Constants.VisionConfig.BLUE_HUB_CENTER
+                    ),
+                    ShootingCommand.createDynamicShootingCommand(
+                        drivetrain,
+                        intake,
+                        launcher,
+                        transport,
+                        Constants.VisionConfig.BLUE_HUB_CENTER
+                    )
+                )
+        );
             
             
             

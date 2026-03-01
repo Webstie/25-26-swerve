@@ -140,8 +140,8 @@ public class CANdleSystem extends SubsystemBase {
     public void setPink() {
         m_candle1.animate(null);
         m_candle2.animate(null);
-        m_candle1.setLEDs(255, 192, 203);
-        m_candle2.setLEDs(255, 192, 203);
+        m_candle1.setLEDs(245, 140, 245);
+        m_candle2.setLEDs(245, 140, 245);
 
     }
 

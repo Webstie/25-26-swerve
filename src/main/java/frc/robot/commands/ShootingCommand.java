@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
@@ -19,6 +21,8 @@ import frc.robot.Constants;
 
 public class ShootingCommand extends SequentialCommandGroup {
     private static final double FIELD_LENGTH_METERS = 16.54099;
+    private static final double PITCH_LEAD_RAD_PER_MPS = 0.025;
+    private static final double MAX_PITCH_LEAD_RAD = 0.02;
     /**
      * 创建一个射击命令
      * 逻辑：按下时：
@@ -205,8 +209,27 @@ public class ShootingCommand extends SequentialCommandGroup {
                 double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
                 double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
 
+                ChassisSpeeds robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
+                double cos = currentPose.getRotation().getCos();
+                double sin = currentPose.getRotation().getSin();
+                double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
+                double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+                double dx = targetCenter.getX() - currentPose.getX();
+                double dy = targetCenter.getY() - currentPose.getY();
+                double dist = Math.hypot(dx, dy);
+                double ux = dist > 1e-6 ? dx / dist : 0.0;
+                double uy = dist > 1e-6 ? dy / dist : 0.0;
+                double radialSpeed = fieldVx * ux + fieldVy * uy;
+
+                double pitchLead = MathUtil.clamp(
+                    -PITCH_LEAD_RAD_PER_MPS * radialSpeed,
+                    -MAX_PITCH_LEAD_RAD,
+                    MAX_PITCH_LEAD_RAD
+                );
+                double targetPitch = bestPitch - pitchLead;
+
                 launcher.setFrictionWheelVelocity(bestSpeed);
-                launcher.setAngleToTarget(bestPitch);
+                launcher.setAngleToTarget(targetPitch);
                 launcher.setFeederVelocity(
                     warmupTimer.hasElapsed(warmupSeconds)
                         ? Constants.LauncherConfig.FeederSpeed
@@ -216,6 +239,8 @@ public class ShootingCommand extends SequentialCommandGroup {
                 SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
                 SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
                 SmartDashboard.putNumber("AutoScore/Target_Speed", bestSpeed);
+                SmartDashboard.putNumber("AutoScore/PitchLead", pitchLead);
+                SmartDashboard.putNumber("AutoScore/RadialSpeed", radialSpeed);
             },
             launcher
         );
@@ -230,13 +255,11 @@ public class ShootingCommand extends SequentialCommandGroup {
 
         Command intakeStream = Commands.sequence(
             Commands.waitSeconds(warmupSeconds),
-            Commands.parallel(
-                intake.IntakeSwingSingleCommand().repeatedly()
-                    .alongWith(Commands.run(() -> {
-                        intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
-                        intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
-                    }, intake))
-            )
+            Commands.runOnce(() -> {
+                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+                intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+            }, intake),
+            intake.IntakeSwingSingleCommand().repeatedly()
         );
 
         return Commands.parallel(

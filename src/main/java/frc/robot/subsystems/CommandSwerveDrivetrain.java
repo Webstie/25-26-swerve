@@ -31,6 +31,7 @@ import com.pathplanner.lib.util.DriveFeedforwards;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -196,6 +197,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
         angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
 
+        turnAngleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+
         //auto builder 
         configureAutoBuilder();
     }
@@ -233,6 +237,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
         angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
 
+        turnAngleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
         //auto builder 
         configureAutoBuilder();
     }
@@ -277,6 +283,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
         angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        
+        turnAngleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
+        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
 
         //auto builder 
         configureAutoBuilder();
@@ -430,7 +439,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     /**
      * 原地瞄准，只需要pid进行角度调整。
      */
+
+
     public Command translateToRotationWithPID(Pose2d targetPose) {
+        final double angleToleranceRad = Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES);
         return run(() -> {
             // 1. 获取当前位姿
             Pose2d currentPose = getPose();
@@ -457,13 +469,20 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         })
         // 退出条件：三个控制器都到达 Setpoint
-        .until(() -> angleController.atSetpoint())
+        .until(() -> {double currentAngle = getPose().getRotation().getRadians();
+        double targetAngle  = targetPose.getRotation().getRadians();
+
+        // 归一化角度差到 [-pi, pi]
+        double angleError = MathUtil.angleModulus(targetAngle - currentAngle);
+
+        return Math.abs(angleError) < angleToleranceRad;
+        })
         .finallyDo(() -> {
             // 结束时停车并重置
             stop();
-            xController.reset();
-            yController.reset();
-            angleController.reset();
+            turnxController.reset();
+            turnyController.reset();
+            turnAngleController.reset();
             System.out.println("PID Rotation Finished");
         });
     }
