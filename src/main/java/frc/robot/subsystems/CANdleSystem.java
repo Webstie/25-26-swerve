@@ -71,8 +71,8 @@ public class CANdleSystem extends SubsystemBase {
     }
 
     public void Changecolor(Constants.RobotState.State state) {//change color according to the position of elevator
+        System.out.println("COLOR CHANGED!");
         m_current_state = state;
- 
     }
 
     public void setOff() {
@@ -213,7 +213,7 @@ public class CANdleSystem extends SubsystemBase {
     //机器人实际状态不同，对应的灯效也不同
     @Override
     public void periodic() {
-        //System.out.println("m_currentstate: " + m_elevator.m_current_state);
+        // System.out.println("***************************************m_currentstate: " + m_current_state);
         switch(m_current_state) {
             case Idle:
                 setOff();
@@ -226,6 +226,9 @@ public class CANdleSystem extends SubsystemBase {
                 break;
             case Outtaking:
                 setBlue();
+                break;
+            case ClimbingUp:
+                setCyan();
                 break;
             case ClimbingDown:
                 m_candle1.animate(new RainbowAnimation(1, 1, LedCount));//single showoff lights

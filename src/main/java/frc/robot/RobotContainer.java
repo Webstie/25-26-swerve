@@ -105,7 +105,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
                 3,
@@ -117,7 +117,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(9.0)
@@ -129,7 +129,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
                 2,
@@ -141,7 +141,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(5.0)
@@ -153,7 +153,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 3,
@@ -166,7 +166,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(9.0)
@@ -240,47 +240,54 @@ public class RobotContainer {
         // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
         // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
         //单独执行发射命令
-        Driver.x().whileTrue(
-            new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-                intake,
-                launcher,
-                transport,
-                47.5,
-                0.0031
-            ))
+        Driver.rightTrigger().whileTrue(
+            Commands.parallel(
+                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                    intake,
+                    launcher,
+                    transport,
+                    47.5,
+                    0.0031
+                )),
+                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
 
         Operator.a().whileTrue(
-            new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-                intake,
-                launcher,
-                transport,
-                70,
-                -0.020
-            ))
+            Commands.parallel(
+                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                    intake,
+                    launcher,
+                    transport,
+                    70,
+                    -0.020
+                )),
+                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
 
         //intake机构放下or回收
-        Driver.rightTrigger().onTrue(intake.ChangePitchPositionSingleCommand()
+        Driver.x().onTrue(intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
                         intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
                         intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
                         ()->intake.IntakepitchPositionFlag))
-                        .alongWith(Commands.either(
-                            new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle),
-                            new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Intaking),candle),
-                            ()->intake.IntakepitchPositionFlag))
                         );
 
         //吸球
         Driver.rightBumper().onTrue(
             intake.ChangeIntakeSpeedSingleCommand()
             .andThen(intake.IntakeSingleCommand())
+            .andThen(Commands.either(
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Intaking), candle),
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Idle), candle),
+                () -> intake.Intake_press_times % 2 == 1
+            ))
             
         );
 
         //吐球
-        Driver.leftBumper().whileTrue(OuttakeCommand.create(intake, launcher, transport)
+        Driver.leftBumper().whileTrue(OuttakeCommand.create(intake, launcher, transport, candle)
                             .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Outtaking),candle)));
 
         /*****************************************************（Operator）**********************************************************/
@@ -317,7 +324,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true; // 进入半自动模式，开启视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 0,
@@ -330,7 +337,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -341,7 +348,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 1,
@@ -354,7 +361,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -365,7 +372,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 2,
@@ -378,7 +385,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -389,7 +396,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 3,
@@ -402,7 +409,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -413,7 +420,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 4,
@@ -426,7 +433,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -437,7 +444,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+                candle.Changecolor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 5,
@@ -450,7 +457,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -497,6 +504,8 @@ public class RobotContainer {
                         Constants.VisionConfig.BLUE_HUB_CENTER
                     )
                 )
+                .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
+                .finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
             
             
