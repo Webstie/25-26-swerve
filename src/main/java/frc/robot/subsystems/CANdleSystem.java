@@ -136,6 +136,12 @@ public class CANdleSystem extends SubsystemBase {
         m_candle2.animate(null);
         m_candle1.setLEDs(255, 165, 0);
         m_candle2.setLEDs(255, 165, 0);
+    }
+    public void setPink() {
+        m_candle1.animate(null);
+        m_candle2.animate(null);
+        m_candle1.setLEDs(255, 192, 203);
+        m_candle2.setLEDs(255, 192, 203);
 
     }
 
@@ -213,7 +219,7 @@ public class CANdleSystem extends SubsystemBase {
                 setOff();
                 break;
             case Shooting:
-                setOrange();
+                setPink();
                 break;
             case Intaking:
                 setRed();

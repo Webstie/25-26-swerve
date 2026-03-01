@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
@@ -201,22 +202,8 @@ public class ShootingCommand extends SequentialCommandGroup {
 
                 double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
 
-                double bestPitch = 0.0;
-                double bestSpeed = 0.0;
-                double minDistanceDiff = Double.MAX_VALUE;
-
-                for (double[] row : Constants.VisionConfig.DISTANCE_PARAMS_TABLE) {
-                    double tableDist = row[0];
-                    double tablePitch = row[1];
-                    double tableSpeed = row[2];
-
-                    double diff = Math.abs(distanceToTarget - tableDist);
-                    if (diff < minDistanceDiff) {
-                        minDistanceDiff = diff;
-                        bestPitch = tablePitch;
-                        bestSpeed = tableSpeed;
-                    }
-                }
+                double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
+                double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
 
                 launcher.setFrictionWheelVelocity(bestSpeed);
                 launcher.setAngleToTarget(bestPitch);
@@ -225,6 +212,10 @@ public class ShootingCommand extends SequentialCommandGroup {
                         ? Constants.LauncherConfig.FeederSpeed
                         : 0
                 );
+
+                SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
+                SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
+                SmartDashboard.putNumber("AutoScore/Target_Speed", bestSpeed);
             },
             launcher
         );

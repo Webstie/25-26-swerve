@@ -12,6 +12,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Time;
@@ -44,6 +45,8 @@ import java.util.Locale.LanguageRange;
 
 
 public class RobotContainer {
+     
+
     private final SendableChooser<Command> autoChooser;
     public final Climber climber = new Climber();
     public final Launcher launcher = new Launcher();
@@ -51,6 +54,8 @@ public class RobotContainer {
     public final Intake intake = new Intake();
     public final CANdleSystem candle = new CANdleSystem();
     public final Vision vision = new Vision();
+
+     
 
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -228,8 +233,8 @@ public class RobotContainer {
         //装福灯
         Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
 
-        Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
-        Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
+        // Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
+        // Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
 
         // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
         // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
@@ -239,8 +244,18 @@ public class RobotContainer {
                 intake,
                 launcher,
                 transport,
-                launchSpeed,
-                launchAngle
+                47.5,
+                0.0031
+            ))
+        );
+
+        Driver.leftBumper().whileTrue(
+            new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                intake,
+                launcher,
+                transport,
+                70,
+                -0.020
             ))
         );
 
@@ -446,8 +461,8 @@ public class RobotContainer {
                 if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
+            .andThen(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle))
             .andThen(MagicSequencingCommand.createAnyPointAutoScoreCommand(
                 drivetrain, 
                 intake, 
@@ -456,10 +471,11 @@ public class RobotContainer {
                 Constants.VisionConfig.BLUE_HUB_CENTER
             ))
             .finallyDo((interrupted) -> {
+                candle.Changecolor(Constants.RobotState.State.Idle);
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting));
             })
         );
 
