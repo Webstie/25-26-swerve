@@ -228,8 +228,8 @@ public class RobotContainer {
         Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion ));
 
         //电推杆微调
-        Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
-        Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
+        // Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        // Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
 
         //装福灯
         Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
@@ -240,7 +240,7 @@ public class RobotContainer {
         // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
         // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
         //单独执行发射命令
-        Driver.rightTrigger().whileTrue(
+        Driver.x().whileTrue(
             new ProxyCommand(() -> ShootingCommand.createShootingCommand(
                 intake,
                 launcher,
@@ -250,7 +250,7 @@ public class RobotContainer {
             ))
         );
 
-        Driver.leftBumper().whileTrue(
+        Operator.a().whileTrue(
             new ProxyCommand(() -> ShootingCommand.createShootingCommand(
                 intake,
                 launcher,
@@ -261,7 +261,7 @@ public class RobotContainer {
         );
 
         //intake机构放下or回收
-        Driver.rightBumper().onTrue(intake.ChangePitchPositionSingleCommand()
+        Driver.rightTrigger().onTrue(intake.ChangePitchPositionSingleCommand()
                     .andThen(Commands.either(
                         intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
                         intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
@@ -273,14 +273,14 @@ public class RobotContainer {
                         );
 
         //吸球
-        Driver.x().onTrue(
+        Driver.rightBumper().onTrue(
             intake.ChangeIntakeSpeedSingleCommand()
             .andThen(intake.IntakeSingleCommand())
             
         );
 
         //吐球
-        Driver.a().whileTrue(OuttakeCommand.create(intake, launcher, transport)
+        Driver.leftBumper().whileTrue(OuttakeCommand.create(intake, launcher, transport)
                             .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Outtaking),candle)));
 
         /*****************************************************（Operator）**********************************************************/
@@ -299,9 +299,9 @@ public class RobotContainer {
 
         
         //爬升
-        Operator.rightBumper().onTrue(climber.ClimbingProcessSingleCommand()
+        Operator.back().onTrue(climber.ClimbingProcessSingleCommand()
                                     .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingUp),candle)));
-        Operator.rightTrigger().whileTrue(
+        Operator.start().whileTrue(
             Commands.run(() -> climber.setPosition(ClimbPosition))
         ).onFalse(
             Commands.sequence(
