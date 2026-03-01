@@ -163,7 +163,7 @@ public class RobotContainer {
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(10.0)
+            }).withTimeout(7.0)
             .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
@@ -175,17 +175,16 @@ public class RobotContainer {
         );
 
         
-        // NamedCommands.registerCommand("Climb_Auto", 
-        //     intake.AdjustIntakePositionSingleCommand(IntakeUpPosition)
-        //                 .andThen(intake.ChangeIntakeSpeedSingleCommand())
-        //     .andThen(intake.IntakeSingleCommand())
-        //     .andThen(Commands.either(
-        //         new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE1), candle),
-        //         new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.STATE2), candle),
-        //         () -> intake.Intake_press_times % 2 == 0
-        //     ))
-            
-        // );
+        NamedCommands.registerCommand("Climb_Auto", 
+            Commands.sequence(
+                // 第一步：展开/准备爬升机构，并亮起爬升指示灯
+                climber.ClimbingProcessSingleCommand()
+                    .alongWith(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.ClimbingUp), candle)),
+                
+                // 第二步：直接设定目标位置
+                Commands.runOnce(() -> climber.setPosition(ClimbPosition), climber)
+            )
+        );
 
         configureBindings();
 

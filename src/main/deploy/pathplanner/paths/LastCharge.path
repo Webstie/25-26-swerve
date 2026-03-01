@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.17,
+        "y": 6.01
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.138330416078318,
+        "y": 6.004280398839385
+      },
+      "isLocked": false,
+      "linkedName": "BlueShoot3"
+    },
+    {
+      "anchor": {
+        "x": 3.4629000000000003,
+        "y": 5.7885333333333335
+      },
+      "prevControl": {
+        "x": 2.534978240660409,
+        "y": 6.037172921227802
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "BlueStart1"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -47.1210963966615
+  },
+  "reversed": false,
+  "folder": "Blue3",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}
