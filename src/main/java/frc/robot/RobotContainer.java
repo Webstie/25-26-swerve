@@ -234,13 +234,31 @@ public class RobotContainer {
         //装福灯
         Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
 
-        // Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
-        // Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
+        Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
+        Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
 
-        // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
-        // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
+        Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
+        Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
+
+        Driver.b()
+            .debounce(0.3)
+            .whileTrue(
+            Commands.parallel(
+                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                    intake,
+                    launcher,
+                    transport,
+                    launchSpeed,
+                    launchAngle
+                )),
+                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+        );
+
         //单独执行发射命令
-        Driver.rightTrigger().whileTrue(
+        Driver.rightTrigger()
+            .debounce(0.3)
+            .whileTrue(
             Commands.parallel(
                 new ProxyCommand(() -> ShootingCommand.createShootingCommand(
                     intake,
@@ -253,14 +271,16 @@ public class RobotContainer {
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
 
-        Operator.a().whileTrue(
+        Operator.a()
+            .debounce(0.3)
+            .whileTrue(
             Commands.parallel(
                 new ProxyCommand(() -> ShootingCommand.createShootingCommand(
                     intake,
                     launcher,
                     transport,
                     70,
-                    -0.020
+                    -0.025
                 )),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
