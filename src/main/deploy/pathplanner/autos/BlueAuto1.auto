@@ -7,49 +7,55 @@
         {
           "type": "path",
           "data": {
-            "pathName": "IntakePath1"
+            "pathName": "StartToBack1"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "IntakeNamedCommand"
+            "name": "Intake_Auto"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "IntakePath2"
+            "pathName": "BackToIntake1"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "IntakeInsidePath"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Intake to Shoot"
+            "pathName": "IntakeToWarehouse1"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "ShootNamedCommand"
+            "name": "WarmUp_Auto_Far"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ClimbPath1"
+            "pathName": "WarehouseToShoot1"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "ClimbingNamedCommand"
+            "name": "Shoot_Auto_Blue_Far_Left"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "ShootToClimb1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Climb_Auto"
           }
         }
       ]

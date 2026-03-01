@@ -4,7 +4,9 @@
   "holonomicMode": true,
   "pathFolders": [
     "Blue",
-    "Blue1"
+    "Blue1",
+    "Blue2",
+    "Blue3"
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.0,

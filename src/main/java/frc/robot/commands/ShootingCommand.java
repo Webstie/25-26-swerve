@@ -205,7 +205,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                 double bestSpeed = 0.0;
                 double minDistanceDiff = Double.MAX_VALUE;
 
-                for (double[] row : Constants.VisionConfig.DISTANCE_DATA_TABLE) {
+                for (double[] row : Constants.VisionConfig.DISTANCE_PARAMS_TABLE) {
                     double tableDist = row[0];
                     double tablePitch = row[1];
                     double tableSpeed = row[2];

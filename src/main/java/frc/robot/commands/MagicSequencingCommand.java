@@ -30,11 +30,128 @@ public class MagicSequencingCommand {
      * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
      * @return 一个动态命令，执行时会自动计算最近点并规划路径
      */
-    //********************************************************常规自瞄********************************************************** */
-    public static Command magicRunToClosestHardcodedPose(
+
+    // //********************************************************移动到固定点位自瞄发射********************************************************** */
+    // public static Command magicRunToClosestHardcodedPose(
+    //         int position_index,
+    //         CommandSwerveDrivetrain drive, 
+    //         List<Translation2d> blueScoringPositions, 
+    //         Translation2d blueCenterPosition) {
+        
+    //     // 使用 Commands.defer 确保逻辑在命令运行时才执行（因为那时才知道机器人在哪）
+    //     return Commands.defer(() -> {
+            
+    //         // 1. 获取联盟颜色
+    //         boolean isRed = false;
+    //         var alliance = DriverStation.getAlliance();
+    //         if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+    //             isRed = true;
+    //         }
+
+    //         // 2. 获取当前机器人位置
+    //         Pose2d currentPose = drive.getPose();
+            
+    //         // // 3. 寻找最近的目标点
+    //         // Translation2d bestPoint = null;
+    //         // double minDistance = Double.MAX_VALUE;
+
+    //         // for (Translation2d point : blueScoringPositions) {
+    //         //     // 如果是红方，进行场地镜像转换 (X轴翻转)
+    //         //     Translation2d targetPointToCheck = isRed ? 
+    //         //         new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
+    //         //         point;
+                
+    //         //     double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
+    //         //     if (distance < minDistance) {
+    //         //         minDistance = distance;
+    //         //         bestPoint = targetPointToCheck;
+    //         //     }
+    //         // }
+
+    //         // 3. 寻找最近的目标点
+    //         Translation2d bestPoint = null;
+    //         double minDistance = Double.MAX_VALUE;
+
+    //         Translation2d point = blueScoringPositions.get(position_index);
+
+    //         Translation2d targetPointToCheck = isRed ? 
+    //             new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
+    //             point;
+            
+    //         double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
+    //         if (distance < minDistance) {
+    //             minDistance = distance;
+    //             bestPoint = targetPointToCheck;
+    //         }
+
+    //         // 如果列表为空或出错，原地不动
+    //         if (bestPoint == null) {
+    //             return Commands.none();
+    //         }
+
+    //         // 4. 计算朝向：从该点(bestPoint) 面向 中心点(centerPosition)
+    //         Translation2d targetCenter = isRed ? 
+    //             new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
+    //             blueCenterPosition;
+
+    //         double dx = targetCenter.getX() - bestPoint.getX();
+    //         double dy = targetCenter.getY() - bestPoint.getY();
+    //         Rotation2d targetRotation = new Rotation2d(Math.atan2(dy, dx));
+
+    //         Pose2d targetPose = new Pose2d(bestPoint, targetRotation);
+
+    //         // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
+    //         // 你可以根据需求选择只用 pathfind，或者 pathfind + PID
+    //         return drive.pathfindToPose(targetPose)
+    //                .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(5.0);// 设置超时为5秒，防止卡死
+
+    //     }, Set.of(drive)); // 声明 subsystem 依赖
+    // }
+
+    // /**
+    //  * 创建一个顺序命令，先移动到最近的硬编码得分点，然后开始射击
+    //  * 
+    //  * @param drive 底盘子系统
+    //  * @param intakeSubsystem Intake子系统实例
+    //  * @param launcher Shooter子系统实例
+    //  * @param transportSubsystem Transport子系统实例
+    //  * @param blueScoringPositions 蓝色联盟视角下的候选得分点列表 (Translation2d)
+    //  * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
+    //  * @param frictionWheelLaunchSpeed 发射要的摩擦轮转速
+    //  * @param launch_angle 发射要的角度
+    //  * @return 一个Command对象，表示顺序执行的自动得分命令
+    //  */
+    // public static Command createSequentialAutoScoreCommand(
+    //     int position_index,
+    //     CommandSwerveDrivetrain drive,
+    //     Intake intakeSubsystem,
+    //     Launcher launcher,
+    //     Transport transportSubsystem,
+    //     List<Translation2d> blueScoringPositions,
+    //     Translation2d blueCenterPosition,
+    //     double frictionWheelLaunchSpeed,
+    //     double launch_angle
+
+    // ) {
+    //     return Commands.defer(() -> {
+    //         return Commands.sequence(
+    //             // 第一阶段：移动到目标位置
+    //             Commands.parallel(     
+    //                 Commands.runOnce(()->launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),//预热       
+    //                 launcher.AdjustAngleToPositionCommand(launch_angle),
+    //                 MagicSequencingCommand.magicRunToClosestHardcodedPose(position_index,drive, blueScoringPositions, blueCenterPosition)//移动
+                
+    //             ),
+    //             // 第二阶段：到达位置后开始射击
+    //             ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem, frictionWheelLaunchSpeed));
+    //     }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
+    // }
+
+    //********************************************************移动到固定点位自瞄发射********************************************************** */
+    public static Command runToClosestPosition(
             int position_index,
             CommandSwerveDrivetrain drive, 
-            List<Translation2d> blueScoringPositions, 
+            double[][] pointsParamsTable, 
             Translation2d blueCenterPosition) {
         
         // 使用 Commands.defer 确保逻辑在命令运行时才执行（因为那时才知道机器人在哪）
@@ -50,28 +167,16 @@ public class MagicSequencingCommand {
             // 2. 获取当前机器人位置
             Pose2d currentPose = drive.getPose();
             
-            // // 3. 寻找最近的目标点
-            // Translation2d bestPoint = null;
-            // double minDistance = Double.MAX_VALUE;
-
-            // for (Translation2d point : blueScoringPositions) {
-            //     // 如果是红方，进行场地镜像转换 (X轴翻转)
-            //     Translation2d targetPointToCheck = isRed ? 
-            //         new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
-            //         point;
-                
-            //     double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
-            //     if (distance < minDistance) {
-            //         minDistance = distance;
-            //         bestPoint = targetPointToCheck;
-            //     }
-            // }
-
             // 3. 寻找最近的目标点
             Translation2d bestPoint = null;
             double minDistance = Double.MAX_VALUE;
 
-            Translation2d point = blueScoringPositions.get(position_index);
+            // 从传入的二维数组中提取X和Y坐标构建Translation2d
+            // pointsParamsTable[position_index] 对应: {X坐标, Y坐标, Pitch角度, 射速}
+            Translation2d point = new Translation2d(
+                pointsParamsTable[position_index][0], 
+                pointsParamsTable[position_index][1]
+            );
 
             Translation2d targetPointToCheck = isRed ? 
                 new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
@@ -100,7 +205,6 @@ public class MagicSequencingCommand {
             Pose2d targetPose = new Pose2d(bestPoint, targetRotation);
 
             // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
-            // 你可以根据需求选择只用 pathfind，或者 pathfind + PID
             return drive.pathfindToPose(targetPose)
                    .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(5.0);// 设置超时为5秒，防止卡死
 
@@ -110,50 +214,104 @@ public class MagicSequencingCommand {
     /**
      * 创建一个顺序命令，先移动到最近的硬编码得分点，然后开始射击
      * 
+     * @param position_index 目标点位在表中的索引
      * @param drive 底盘子系统
      * @param intakeSubsystem Intake子系统实例
      * @param launcher Shooter子系统实例
      * @param transportSubsystem Transport子系统实例
-     * @param blueScoringPositions 蓝色联盟视角下的候选得分点列表 (Translation2d)
      * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
-     * @param frictionWheelLaunchSpeed 发射要的摩擦轮转速
-     * @param launch_angle 发射要的角度
+     * @param pointsParamsTable 包含点位信息及发射参数的映射表 (即 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE)
      * @return 一个Command对象，表示顺序执行的自动得分命令
      */
-    public static Command createSequentialAutoScoreCommand(
+    public static Command createFixedPointAutoScoreCommand(
         int position_index,
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
         Launcher launcher,
         Transport transportSubsystem,
-        List<Translation2d> blueScoringPositions,
         Translation2d blueCenterPosition,
-        double frictionWheelLaunchSpeed,
-        double launch_angle
-
+        double[][] pointsParamsTable
     ) {
         return Commands.defer(() -> {
+            // 解析数组：当前行的数据格式预设为 {X坐标, Y坐标, Pitch角度, 射速}
+            double[] currentParams = pointsParamsTable[position_index];
+            double launch_angle = currentParams[2];             // 提取角度
+            double frictionWheelLaunchSpeed = currentParams[3]; // 提取转速
+
             return Commands.sequence(
                 // 第一阶段：移动到目标位置
                 Commands.parallel(     
                     Commands.runOnce(()->launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),//预热       
-                    launcher.AdjustAngleToPositionCommand(launch_angle),
-                    MagicSequencingCommand.magicRunToClosestHardcodedPose(position_index,drive, blueScoringPositions, blueCenterPosition)//移动
-                
+                    launcher.AdjustAngleToPositionCommand(launch_angle), // 调整角度
+                    MagicSequencingCommand.runToClosestPosition(
+                        position_index, 
+                        drive, 
+                        pointsParamsTable, 
+                        blueCenterPosition
+                    ) // 移动到点位
                 ),
+                Commands.waitSeconds(0.3),
                 // 第二阶段：到达位置后开始射击
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem, frictionWheelLaunchSpeed));
+                ShootingCommand.createAutoShootingCommand(
+                    intakeSubsystem, 
+                    launcher, 
+                    transportSubsystem, 
+                    frictionWheelLaunchSpeed
+                )
+            );
+        }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
+    }
+
+    /**
+     * 创建一个顺序命令，在自动模式下直接开始射击，在过程中慢慢调整自己继续靠近最近的硬编码得分点
+     * 
+     * @param position_index 目标点位在表中的索引
+     * @param drive 底盘子系统
+     * @param intakeSubsystem Intake子系统实例
+     * @param launcher Shooter子系统实例
+     * @param transportSubsystem Transport子系统实例
+     * @param blueCenterPosition 蓝色联盟视角下的中心目标点 (Hub/Reef中心)，用于计算朝向
+     * @param pointsParamsTable 包含点位信息及发射参数的映射表 (即 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE)
+     * @return 一个Command对象，表示顺序执行的自动得分命令
+     */
+    public static Command createFastFixedPointAutoScoreCommand(
+        int position_index,
+        CommandSwerveDrivetrain drive,
+        Intake intakeSubsystem,
+        Launcher launcher,
+        Transport transportSubsystem,
+        Translation2d blueCenterPosition,
+        double[][] pointsParamsTable
+    ) {
+        return Commands.defer(() -> {
+            // 解析数组：当前行的数据格式预设为 {X坐标, Y坐标, Pitch角度, 射速}
+            double[] currentParams = pointsParamsTable[position_index];
+            double launch_angle = currentParams[2];             // 提取角度
+            double frictionWheelLaunchSpeed = currentParams[3]; // 提取转速
+
+            return Commands.parallel(
+                //同时运行1：开始射击
+                ShootingCommand.createAutoShootingCommand(
+                    intakeSubsystem, 
+                    launcher, 
+                    transportSubsystem, 
+                    frictionWheelLaunchSpeed
+                ),
+                //同时运行2：移向目标位置
+                MagicSequencingCommand.runToClosestPosition(
+                        position_index, 
+                        drive, 
+                        pointsParamsTable, 
+                        blueCenterPosition
+                )
+                
+            );
         }, Set.of(drive, intakeSubsystem, launcher, transportSubsystem));
     }
 
 
-
-
-
-
-
-//*******************************************************************原地自瞄发射***************************************************************
-    public static Command turn2PositionCommand(
+//*******************************************************************任意点位原地自瞄发射***************************************************************
+    public static Command turnToPosition(
             CommandSwerveDrivetrain drive, 
             Translation2d blueCenterPosition) {
         
@@ -179,25 +337,25 @@ public class MagicSequencingCommand {
             double dx = targetCenter.getX() - currentPose.getX();
             double dy = targetCenter.getY() - currentPose.getY();
             Rotation2d targetRotation = new Rotation2d(Math.atan2(dy, dx));
-
             Pose2d targetPose = new Pose2d(currentPosition, targetRotation);//直接给当前位置，保持位置不动，直接瞄准
 
+            SmartDashboard.putString("AutoScore/TargetPose", targetPose.toString());
             // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
             // 你可以根据需求选择只用 pathfind，或者 pathfind + PID
-            return drive.pathfindToPose(targetPose)
-                   .andThen(drive.translateToRotationWithPID(targetPose)).withTimeout(2.0);// 设置超时为5秒，防止卡死,只动角度
+            // return drive.pathfindToPose(targetPose)
+            //        .andThen(drive.translateToRotationWithPID(targetPose)).withTimeout(2.0);// 设置超时为5秒，防止卡死,只动角度
+            return drive.translateToRotationWithPID(targetPose).withTimeout(2.0);// 设置超时为5秒，防止卡死,只动角度
 
         }, Set.of(drive)); // 声明 subsystem 依赖
 
     }
 
     //对于pitch电推杆的角度调整目前放在了command中，也可以考虑放在某个子系统的periodic里面实时计算，然后拿结果
-    public static Command createAutoTurnScoreCommand(
+    public static Command createAnyPointAutoScoreCommand(
         CommandSwerveDrivetrain drive,
         Intake intakeSubsystem,
         Launcher launcher,
         Transport transportSubsystem,
-        List<Translation2d> blueScoringPositions,
         Translation2d blueCenterPosition
     ) {
         return Commands.defer(() -> {
@@ -223,28 +381,9 @@ public class MagicSequencingCommand {
             // 4. 计算欧氏距离 (Euclidean Distance)
             double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
 
-            // 5. 查表逻辑 (最近邻查找)
-            double bestPitch = 0.0;
-            double bestSpeed = 0.0;
-            // double minDistanceDiff = Double.MAX_VALUE;
-
-            // // 遍历新的 DISTANCE_DATA_TABLE
-            // for (double[] row : Constants.VisionConfig.DISTANCE_DATA_TABLE) {
-            //     double tableDist = row[0];  // 第1列：距离
-            //     double tablePitch = row[1]; // 第2列：Pitch
-            //     double tableSpeed = row[2]; // 第3列：速度
-                
-            //     double diff = Math.abs(distanceToTarget - tableDist);
-                
-            //     if (diff < minDistanceDiff) {
-            //         minDistanceDiff = diff;
-            //         bestPitch = tablePitch;
-            //         bestSpeed = tableSpeed;
-            //     }
-            // }
-            bestPitch = Constants.VisionConfig.PitchSlope * distanceToTarget + Constants.VisionConfig.PitchYIntercept;
-            bestSpeed = Constants.VisionConfig.SpeedSlope * distanceToTarget + Constants.VisionConfig.SpeedYIntercept;
-
+            // 5. 查表
+            double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
+            double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
 
             // 打印调试信息 (不再使用 System.out.println)
             SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
@@ -264,9 +403,9 @@ public class MagicSequencingCommand {
                     // 使用动态计算出的 finalSpeed 设置电推杆角度
                     launcher.AdjustAngleToPositionCommand(finalPitch),
                     // 转向目标
-                    MagicSequencingCommand.turn2PositionCommand(drive, blueCenterPosition)
+                    MagicSequencingCommand.turnToPosition(drive, blueCenterPosition)
                 ),
-
+                
                 // 第二阶段：到达位置后开始射击
                 ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, transportSubsystem, finalSpeed)
             );

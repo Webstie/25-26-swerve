@@ -119,7 +119,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             this
         )
     );
-
+    
     /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
     private final SysIdRoutine m_sysIdRoutineSteer = new SysIdRoutine(
         new SysIdRoutine.Config(
@@ -492,82 +492,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Command pathfindToPose(Pose2d pose) {
         return AutoBuilder.pathfindToPose(pose, new PathConstraints(2, 2, Math.PI, 2 * Math.PI));
     }
-
-    /**
-     * Determines the closest scoring position (hub pose) based on AprilTag vision data.
-     * <p>
-     * This method processes vision data from multiple cameras to identify valid AprilTag targets,
-     * selects the nearest hub tag, and calculates the optimal robot scoring position relative to it.
-     * If no valid tags are detected, a default tag ID is used as a fallback.
-     * <p>
-     * The scoring position is calculated by applying a transformation to the detected tag's pose,
-     * taking into account the robot's scoring side radius and branch offset.
-     *
-     * @param cameraEstimators A map of {@link PhotonCamera} to {@link PhotonPoseEstimator}, representing
-     *                         the cameras and their respective pose estimators.
-     * @return The closest hub scoring {@link Pose2d} relative to the field. If no valid tag is found,
-     *         the robot's current pose is returned as a fallback.
-     */
-    public Pose2d closestHubPose(Map<PhotonCamera, PhotonPoseEstimator> cameraEstimators) {
-        List<PhotonTrackedTarget> allValidTargets = new ArrayList<>();
-        
-        // 遍历所有相机，获取并合并所有有效的AprilTag目标
-        cameraEstimators.forEach((camera, estimator) -> {
-            // 使用getLatestResult()替代getAllUnreadResults()
-            PhotonPipelineResult latestResult = camera.getLatestResult();
-            
-            // 检查结果是否有效且包含目标
-            if (latestResult == null || !latestResult.hasTargets()) {
-                System.out.println("No valid targets for camera: " + camera.getName());
-                return;
-            }
-            
-            // 筛选有效的hub tag并添加到合并列表中
-            latestResult.getTargets().stream()
-                .filter(target -> target.getFiducialId() != -1)
-                .forEach(allValidTargets::add);
-        });
-        
-        // 从所有相机的结果中找到最近的有效AprilTag
-        PhotonTrackedTarget closestTag = allValidTargets.stream()
-            .min(Comparator.comparingDouble(target -> {
-                Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(target.getFiducialId());
-                return tagPose.map(pose -> pose.toPose2d().getTranslation().getDistance(getPose().getTranslation()))
-                            .orElse(Double.MAX_VALUE);
-            }))
-            .orElse(null);
-
-        // 如果没有找到有效tag，返回机器人当前位置
-        if (closestTag == null) {
-            System.out.println("No valid hub tags found, staying at current position");
-            return getPose();
-        }
-
-        int targetTagId = closestTag.getFiducialId();
-        
-        // 获取tag的场地位置
-        Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(targetTagId);
-        if (!tagPose.isPresent()) {
-            // 如果找不到tag位置，返回当前机器人位置作为fallback
-            System.err.println("Warning: Could not find pose for tag ID " + targetTagId);
-            return getPose();
-        }
-        
-        Pose2d tagPose2d = tagPose.get().toPose2d();
-        
-        // 计算得分位置
-        Pose2d closestPose = tagPose2d
-                .transformBy(new Transform2d(
-                    Units.inchesToMeters(Constants.VisionConfig.SCORING_SIDE_RADIUS_ROBOT_IN),
-                    ((hubTargetIsRight ? Constants.VisionConfig.TAG_TO_BRANCH_OFFSET_M : -Constants.VisionConfig.TAG_TO_BRANCH_OFFSET_M)),
-                    Rotation2d.kZero));
-        
-
-
-        return new Pose2d(closestPose.getTranslation(),
-                closestPose.getRotation().plus(Constants.VisionConfig.SCORING_SIDE_FROM_FRONT_ROT));
-    }
-
+    
     /**
      * Returns the current rotation of the robot from odometry.
      *

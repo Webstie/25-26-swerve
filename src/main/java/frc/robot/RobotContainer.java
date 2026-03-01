@@ -78,26 +78,104 @@ public class RobotContainer {
     public RobotContainer() {
 
         //register the named commands for auto mode
+
         //自动发射调用命令
-        NamedCommands.registerCommand("ShootNamedCommand",
-            ShootingCommand.createShootingCommand(
+        NamedCommands.registerCommand("WarmUp_Auto_Far",
+            Commands.parallel(
+                Commands.runOnce(()->launcher.setFrictionWheelVelocity(53.5)),//预热       
+                launcher.AdjustAngleToPositionCommand(-0.032)// 调整角度
+            )
+        );
+
+        NamedCommands.registerCommand("WarmUp_Auto_Near",
+            Commands.parallel(
+                Commands.runOnce(()->launcher.setFrictionWheelVelocity(50)),//预热       
+                launcher.AdjustAngleToPositionCommand(-0.0015)// 调整角度
+            )
+        );
+
+        //自动发射远左
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+            })
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                3,
+                drivetrain, 
                 intake, 
                 launcher, 
-                transport, 
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle)
-                .withTimeout(5.0)
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(10.0)
+            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //自动发射近右
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+            })
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                2,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(5.0)
+            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //自动发射远左，求稳移动到固定点位
+        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Left",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
+            })
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+                3,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(10.0)
+            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
         //自动intake调用命令
-        NamedCommands.registerCommand("IntakeNamedCommand",
+        NamedCommands.registerCommand("Intake_Auto",
             intake.AdjustIntakePositionSingleCommand(IntakeDownPosition)
-            .andThen(intake.ChangeIntakeSpeedSingleCommand())
+            .andThen(intake.SetIntakeSpeedOneSingleCommand())
             .andThen(intake.IntakeSingleCommand())
         );
 
         
-        // NamedCommands.registerCommand("ClimbingNamedCommand", 
+        // NamedCommands.registerCommand("Climb_Auto", 
         //     intake.AdjustIntakePositionSingleCommand(IntakeUpPosition)
         //                 .andThen(intake.ChangeIntakeSpeedSingleCommand())
         //     .andThen(intake.IntakeSingleCommand())
@@ -131,8 +209,8 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.5) // Drive forward with negative Y (forward)
-                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.5) // Drive left with negative X (left)
+                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.75) // Drive forward with negative Y (forward)
+                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.75) // Drive left with negative X (left)
                     .withRotationalRate(-Driver.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
@@ -154,8 +232,8 @@ public class RobotContainer {
         Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
         Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
 
-        Driver.leftBumper().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
-        Driver.leftTrigger().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
+        // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
+        // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
         //单独执行发射命令
         Driver.rightTrigger().whileTrue(
             new ProxyCommand(() -> ShootingCommand.createShootingCommand(
@@ -226,16 +304,14 @@ public class RobotContainer {
                 isVisionPoseFusion = true; // 进入半自动模式，开启视觉位姿融合
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 0,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -252,16 +328,14 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 1,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -278,16 +352,14 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 2,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Near_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Near_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -304,16 +376,14 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 3,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Far_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -330,16 +400,14 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 4,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Far_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -356,16 +424,14 @@ public class RobotContainer {
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createSequentialAutoScoreCommand(
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 5,
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.LauncherConfig.Far_FrictionWheelLaunchSpeed,
-                Constants.LauncherConfig.Far_launch_angle
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
@@ -376,19 +442,18 @@ public class RobotContainer {
         );
 
         //半自动原地瞄准
-        Operator.a().whileTrue(
+        Driver.leftTrigger().whileTrue(
             Commands.runOnce(() -> {
                 if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
                 new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Shooting),candle);
             })
-            .andThen(MagicSequencingCommand.createAutoTurnScoreCommand(
+            .andThen(MagicSequencingCommand.createAnyPointAutoScoreCommand(
                 drivetrain, 
                 intake, 
                 launcher, 
                 transport,
-                Constants.VisionConfig.BLUE_SCORING_NODES, 
                 Constants.VisionConfig.BLUE_HUB_CENTER
             ))
             .finallyDo((interrupted) -> {

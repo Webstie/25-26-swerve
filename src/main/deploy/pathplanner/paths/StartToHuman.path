@@ -3,45 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.667201986754967,
-        "y": 7.352789735099337
+        "x": 3.568716666666667,
+        "y": 2.425074999999999
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.663110376966198,
-        "y": 7.352789735099337
+        "x": 3.032511164654024,
+        "y": 2.295104909744736
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueStart3"
     },
     {
       "anchor": {
-        "x": 5.692723509933774,
-        "y": 7.243890728476821
+        "x": 0.46224166666666666,
+        "y": 1.7901749999999992
       },
       "prevControl": {
-        "x": 5.078323675496689,
-        "y": 7.650447019867549
-      },
-      "nextControl": {
-        "x": 6.30712334437086,
-        "y": 6.837334437086092
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 8.052201986754968,
-        "y": 5.537806291390727
-      },
-      "prevControl": {
-        "x": 7.052201986754968,
-        "y": 5.537806291390727
+        "x": 2.076532409510131,
+        "y": 2.2418212124885666
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Path1end"
+      "linkedName": "BlueHuman"
     }
   ],
   "rotationTargets": [],
@@ -58,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -178.43370881323887
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Blue3",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -179.2079429078376
   },
   "useDefaultConstraints": true
 }

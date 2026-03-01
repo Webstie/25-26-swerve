@@ -3,56 +3,61 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.6209666666666667,
-        "y": 0.6715416666666669
+        "x": 5.904241666666667,
+        "y": 5.7885333333333335
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.2677865922337404,
-        "y": 3.192938327668677
+        "x": 6.282158333333333,
+        "y": 6.272266666666667
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueBack2"
     },
     {
       "anchor": {
-        "x": 2.291358333333333,
-        "y": 3.7931333333333335
+        "x": 7.801383333333334,
+        "y": 6.876933333333334
       },
       "prevControl": {
-        "x": 2.377460114054402,
-        "y": 3.4189842344142174
+        "x": 7.795657844241542,
+        "y": 7.334972460676661
       },
       "nextControl": {
-        "x": 1.8405417844208178,
-        "y": 5.752124240848554
+        "x": 7.808941666666668,
+        "y": 6.272266666666666
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.308775,
-        "y": 5.947258333333333
+        "x": 7.801383333333334,
+        "y": 3.3093999999999992
       },
       "prevControl": {
-        "x": 1.3630375546166702,
-        "y": 5.687478033971431
+        "x": 7.8165,
+        "y": 3.9669749999999997
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueIntake2"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.9157894736842113,
+      "rotationDegrees": -90.0
+    }
+  ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 1.3953488372093021,
+      "minWaypointRelativePos": 1.0,
       "maxWaypointRelativePos": 2.0,
       "constraints": {
-        "maxVelocity": 1.0,
-        "maxAcceleration": 1.0,
+        "maxVelocity": 1.5,
+        "maxAcceleration": 1.5,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -72,13 +77,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -179.5212163297047
+    "rotation": -88.91907581333925
   },
   "reversed": false,
-  "folder": "Blue",
+  "folder": "Blue2",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 179.14716430417909
+    "rotation": -46.30195267257888
   },
   "useDefaultConstraints": false
 }

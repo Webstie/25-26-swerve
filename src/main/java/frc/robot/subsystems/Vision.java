@@ -164,11 +164,31 @@ public class Vision extends SubsystemBase {
             PhotonPipelineResult latestResult = cameraResults.get(cameraResults.size() - 1);
             if (!latestResult.hasTargets()) return;
 
+            // ==========================================
+            // [新增] 1. 单标签 Ambiguity (歧义) 过滤
+            // 解决 MULTI_TAG 模式下退化为单标签时引发的位姿跳变问题
+            // ==========================================
+            if (latestResult.targets.size() == 1) {
+                PhotonTrackedTarget target = latestResult.targets.get(0);
+                double ambiguity = target.getPoseAmbiguity();
+                
+                // 如果只有一个标签，且模糊度过高(>0.2)或处于画面边缘(-1.0)，
+                // 说明极有可能发生了 PnP 翻转错觉，直接丢弃该相机当前帧的数据
+                if (ambiguity > 0.2 || ambiguity == -1.0) {
+                    return; // 退出当前 lambda，跳过此相机的更新
+                }
+            }
+
             estimator.setReferencePose(odometryPose);
 
             Optional<EstimatedRobotPose> estimatedPose = estimator.update(latestResult);
 
             estimatedPose.ifPresent(pose -> {
+                double zHeight = pose.estimatedPose.getZ();
+                if (Math.abs(zHeight) > 0.5) { // 假设机器人底盘高度误差不可能超过正负 0.5 米
+                    return; // 退出当前 ifPresent 的 Consumer，拒绝融合这个离谱的数据
+                }
+
                 Matrix<N3, N1> stdDevs = calculateAdaptiveStdDevs(
                     latestResult.targets.size(),
                     calculateAverageDistance(latestResult.targets),
