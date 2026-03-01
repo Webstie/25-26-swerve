@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.2,
+        "y": 2.6
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.0245834531208047,
+        "y": 2.7781264581160787
+      },
+      "isLocked": false,
+      "linkedName": "BlueShoot2"
+    },
+    {
+      "anchor": {
+        "x": 1.6489000000000003,
+        "y": 3.778016666666667
+      },
+      "prevControl": {
+        "x": 2.093329130555798,
+        "y": 3.8432113438946085
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "BlueClimb"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 2.0,
+    "maxAcceleration": 2.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Blue2",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 45.4675979965987
+  },
+  "useDefaultConstraints": false
+}

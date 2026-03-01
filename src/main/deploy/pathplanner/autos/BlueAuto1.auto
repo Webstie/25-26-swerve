@@ -1,0 +1,67 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartToBack1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake_Auto"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "BackToIntake1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "IntakeToWarehouse1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "WarmUp_Auto_Far"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "WarehouseToShoot1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Far_Left"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "ShootToClimb1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Climb_Auto"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
