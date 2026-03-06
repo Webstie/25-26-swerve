@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.LauncherConfig.*;
@@ -21,7 +22,7 @@ import com.revrobotics.spark.SparkMax;
 
 public class Launcher extends SubsystemBase {
 
-    private static final double ANGLE_TOLERANCE = 0.001;
+    private static final double ANGLE_TOLERANCE = 0.0001;
 
     private double frictionWheelVelocityTarget = 0.0;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
@@ -146,18 +147,28 @@ public class Launcher extends SubsystemBase {
     }
 
     public Command AdjustAngleToPositionCommand(double targetPosition){
-        return run(
+        final double kP = 200.0;
+        final double maxVoltage = 12.0;
+        final double minVoltage = 8.0;
+
+        return runEnd(
             () -> {
-                if ((angleEncoder.getAbsolutePosition().getValueAsDouble() - targetPosition) >= 0){
-                    setAngleVoltage(-12);
-                }else{
-                    setAngleVoltage(12);
+                double current = angleEncoder.getAbsolutePosition().getValueAsDouble();
+                double error = targetPosition - current;
+                double absError = Math.abs(error);
+
+                if (absError <= ANGLE_TOLERANCE) {
+                    setAngleVoltage(0);
+                    return;
                 }
-            }
-        ).until(
-            () -> Math.abs(targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble()) <= ANGLE_TOLERANCE
-        ).andThen(
-            runOnce(() -> setAngleVoltage(0))
+
+                double voltage = MathUtil.clamp(kP * error, -maxVoltage, maxVoltage);
+                if (Math.abs(voltage) < minVoltage) {
+                    voltage = Math.copySign(minVoltage, voltage);
+                }
+                setAngleVoltage(voltage);
+            },
+            () -> setAngleVoltage(0)
         );
     }
 

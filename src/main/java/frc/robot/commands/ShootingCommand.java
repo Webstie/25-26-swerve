@@ -108,7 +108,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             intake.setSupportMotorVelocity(0);
             //释放intakepitch
             intake.applyIntakePitchMotorNeutral();
-
+            launcher.setAngleVoltage(0);
         });
     }
 

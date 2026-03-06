@@ -227,9 +227,9 @@ public class RobotContainer {
         // 切换是否使用视觉位姿融合
         Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion ));
 
-        //电推杆微调
-        // Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
-        // Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
+        // 电推杆微调
+        Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
 
         //装福灯
         Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
@@ -237,8 +237,8 @@ public class RobotContainer {
         Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
         Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
 
-        Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
-        Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
+        // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
+        // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
 
         Driver.b()
             .debounce(0.3)
@@ -275,13 +275,13 @@ public class RobotContainer {
             .debounce(0.3)
             .whileTrue(
             Commands.parallel(
-                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                ShootingCommand.createShootingCommand(
                     intake,
                     launcher,
                     transport,
                     70,
-                    -0.025
-                )),
+                    -0.015
+                ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
