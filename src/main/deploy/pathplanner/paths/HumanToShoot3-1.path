@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 0.46224166666666666,
+        "y": 1.7901749999999992
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.4622416666666667,
+        "y": 1.7901749999999996
+      },
+      "isLocked": false,
+      "linkedName": "BlueHuman"
+    },
+    {
+      "anchor": {
+        "x": 2.039,
+        "y": 2.065
+      },
+      "prevControl": {
+        "x": 1.0390000000000001,
+        "y": 2.065
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "BlueShoot3-1"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 37.8167793874094
+  },
+  "reversed": false,
+  "folder": "Blue3",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -178.43370881323887
+  },
+  "useDefaultConstraints": true
+}

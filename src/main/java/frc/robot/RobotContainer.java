@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.LauncherConfig;
+import frc.robot.commands.AutoMoveWhileAimCommand;
 import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.MoveWhileAimCommand;
 import frc.robot.commands.OuttakeCommand;
@@ -169,8 +170,54 @@ public class RobotContainer {
                 candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(9.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+            }).withTimeout(4.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //自动发射远右，求稳移动到固定点位
+        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Right",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                candle.Changecolor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+                5,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                candle.Changecolor(Constants.RobotState.State.Idle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(4.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //自动发射跑打
+        NamedCommands.registerCommand("Shoot_Auto_Dynamic",
+            Commands.parallel(
+                    AutoMoveWhileAimCommand.create(  // <--- 修改这里
+                        drivetrain,
+                        Constants.VisionConfig.BLUE_HUB_CENTER
+                    ),
+                    ShootingCommand.createAutoDynamicShootingCommand(
+                        drivetrain,
+                        intake,
+                        launcher,
+                        transport,
+                        Constants.VisionConfig.BLUE_HUB_CENTER
+                    )
+                )
+            .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
+            .finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+            .withTimeout(5.0) // 运行4秒后，瞄准逻辑会自动卸载，恢复正常寻路
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
         //自动intake调用命令

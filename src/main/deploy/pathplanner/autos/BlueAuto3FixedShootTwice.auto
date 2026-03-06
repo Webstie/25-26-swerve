@@ -19,44 +19,6 @@
                 "data": {
                   "name": "Intake_Auto"
                 }
-              }
-            ]
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "HumanToWarehouse"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Shoot_Auto_Dynamic"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "WarehouseToShoot3-2"
-                }
               },
               {
                 "type": "named",
@@ -68,9 +30,33 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Far_Left"
+            "name": "Shoot_Auto_Fixed_Blue_Far_Right"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Shoot3-1ToWarehouse"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Fixed_Blue_Far_Left"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LastCharge"
           }
         }
       ]
