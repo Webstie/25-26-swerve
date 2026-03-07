@@ -17,15 +17,15 @@
     {
       "anchor": {
         "x": 2.17,
-        "y": 6.0
+        "y": 6.01
       },
       "prevControl": {
         "x": 1.8076249999999998,
-        "y": 6.000166666666667
+        "y": 6.010166666666667
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShoot1"
+      "linkedName": "BlueShootFarLeft"
     }
   ],
   "rotationTargets": [],

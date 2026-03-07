@@ -12,7 +12,7 @@
         "y": 6.004280398839385
       },
       "isLocked": false,
-      "linkedName": "BlueShoot3"
+      "linkedName": "BlueShootFarLeft"
     },
     {
       "anchor": {
@@ -25,7 +25,7 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueStart1"
+      "linkedName": "BlueStart_0"
     }
   ],
   "rotationTargets": [],
@@ -48,7 +48,7 @@
   "folder": "Blue3",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -47.316495313634945
   },
   "useDefaultConstraints": true
 }

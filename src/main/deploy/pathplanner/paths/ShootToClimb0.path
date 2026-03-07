@@ -4,15 +4,15 @@
     {
       "anchor": {
         "x": 2.17,
-        "y": 6.0
+        "y": 6.01
       },
       "prevControl": null,
       "nextControl": {
         "x": 2.298491666666666,
-        "y": 5.546500000000001
+        "y": 5.556500000000001
       },
       "isLocked": false,
-      "linkedName": "BlueShoot1"
+      "linkedName": "BlueShootFarLeft"
     },
     {
       "anchor": {

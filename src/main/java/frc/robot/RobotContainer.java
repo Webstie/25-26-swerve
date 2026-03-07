@@ -197,6 +197,30 @@ public class RobotContainer {
             // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
+        //自动发射近左
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                candle.Changecolor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                0,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                candle.Changecolor(Constants.RobotState.State.Idle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(5.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
         //！！！！！！！！！！求稳移动到固定点位的效果不好，到位调整浪费时间较多，弃用
 
         // //自动发射远左，求稳移动到固定点位

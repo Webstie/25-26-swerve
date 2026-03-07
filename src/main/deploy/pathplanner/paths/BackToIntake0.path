@@ -12,7 +12,7 @@
         "y": 6.272266666666667
       },
       "isLocked": false,
-      "linkedName": "BlueBack1"
+      "linkedName": "BlueBack0"
     },
     {
       "anchor": {
@@ -41,7 +41,7 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueIntake1"
+      "linkedName": "BlueIntake0"
     }
   ],
   "rotationTargets": [],

@@ -8,11 +8,11 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0245834531208047,
-        "y": 2.7781264581160787
+        "x": 3.0682700295974463,
+        "y": 2.8124787398723514
       },
       "isLocked": false,
-      "linkedName": "BlueShoot2"
+      "linkedName": "BlueShootNearRight"
     },
     {
       "anchor": {
@@ -20,8 +20,8 @@
         "y": 3.8006916666666664
       },
       "prevControl": {
-        "x": 2.1160041305557975,
-        "y": 3.865886343894608
+        "x": 2.1040723197180013,
+        "y": 3.867378188317268
       },
       "nextControl": null,
       "isLocked": false,

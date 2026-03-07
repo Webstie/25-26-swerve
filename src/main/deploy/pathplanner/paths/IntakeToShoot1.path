@@ -12,7 +12,7 @@
         "y": 2.9088083333333326
       },
       "isLocked": false,
-      "linkedName": "BlueIntake2"
+      "linkedName": "BlueIntake1"
     },
     {
       "anchor": {
@@ -20,12 +20,12 @@
         "y": 2.6
       },
       "prevControl": {
-        "x": 4.0448916666666666,
-        "y": 1.7826166666666667
+        "x": 4.090241666666667,
+        "y": 2.1378583333333334
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShoot2"
+      "linkedName": "BlueShootNearRight"
     }
   ],
   "rotationTargets": [],

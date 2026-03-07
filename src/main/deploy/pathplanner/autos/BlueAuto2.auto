@@ -5,19 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "StartToBack1"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "BackToIntake1"
+                  "pathName": "StartToIntake2"
                 }
               },
               {
@@ -36,7 +30,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "IntakeToShoot1"
+                  "pathName": "IntakeToShoot2"
                 }
               },
               {
@@ -51,13 +45,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Near_Right"
+            "name": "Shoot_Auto_Blue_Near_Left"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ShootToClimb1"
+            "pathName": "ShootToClimb2"
           }
         },
         {
