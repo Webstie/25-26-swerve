@@ -4,28 +4,28 @@
     {
       "anchor": {
         "x": 7.801383333333334,
-        "y": 3.3093999999999992
+        "y": 4.632108333333333
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.1286916666666675,
-        "y": 2.9088083333333326
+        "x": 7.468816666666666,
+        "y": 5.3350333333333335
       },
       "isLocked": false,
       "linkedName": "BlueIntake2"
     },
     {
       "anchor": {
-        "x": 3.2,
-        "y": 2.6
+        "x": 3.3,
+        "y": 5.4
       },
       "prevControl": {
-        "x": 4.0448916666666666,
-        "y": 1.7826166666666667
+        "x": 3.7803500000000003,
+        "y": 5.962375
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShoot2"
+      "linkedName": "BlueShootNearLeft"
     }
   ],
   "rotationTargets": [],
@@ -56,13 +56,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 45.4675979965987
+    "rotation": -45.82988430948251
   },
   "reversed": false,
   "folder": "Blue2",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -88.91907581333925
+    "rotation": 90.0
   },
   "useDefaultConstraints": false
 }

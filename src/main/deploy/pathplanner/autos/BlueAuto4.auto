@@ -26,7 +26,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 1.2
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "HumanToWarehouse"
           }
         },
         {
@@ -36,7 +42,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "HumanToWarehouse"
+                  "pathName": "WarehouseToShoot3-2"
                 }
               },
               {
@@ -51,13 +57,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Fixed_Blue_Far_Left"
+            "name": "Shoot_Auto_Blue_Far_Left"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "LastCharge"
+            "pathName": "ShootToClimb4"
           }
         }
       ]

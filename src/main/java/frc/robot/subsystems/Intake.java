@@ -257,6 +257,16 @@ public class Intake extends SubsystemBase {
     }
 
     /**
+    Intake Feeding摇摆单独命令
+     */
+    public Command IntakeFeedingSwingSingleCommand() {
+        return AdjustIntakePositionSingleCommand(IntakeSwingUpPosition)
+            .andThen(new WaitCommand(SwingWaitTime))
+            .andThen(AdjustIntakePositionSingleCommand(IntakeDownPosition))
+            .andThen(new WaitCommand(SwingWaitTime));
+    }
+
+    /**
     Outtake摇摆单独命令
      */
     public Command OuttakeSwingSingleCommand() {

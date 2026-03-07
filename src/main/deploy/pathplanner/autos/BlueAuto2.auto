@@ -5,19 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "StartToBack2"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "BackToIntake2"
+                  "pathName": "StartToIntake2"
                 }
               },
               {
@@ -51,7 +45,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Near_Right"
+            "name": "Shoot_Auto_Blue_Near_Left"
           }
         },
         {

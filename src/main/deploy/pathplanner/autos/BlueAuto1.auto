@@ -5,57 +5,53 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "StartToBack1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "StartToIntake1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeToShoot1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Intake_Auto"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "BackToIntake1"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "IntakeToWarehouse1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "WarmUp_Auto_Far"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "WarehouseToShoot1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot_Auto_Blue_Far_Left"
+            "name": "Shoot_Auto_Blue_Near_Right"
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "ShootToClimb1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Climb_Auto"
           }
         }
       ]

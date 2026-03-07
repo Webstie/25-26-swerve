@@ -12,7 +12,7 @@
         "y": 5.7885333333333335
       },
       "isLocked": false,
-      "linkedName": "BlueStart2"
+      "linkedName": "BlueStart_0"
     },
     {
       "anchor": {
@@ -25,7 +25,7 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueBack2"
+      "linkedName": "BlueBack0"
     }
   ],
   "rotationTargets": [],
@@ -45,7 +45,7 @@
     "rotation": -46.30195267257888
   },
   "reversed": false,
-  "folder": "Blue2",
+  "folder": "Blue0",
   "idealStartingState": {
     "velocity": 0,
     "rotation": -47.1210963966615

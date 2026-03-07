@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.LauncherConfig;
+import frc.robot.commands.AutoMoveWhileAimCommand;
 import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.MoveWhileAimCommand;
 import frc.robot.commands.OuttakeCommand;
@@ -90,8 +91,8 @@ public class RobotContainer {
         //自动发射调用命令
         NamedCommands.registerCommand("WarmUp_Auto_Far",
             Commands.parallel(
-                Commands.runOnce(()->launcher.setFrictionWheelVelocity(53.5)),//预热       
-                launcher.AdjustAngleToPositionCommand(-0.032)// 调整角度
+                Commands.runOnce(()->launcher.setFrictionWheelVelocity(58.5)),//预热       
+                launcher.AdjustAngleToPositionCommand(-0.015)// 调整角度
             )
         );
 
@@ -122,8 +123,56 @@ public class RobotContainer {
                 candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(9.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+            }).withTimeout(6.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //自动发射远左--不断发射直到结束
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                candle.Changecolor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                3,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                candle.Changecolor(Constants.RobotState.State.Idle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(10.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //自动发射远右
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Right",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                candle.Changecolor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                5,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                candle.Changecolor(Constants.RobotState.State.Idle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(5.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
         //自动发射近右
@@ -147,18 +196,18 @@ public class RobotContainer {
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(5.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
-        //自动发射远左，求稳移动到固定点位
-        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Left",
+        //自动发射近左
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
                 isVisionPoseFusion = true;
                 candle.Changecolor(Constants.RobotState.State.Shooting);
             })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                3,
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                0,
                 drivetrain, 
                 intake, 
                 launcher, 
@@ -167,12 +216,85 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
                 candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(9.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+            }).withTimeout(5.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
+
+        //！！！！！！！！！！求稳移动到固定点位的效果不好，到位调整浪费时间较多，弃用
+
+        // //自动发射远左，求稳移动到固定点位
+        // NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Left",
+        //     Commands.runOnce(() -> {
+        //         System.out.println("Starting Hub targeting command");
+        //         isVisionPoseFusion = true;
+        //         candle.Changecolor(Constants.RobotState.State.Shooting);
+        //     })
+        //     .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+        //         3,
+        //         drivetrain, 
+        //         intake, 
+        //         launcher, 
+        //         transport,
+        //         Constants.VisionConfig.BLUE_HUB_CENTER,
+        //         Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+        //     ))
+        //     .finallyDo((interrupted) -> {
+        //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+        //         candle.Changecolor(Constants.RobotState.State.Idle);
+        //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+        //     }).withTimeout(5.0)
+        //     // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        // );
+
+        // //自动发射远右，求稳移动到固定点位
+        // NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Right",
+        //     Commands.runOnce(() -> {
+        //         System.out.println("Starting Hub targeting command");
+        //         isVisionPoseFusion = true;
+        //         candle.Changecolor(Constants.RobotState.State.Shooting);
+        //     })
+        //     .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+        //         5,
+        //         drivetrain, 
+        //         intake, 
+        //         launcher, 
+        //         transport,
+        //         Constants.VisionConfig.BLUE_HUB_CENTER,
+        //         Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+        //     ))
+        //     .finallyDo((interrupted) -> {
+        //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+        //         candle.Changecolor(Constants.RobotState.State.Idle);
+        //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+        //     }).withTimeout(5.0)
+        //     // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        // );
+
+         //！！！！！！！！！！效果不好，弃用
+        //自动发射跑打
+        NamedCommands.registerCommand("Shoot_Auto_Dynamic",
+            Commands.parallel(
+                    AutoMoveWhileAimCommand.create(  // <--- 修改这里
+                        drivetrain,
+                        Constants.VisionConfig.BLUE_HUB_CENTER
+                    ),
+                    ShootingCommand.createAutoDynamicShootingCommand(
+                        drivetrain,
+                        intake,
+                        launcher,
+                        transport,
+                        Constants.VisionConfig.BLUE_HUB_CENTER
+                    )
+                )
+            .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
+            .finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+            .withTimeout(5.0) // 运行4秒后，瞄准逻辑会自动卸载，恢复正常寻路
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
         //自动intake调用命令
@@ -280,16 +402,35 @@ public class RobotContainer {
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
 
+        // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打)
         Operator.a()
             .debounce(0.3)
             .whileTrue(
             Commands.parallel(
-                ShootingCommand.createShootingCommand(
+                ShootingCommand.createDynamicFeedCommand(
                     intake,
                     launcher,
                     transport,
-                    70,
-                    -0.015
+                    70.0,    // 射速给到最大，保证能飞过半场
+                    -0.025,   // 对应适合跨越半场的抛物线角度
+                    true // 需要摆动
+                ),
+                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+        );
+
+        // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
+        Operator.rightTrigger()
+            .debounce(0.3)
+            .whileTrue(
+            Commands.parallel(
+                ShootingCommand.createDynamicFeedCommand(
+                    intake,
+                    launcher,
+                    transport,
+                    70.0,    // 射速给到最大，保证能飞过半场
+                    -0.025,   // 对应适合跨越半场的抛物线角度
+                    false // 不需要摆动
                 ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))

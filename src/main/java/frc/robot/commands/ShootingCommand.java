@@ -172,7 +172,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             //Transport停
             transport.setTransportVelocity(0);
             //Intake停
-            intake.setIntakeMotorVelocity(0);
+            // intake.setIntakeMotorVelocity(0);
             //搅拌停
             intake.setSupportMotorVelocity(0);
             //释放intakepitch
@@ -276,6 +276,186 @@ public class ShootingCommand extends SequentialCommandGroup {
             launcher.setAngleVoltage(0);
             transport.setTransportVelocity(0);
             intake.setIntakeMotorVelocity(0);
+            intake.setSupportMotorVelocity(0);
+            intake.applyIntakePitchMotorNeutral();
+        });
+    }
+
+    /**
+     * 中场盲射 (Feed) 专用的快速发射命令
+     * 特点：无视目标位置，无需复杂的视觉距离计算，使用固定角度和射速。
+     * 极短预热时间 (0.3s) 保证跑打的流畅性，且不接管底盘控制。
+     */
+    public static Command createDynamicFeedCommand(
+        Intake intake,
+        Launcher launcher,
+        Transport transport,
+        double feedSpeed,
+        double feedAngle,
+        boolean needSwing
+    ) {
+        // 极短的预热时间，专为跑打和 Feed 设计 (0.3 秒足够摩擦轮达到较高转速)
+        double fastWarmupTime = 0.3; 
+
+        // --- 1. Launcher 的逻辑流 (极短预热 -> 发射) ---
+        Command launcherStream = Commands.sequence(
+            // 第一阶段：极速预热 (摩擦轮转，Feeder停，调整推杆角度)
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                        launcher.setFrictionWheelVelocity(feedSpeed);
+                        launcher.setFeederVelocity(0);
+                    }
+                ).alongWith(launcher.AdjustAngleToPositionCommand(feedAngle))   
+            ).withTimeout(fastWarmupTime), // 极短时间后立刻进入发射
+
+            // 第二阶段：发射 (摩擦轮转，Feeder转)
+            Commands.run(
+                () -> {
+                    launcher.setFrictionWheelVelocity(feedSpeed);
+                    launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                }, launcher
+            )
+        );
+
+        // --- 2. Transport 的逻辑流 ---
+        Command transportStream = Commands.sequence(
+            Commands.waitSeconds(fastWarmupTime), // 等待极短预热
+            Commands.run(
+                () -> transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed),
+                transport
+            )
+        );
+
+        // --- 3. Intake 的逻辑流 ---
+        // 将单纯转动电机的逻辑提取出来
+        Command runIntakeMotors = Commands.run(() -> {
+            intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+            intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+        });
+
+        Command intakeStream = Commands.sequence(
+            Commands.waitSeconds(fastWarmupTime), // 等待极短预热
+            // 根据 needSwing 参数动态决定执行哪个：
+            // 如果为 true，则并行执行电机转动 + 摆动；如果为 false，则只执行电机转动
+            needSwing 
+                ? Commands.parallel(intake.IntakeFeedingSwingSingleCommand().repeatedly(), runIntakeMotors)
+                : runIntakeMotors 
+        );
+
+        // --- 组合所有流 ---
+        return Commands.parallel(
+            launcherStream,
+            transportStream,
+            intakeStream
+        )
+        // 中断或结束时立刻清理所有电机
+        .finallyDo((interrupted) -> {
+            launcher.setFrictionWheelVelocity(0);
+            launcher.setFeederVelocity(0);
+            launcher.setAngleVoltage(0);
+            transport.setTransportVelocity(0);
+            // intake.setIntakeMotorVelocity(0);
+            intake.setSupportMotorVelocity(0);
+            intake.applyIntakePitchMotorNeutral();
+        });
+    }
+
+    public static Command createAutoDynamicShootingCommand(
+        CommandSwerveDrivetrain drive,
+        Intake intake,
+        Launcher launcher,
+        Transport transport,
+        Translation2d blueCenterPosition
+    ) {
+        double warmupSeconds = 4.0;
+        Timer warmupTimer = new Timer();
+
+        Command launcherStream = Commands.run(
+            () -> {
+                boolean isRed = false;
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+                    isRed = true;
+                }
+
+                Pose2d currentPose = drive.getPose();
+                Translation2d targetCenter = isRed
+                    ? new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY())
+                    : blueCenterPosition;
+
+                double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
+
+                double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
+                double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
+
+                ChassisSpeeds robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
+                double cos = currentPose.getRotation().getCos();
+                double sin = currentPose.getRotation().getSin();
+                double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
+                double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+                double dx = targetCenter.getX() - currentPose.getX();
+                double dy = targetCenter.getY() - currentPose.getY();
+                double dist = Math.hypot(dx, dy);
+                double ux = dist > 1e-6 ? dx / dist : 0.0;
+                double uy = dist > 1e-6 ? dy / dist : 0.0;
+                double radialSpeed = fieldVx * ux + fieldVy * uy;
+
+                double pitchLead = MathUtil.clamp(
+                    -PITCH_LEAD_RAD_PER_MPS * radialSpeed,
+                    -MAX_PITCH_LEAD_RAD,
+                    MAX_PITCH_LEAD_RAD
+                );
+                double targetPitch = bestPitch - pitchLead;
+
+                launcher.setFrictionWheelVelocity(bestSpeed);
+                launcher.setAngleToTarget(targetPitch);
+                launcher.setFeederVelocity(
+                    warmupTimer.hasElapsed(warmupSeconds)
+                        ? Constants.LauncherConfig.FeederSpeed
+                        : 0
+                );
+
+                SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
+                SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
+                SmartDashboard.putNumber("AutoScore/Target_Speed", bestSpeed);
+                SmartDashboard.putNumber("AutoScore/PitchLead", pitchLead);
+                SmartDashboard.putNumber("AutoScore/RadialSpeed", radialSpeed);
+            },
+            launcher
+        );
+
+        Command transportStream = Commands.sequence(
+            Commands.waitSeconds(warmupSeconds),
+            Commands.run(
+                () -> transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed),
+                transport
+            )
+        );
+
+        Command intakeStream = Commands.sequence(
+            Commands.waitSeconds(warmupSeconds),
+            Commands.runOnce(() -> {
+                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+                intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+            }, intake),
+            intake.IntakeSwingSingleCommand().repeatedly()
+        );
+
+        return Commands.parallel(
+            launcherStream,
+            transportStream,
+            intakeStream
+        ).beforeStarting(() -> {
+            warmupTimer.reset();
+            warmupTimer.start();
+        }).finallyDo((interrupted) -> {
+            warmupTimer.stop();
+            launcher.setFrictionWheelVelocity(0);
+            launcher.setFeederVelocity(0);
+            launcher.setAngleVoltage(0);
+            transport.setTransportVelocity(0);
+            // intake.setIntakeMotorVelocity(0);
             intake.setSupportMotorVelocity(0);
             intake.applyIntakePitchMotorNeutral();
         });

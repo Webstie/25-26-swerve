@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.2,
-        "y": 2.6
+        "x": 3.3,
+        "y": 5.4
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0245834531208047,
-        "y": 2.7781264581160787
+        "x": 3.094927023454985,
+        "y": 5.257013726914198
       },
       "isLocked": false,
-      "linkedName": "BlueShoot2"
+      "linkedName": "BlueShootNearLeft"
     },
     {
       "anchor": {
-        "x": 1.6489000000000003,
-        "y": 3.778016666666667
+        "x": 1.6715749999999998,
+        "y": 3.8006916666666664
       },
       "prevControl": {
-        "x": 2.093329130555798,
-        "y": 3.8432113438946085
+        "x": 1.9520869971167558,
+        "y": 3.936422118191606
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": "Blue2",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 45.4675979965987
+    "rotation": -45.82988430948251
   },
   "useDefaultConstraints": false
 }

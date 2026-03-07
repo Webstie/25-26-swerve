@@ -30,19 +30,13 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "HumanToWarehouse"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "WarehouseToShoot3"
+                  "pathName": "HumanToShoot3-1"
                 }
               },
               {
@@ -57,7 +51,38 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Far_Left"
+            "name": "Shoot_Auto_Blue_Far_Right"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Shoot3-1ToWarehouse"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "WarehouseToShoot3-2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Far"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Far_Left_toEnd"
           }
         }
       ]

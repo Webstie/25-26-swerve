@@ -205,8 +205,9 @@ public class MagicSequencingCommand {
             Pose2d targetPose = new Pose2d(bestPoint, targetRotation);
 
             // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
-            return drive.pathfindToPose(targetPose)
-                   .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(5.0);// 设置超时为5秒，防止卡死
+            // return drive.pathfindToPose(targetPose)
+            //        .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(5.0);// 设置超时为5秒，防止卡死
+            return drive.translateToRotationWithPID(targetPose).withTimeout(5.0);// 设置超时为5秒，防止卡死,只动角度
 
         }, Set.of(drive)); // 声明 subsystem 依赖
     }
@@ -263,7 +264,7 @@ public class MagicSequencingCommand {
     }
 
     /**
-     * 创建一个顺序命令，在自动模式下直接开始射击，在过程中慢慢调整自己继续靠近最近的硬编码得分点
+     * 创建一个顺序命令，在自动模式下不预热，不调整pitch角度直接开始射击（相信预热），在过程中慢慢调整自己继续靠近最近的硬编码得分点
      * 
      * @param position_index 目标点位在表中的索引
      * @param drive 底盘子系统
@@ -286,7 +287,6 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             // 解析数组：当前行的数据格式预设为 {X坐标, Y坐标, Pitch角度, 射速}
             double[] currentParams = pointsParamsTable[position_index];
-            double launch_angle = currentParams[2];             // 提取角度
             double frictionWheelLaunchSpeed = currentParams[3]; // 提取转速
 
             return Commands.parallel(
@@ -343,8 +343,8 @@ public class MagicSequencingCommand {
             // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
             // 你可以根据需求选择只用 pathfind，或者 pathfind + PID
             // return drive.pathfindToPose(targetPose)
-            //        .andThen(drive.translateToRotationWithPID(targetPose)).withTimeout(2.0);// 设置超时为5秒，防止卡死,只动角度
-            return drive.translateToRotationWithPID(targetPose).withTimeout(2.0);// 设置超时为5秒，防止卡死,只动角度
+            //        .andThen(drive.translateToRotationWithPID(targetPose)).withTimeout(2.0);// 设置超时为2秒，防止卡死,只动角度
+            return drive.translateToRotationWithPID(targetPose).withTimeout(2.0);// 设置超时为2秒，防止卡死,只动角度
 
         }, Set.of(drive)); // 声明 subsystem 依赖
 
@@ -372,7 +372,7 @@ public class MagicSequencingCommand {
             // 3. 计算目标点的绝对坐标 (处理红蓝联盟镜像)
             // 假设 Constants.Field.FIELD_LENGTH_METERS 是场地的总长度 (约16.54米)
             // 如果你还没有这个常量，请替换为具体的数值，例如 16.54175
-            double fieldLength = 16.54175; 
+            double fieldLength = FIELD_LENGTH_METERS; 
             
             Translation2d targetCenter = isRed ? 
                 new Translation2d(fieldLength - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
