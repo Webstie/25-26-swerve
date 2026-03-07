@@ -58,7 +58,7 @@ public class Climber extends SubsystemBase{
         return ClimberMotor.getPosition().getValueAsDouble();
     }
 
-    private boolean isAtPosition(double targetPosition){
+    public boolean isAtPosition(double targetPosition){
         return Math.abs(getCurrentPosition() - targetPosition) < POSITION_TOLERANCE;
     }
     
@@ -70,6 +70,13 @@ public class Climber extends SubsystemBase{
                 () -> setPosition(ClimberTopPosition), 
                 () -> setPosition(getCurrentPosition())
             ).until(() -> isAtPosition(ClimberTopPosition));
+    }
+
+        public Command ClimbingDownSingleCommand(){
+            return runEnd(
+                () -> setPosition(ClimbPosition), 
+                () -> setPosition(getCurrentPosition())
+            ).until(() -> isAtPosition(ClimbPosition));
     }
 
     /**

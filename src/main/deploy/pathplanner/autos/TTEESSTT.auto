@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LastCharge"
+            "pathName": "New Path"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Fixed_Blue_Far_Right"
+            "name": "Climb_DOWN"
           }
         }
       ]

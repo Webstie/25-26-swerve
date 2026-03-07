@@ -13,6 +13,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.events.EventTrigger;
+import com.pathplanner.lib.events.TriggerEvent;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Time;
@@ -86,8 +87,18 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        //register the named commands for auto mode
+        
 
+        new EventTrigger("Climb_UP").onTrue(climber.ClimbingProcessSingleCommand());
+        //register the named commands for auto mode
+        
+
+        NamedCommands.registerCommand("Climb_DOWN",
+            Commands.runOnce(() -> {
+                climber.setPosition(ClimbPosition);
+            })
+        );
+        
         //自动发射调用命令
         NamedCommands.registerCommand("WarmUp_Auto_Far",
             Commands.parallel(
@@ -476,8 +487,7 @@ public class RobotContainer {
 
         
         //爬升
-        Operator.back().onTrue(climber.ClimbingProcessSingleCommand()
-                                    .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingUp),candle)));
+        Operator.back().onTrue(climber.ClimbingProcessSingleCommand());
         Operator.start().whileTrue(
             Commands.run(() -> climber.setPosition(ClimbPosition))
         ).onFalse(
