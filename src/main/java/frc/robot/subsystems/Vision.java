@@ -164,35 +164,53 @@ public class Vision extends SubsystemBase {
             PhotonPipelineResult latestResult = cameraResults.get(cameraResults.size() - 1);
             if (!latestResult.hasTargets()) return;
 
+            // // 单标签 Ambiguity (歧义) 过滤,解决 MULTI_TAG 模式下退化为单标签时引发的位姿跳变问题
+            // if (latestResult.targets.size() == 1) {
+            //     PhotonTrackedTarget target = latestResult.targets.get(0);
+            //     double ambiguity = target.getPoseAmbiguity();
+                
+            //     // 如果只有一个标签，且模糊度过高(>0.2)或处于画面边缘(-1.0)，
+            //     // 说明极有可能发生了 PnP 翻转错觉，直接丢弃该相机当前帧的数据
+            //     if (ambiguity > 0.2 || ambiguity == -1.0) {
+            //         return; // 退出当前 lambda，跳过此相机的更新
+            //     }
+            // }
+
+            // 提取歧义度，如果是多标签则设为 0
             // ==========================================
-            // [新增] 1. 单标签 Ambiguity (歧义) 过滤
-            // 解决 MULTI_TAG 模式下退化为单标签时引发的位姿跳变问题
-            // ==========================================
+            final double ambiguity; // 声明为 final，确保只被赋值一次，解决 Lambda 报错
+            
             if (latestResult.targets.size() == 1) {
                 PhotonTrackedTarget target = latestResult.targets.get(0);
-                double ambiguity = target.getPoseAmbiguity();
+                ambiguity = target.getPoseAmbiguity();
                 
-                // 如果只有一个标签，且模糊度过高(>0.2)或处于画面边缘(-1.0)，
-                // 说明极有可能发生了 PnP 翻转错觉，直接丢弃该相机当前帧的数据
+                // 保留这层最基础的安全网：防翻转跳变
                 if (ambiguity > 0.2 || ambiguity == -1.0) {
-                    return; // 退出当前 lambda，跳过此相机的更新
+                    return; // 歧义过大直接丢弃当前帧
                 }
+            } else {
+                ambiguity = 0.0; // 多标签时，一次性赋值为 0
             }
 
             estimator.setReferencePose(odometryPose);
-
             Optional<EstimatedRobotPose> estimatedPose = estimator.update(latestResult);
 
             estimatedPose.ifPresent(pose -> {
                 double zHeight = pose.estimatedPose.getZ();
-                if (Math.abs(zHeight) > 0.5) { // 假设机器人底盘高度误差不可能超过正负 0.5 米
-                    return; // 退出当前 ifPresent 的 Consumer，拒绝融合这个离谱的数据
+                if (Math.abs(zHeight) > 0.5) { 
+                    return; 
                 }
 
+                int tagCount = latestResult.targets.size();
+                double avgDistance = calculateAverageDistance(latestResult.targets);
+
+                // 传入 tag数量、距离、速度、和单标签的歧义度
+                // 此时使用 ambiguity 就绝对不会报错了！
                 Matrix<N3, N1> stdDevs = calculateAdaptiveStdDevs(
-                    latestResult.targets.size(),
-                    calculateAverageDistance(latestResult.targets),
-                    driveState.Speeds
+                    tagCount,
+                    avgDistance,
+                    driveState.Speeds,
+                    ambiguity
                 );
 
                 Pose2d visionPose = pose.estimatedPose.toPose2d();
@@ -234,27 +252,48 @@ public class Vision extends SubsystemBase {
      * @param avgDistance Average distance (in meters) from the camera to detected tags.
      * @param speeds     Current chassis speeds of the drivetrain.
      * @return A {@link Matrix} containing the standard deviations for X, Y, and rotation (θ).
+
+     * 根据标签数量、平均距离和底盘速度，动态计算视觉置信度(标准差)。
+     * 距离越远，标准差呈指数级飙升，底盘会自动降低对视觉的信任，避免漂移。
      */
-    private Matrix<N3, N1> calculateAdaptiveStdDevs(int tagCount, double avgDistance, ChassisSpeeds speeds) {
+    private Matrix<N3, N1> calculateAdaptiveStdDevs(int tagCount, double avgDistance, ChassisSpeeds speeds, double ambiguity) {
         double baseXY, baseTheta;
         
-        // Set the base value based on the number of tags
+        // 【核心改进】：距离敏感度惩罚项，使用距离的平方！
+        // 距离 1米 -> 乘数 1; 距离 3米 -> 乘数 9; 距离 5米 -> 乘数 25!
+        double distanceMultiplier = Math.pow(avgDistance, 2); 
+        
         if (tagCount >= 2) {
-            baseXY = 0.5;  
-            baseTheta = Math.toRadians(5); 
+            // 多标签模式：基础精度高，但也受距离影响
+            // 举例：1m处误差为 0.15, 3m处误差为 0.55, 5m处误差飙升到 1.35
+
+            //此参数更信任视觉如想要更精准可以改回来
+            // baseXY = 0.1 + (0.05 * distanceMultiplier);  
+            // baseTheta = Math.toRadians(2 + (0.5 * distanceMultiplier)); 
+
+            baseXY = 0.5 + (0.15 * distanceMultiplier);  
+            baseTheta = Math.toRadians(5 + (2.0 * distanceMultiplier)); 
         } else {
-            baseXY = 1.5 + avgDistance * 0.2; 
-            baseTheta = Math.toRadians(10 + avgDistance * 3); 
+            // 单标签模式：基础精度低，远距离误差极其离谱
+            // 举例：1m处误差为 0.65, 3m处误差为 1.85, 5m处误差飙升到 4.25 (底盘几乎不再信任)
+            baseXY = 0.5 + (0.15 * distanceMultiplier); 
+            baseTheta = Math.toRadians(5 + (2.0 * distanceMultiplier)); 
+
+            // 如果有歧义(Ambiguity)，额外惩罚
+            if (ambiguity > 0) {
+                baseXY *= (1.0 + (ambiguity * 2.0));
+                baseTheta *= (1.0 + (ambiguity * 2.0));
+            }
         }
 
-        // Adjust dynamically based on speed
-        double speedFactor = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) / 4.0; // suppose the speed max=4m/s
-        double rotationFactor = Math.abs(speeds.omegaRadiansPerSecond) / Math.PI; // suppose the angular_speed=π rad/s
+        // 基于运动速度的惩罚保持不变（运动越快，快门模糊导致误差越大）
+        double speedFactor = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) / 4.0;
+        double rotationFactor = Math.abs(speeds.omegaRadiansPerSecond) / Math.PI;
         
         return VecBuilder.fill(
-            baseXY * (1 + speedFactor),       // X standard deviation
-            baseXY * (1 + speedFactor),       // Y standard deviation
-            baseTheta * (1 + rotationFactor)  // θ standard deviation
+            baseXY * (1 + speedFactor),       
+            baseXY * (1 + speedFactor),       
+            baseTheta * (1 + rotationFactor)  
         );
     }
 
