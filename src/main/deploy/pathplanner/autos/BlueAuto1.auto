@@ -47,12 +47,6 @@
           "data": {
             "name": "Shoot_Auto_Blue_Near_Right"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "ShootToClimb1"
-          }
         }
       ]
     }

@@ -20,7 +20,6 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.Constants;
 
 public class ShootingCommand extends SequentialCommandGroup {
-    private static final double FIELD_LENGTH_METERS = 16.54099;
     private static final double PITCH_LEAD_RAD_PER_MPS = 0.025;
     private static final double MAX_PITCH_LEAD_RAD = 0.02;
     /**
@@ -201,7 +200,7 @@ public class ShootingCommand extends SequentialCommandGroup {
 
                 Pose2d currentPose = drive.getPose();
                 Translation2d targetCenter = isRed
-                    ? new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY())
+                    ? new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(), Constants.Layout.FIELD_WIDTH_METERS-blueCenterPosition.getY())
                     : blueCenterPosition;
 
                 double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
@@ -381,7 +380,7 @@ public class ShootingCommand extends SequentialCommandGroup {
 
                 Pose2d currentPose = drive.getPose();
                 Translation2d targetCenter = isRed
-                    ? new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY())
+                    ? new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(), Constants.Layout.FIELD_WIDTH_METERS-blueCenterPosition.getY())
                     : blueCenterPosition;
 
                 double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);

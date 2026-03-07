@@ -20,6 +20,12 @@ public class Constants {
         };
     }
 
+    //variables for robot state
+    public static class Layout{
+        public static final double FIELD_LENGTH_METERS = 16.540988;
+        public static final double FIELD_WIDTH_METERS = 8.0692752;
+    }
+
     //candle Constants
     public static class CANDLE{
         public static final int CANdleID1 = 1;
@@ -114,17 +120,17 @@ public class Constants {
             {2.039, 2.065, -0.015, 58.5},   // 第 6 点
         };
 
-        //TODO红色还没测
-        public static final double[][] POINTS_PARAMS_TABLE_RED = {
-            // {距离, Pitch角度,射速}
-            {3.3, 5.4, -0.0015, 50}, // 第 1 点
-            {2.8, 4.03, -0.0015, 50},   // 第 2 点
-            {3.2, 2.6, -0.0015, 50}, // 第 3 点
+        // //TODO红色还没测
+        // public static final double[][] POINTS_PARAMS_TABLE_RED = {
+        //     // {距离, Pitch角度,射速}
+        //     {3.3, 5.4, -0.0015, 50}, // 第 1 点
+        //     {2.8, 4.03, -0.0015, 50},   // 第 2 点
+        //     {3.2, 2.6, -0.0015, 50}, // 第 3 点
 
-            {2.17, 6.01, -0.015, 58.5},  // 第 4 点
-            {1.642, 3.61, -0.015, 58.5}, // 第 5 点
-            {2.039, 2.065, -0.015, 58.5},   // 第 6 点
-        };
+        //     {2.17, 6.01, -0.015, 58.5},  // 第 4 点
+        //     {1.642, 3.61, -0.015, 58.5}, // 第 5 点
+        //     {2.039, 2.065, -0.015, 58.5},   // 第 6 点
+        // };
 
         //供任意点位原地自瞄发射使用的距离与射击参数的映射表
         public static final double[][] DISTANCE_PARAMS_TABLE = {

@@ -206,7 +206,7 @@ public class RobotContainer {
                 candle.Changecolor(Constants.RobotState.State.Idle);
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(5.0)
+            }).withTimeout(10.0)
             // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 

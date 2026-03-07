@@ -18,10 +18,6 @@ import frc.robot.subsystems.Transport;
 import frc.robot.Constants;
 
 public class MagicSequencingCommand {
-
-    //FRC 场地长度 (米)，用于红蓝联盟坐标镜像
-    private static final double FIELD_LENGTH_METERS = 16.54099;
-
     /**
      * 根据当前位置，并面向Hub,瞄准后开始射击
      * 
@@ -179,7 +175,7 @@ public class MagicSequencingCommand {
             );
 
             Translation2d targetPointToCheck = isRed ? 
-                new Translation2d(FIELD_LENGTH_METERS - point.getX(), point.getY()) : 
+                new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - point.getX(), Constants.Layout.FIELD_WIDTH_METERS-point.getY()) : 
                 point;
             
             double distance = currentPose.getTranslation().getDistance(targetPointToCheck);
@@ -195,7 +191,7 @@ public class MagicSequencingCommand {
 
             // 4. 计算朝向：从该点(bestPoint) 面向 中心点(centerPosition)
             Translation2d targetCenter = isRed ? 
-                new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
+                new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(), Constants.Layout.FIELD_WIDTH_METERS-blueCenterPosition.getY()) : 
                 blueCenterPosition;
 
             double dx = targetCenter.getX() - bestPoint.getX();
@@ -205,9 +201,7 @@ public class MagicSequencingCommand {
             Pose2d targetPose = new Pose2d(bestPoint, targetRotation);
 
             // 5. 生成路径规划命令 (复用你现有的 pathfindToPose)
-            // return drive.pathfindToPose(targetPose)
-            //        .andThen(drive.translateToPositionWithPID(targetPose)).withTimeout(5.0);// 设置超时为5秒，防止卡死
-            return drive.translateToRotationWithPID(targetPose).withTimeout(5.0);// 设置超时为5秒，防止卡死,只动角度
+            return drive.translateToPositionWithPID(targetPose).withTimeout(5.0);// 设置超时为5秒，防止卡死
 
         }, Set.of(drive)); // 声明 subsystem 依赖
     }
@@ -331,7 +325,7 @@ public class MagicSequencingCommand {
 
             // 4. 计算朝向：从该点(bestPoint) 面向 中心点(centerPosition)
             Translation2d targetCenter = isRed ? 
-                new Translation2d(FIELD_LENGTH_METERS - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
+                new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(), Constants.Layout.FIELD_WIDTH_METERS-blueCenterPosition.getY()) : 
                 blueCenterPosition;
             
             double dx = targetCenter.getX() - currentPose.getX();
@@ -371,11 +365,9 @@ public class MagicSequencingCommand {
 
             // 3. 计算目标点的绝对坐标 (处理红蓝联盟镜像)
             // 假设 Constants.Field.FIELD_LENGTH_METERS 是场地的总长度 (约16.54米)
-            // 如果你还没有这个常量，请替换为具体的数值，例如 16.54175
-            double fieldLength = FIELD_LENGTH_METERS; 
             
             Translation2d targetCenter = isRed ? 
-                new Translation2d(fieldLength - blueCenterPosition.getX(), blueCenterPosition.getY()) : 
+                new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(), Constants.Layout.FIELD_WIDTH_METERS-blueCenterPosition.getY()) : 
                 blueCenterPosition;
 
             // 4. 计算欧氏距离 (Euclidean Distance)
