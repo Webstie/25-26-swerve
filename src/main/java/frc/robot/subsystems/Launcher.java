@@ -151,7 +151,7 @@ public class Launcher extends SubsystemBase {
         final double maxVoltage = 12.0;
         final double minVoltage = 8.0;
 
-        return runEnd(
+        return run(
             () -> {
                 double current = angleEncoder.getAbsolutePosition().getValueAsDouble();
                 double error = targetPosition - current;
@@ -167,9 +167,10 @@ public class Launcher extends SubsystemBase {
                     voltage = Math.copySign(minVoltage, voltage);
                 }
                 setAngleVoltage(voltage);
-            },
-            () -> setAngleVoltage(0)
-        );
+            }
+        )
+        .until(() -> Math.abs(targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble()) <= ANGLE_TOLERANCE)
+        .finallyDo(() -> setAngleVoltage(0));
     }
 
     /**

@@ -23,7 +23,7 @@ import frc.robot.util.MathUtils;
 public class MoveWhileAimCommand {
     private static final double FIELD_LENGTH_METERS = 16.54099;
     private static final double LEAD_GAIN_RAD_PER_MPS = 0.5;
-    private static final double MAX_LEAD_RAD = Units.degreesToRadians(15.0);
+    private static final double MAX_LEAD_RAD = Units.degreesToRadians(20.0);
     private static final double MIN_TARGET_DISTANCE_METERS = 0.05;
 
     public static Command create(

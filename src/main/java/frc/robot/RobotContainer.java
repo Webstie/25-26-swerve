@@ -75,6 +75,8 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    private boolean isSlowMode = false;
+
     private double launchSpeed = 50;
     private double launchAngle = -0.01;
 
@@ -214,9 +216,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.75) // Drive forward with negative Y (forward)
-                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.75) // Drive left with negative X (left)
-                    .withRotationalRate(-Driver.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.75 * getInputScale()) // Drive forward with negative Y (forward)
+                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.75 * getInputScale()) // Drive left with negative X (left)
+                    .withRotationalRate(-Driver.getRightX() * MaxAngularRate * getInputScale()) // Drive counterclockwise with negative X (left)
             )
         );
         drivetrain.registerTelemetry(logger::telemeterize);
@@ -226,6 +228,13 @@ public class RobotContainer {
 
         // 切换是否使用视觉位姿融合
         Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion ));
+        Driver.start().onTrue(Commands.runOnce(() -> isSlowMode = !isSlowMode)
+                        .alongWith(
+                        Commands.either(
+                            new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingUp),candle),
+                            new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle),
+                            () -> isSlowMode)));
+                        
 
         // 电推杆微调
         Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
@@ -511,9 +520,9 @@ public class RobotContainer {
         Driver.leftTrigger().whileTrue(
             Commands.parallel(MoveWhileAimCommand.create(
                     drivetrain,
-                    () -> -Driver.getLeftY() * MaxSpeed * 0.125,
-                    () -> -Driver.getLeftX() * MaxSpeed * 0.125,
-                    MaxAngularRate,
+                    () -> -Driver.getLeftY() * MaxSpeed * 0.125 * getInputScale(),
+                    () -> -Driver.getLeftX() * MaxSpeed * 0.125 * getInputScale(),
+                    MaxAngularRate * getInputScale(),
                     Constants.VisionConfig.BLUE_HUB_CENTER
                     ),
                     ShootingCommand.createDynamicShootingCommand(
@@ -564,5 +573,9 @@ public class RobotContainer {
         // to first load your paths/autos when code starts, then return the
         // pre-loaded auto/path
         return autoChooser.getSelected();
+    }
+
+    private double getInputScale() {
+        return isSlowMode ? 0.25 : 1.0;
     }
 }
