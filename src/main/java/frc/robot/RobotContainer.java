@@ -393,16 +393,35 @@ public class RobotContainer {
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
         );
 
+        // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打)
         Operator.a()
             .debounce(0.3)
             .whileTrue(
             Commands.parallel(
-                ShootingCommand.createShootingCommand(
+                ShootingCommand.createDynamicFeedCommand(
                     intake,
                     launcher,
                     transport,
-                    70,
-                    -0.015
+                    70.0,    // 射速给到最大，保证能飞过半场
+                    -0.025,   // 对应适合跨越半场的抛物线角度
+                    true // 需要摆动
+                ),
+                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+        );
+
+        // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
+        Operator.rightTrigger()
+            .debounce(0.3)
+            .whileTrue(
+            Commands.parallel(
+                ShootingCommand.createDynamicFeedCommand(
+                    intake,
+                    launcher,
+                    transport,
+                    70.0,    // 射速给到最大，保证能飞过半场
+                    -0.025,   // 对应适合跨越半场的抛物线角度
+                    false // 不需要摆动
                 ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))

@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.302533333333333,
-        "y": 5.062933333333333
+        "x": 7.468816666666666,
+        "y": 5.3350333333333335
       },
       "isLocked": false,
       "linkedName": "BlueIntake2"
@@ -20,8 +20,8 @@
         "y": 5.4
       },
       "prevControl": {
-        "x": 3.950441666666667,
-        "y": 5.352375
+        "x": 3.7803500000000003,
+        "y": 5.962375
       },
       "nextControl": null,
       "isLocked": false,

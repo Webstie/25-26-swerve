@@ -281,6 +281,86 @@ public class ShootingCommand extends SequentialCommandGroup {
         });
     }
 
+    /**
+     * 中场盲射 (Feed) 专用的快速发射命令
+     * 特点：无视目标位置，无需复杂的视觉距离计算，使用固定角度和射速。
+     * 极短预热时间 (0.3s) 保证跑打的流畅性，且不接管底盘控制。
+     */
+    public static Command createDynamicFeedCommand(
+        Intake intake,
+        Launcher launcher,
+        Transport transport,
+        double feedSpeed,
+        double feedAngle,
+        boolean needSwing
+    ) {
+        // 极短的预热时间，专为跑打和 Feed 设计 (0.3 秒足够摩擦轮达到较高转速)
+        double fastWarmupTime = 0.3; 
+
+        // --- 1. Launcher 的逻辑流 (极短预热 -> 发射) ---
+        Command launcherStream = Commands.sequence(
+            // 第一阶段：极速预热 (摩擦轮转，Feeder停，调整推杆角度)
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                        launcher.setFrictionWheelVelocity(feedSpeed);
+                        launcher.setFeederVelocity(0);
+                    }
+                ).alongWith(launcher.AdjustAngleToPositionCommand(feedAngle))   
+            ).withTimeout(fastWarmupTime), // 极短时间后立刻进入发射
+
+            // 第二阶段：发射 (摩擦轮转，Feeder转)
+            Commands.run(
+                () -> {
+                    launcher.setFrictionWheelVelocity(feedSpeed);
+                    launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                }, launcher
+            )
+        );
+
+        // --- 2. Transport 的逻辑流 ---
+        Command transportStream = Commands.sequence(
+            Commands.waitSeconds(fastWarmupTime), // 等待极短预热
+            Commands.run(
+                () -> transport.setTransportVelocity(Constants.TransportConfig.TransportSpeed),
+                transport
+            )
+        );
+
+        // --- 3. Intake 的逻辑流 ---
+        // 将单纯转动电机的逻辑提取出来
+        Command runIntakeMotors = Commands.run(() -> {
+            intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
+            intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+        });
+
+        Command intakeStream = Commands.sequence(
+            Commands.waitSeconds(fastWarmupTime), // 等待极短预热
+            // 根据 needSwing 参数动态决定执行哪个：
+            // 如果为 true，则并行执行电机转动 + 摆动；如果为 false，则只执行电机转动
+            needSwing 
+                ? Commands.parallel(intake.IntakeFeedingSwingSingleCommand().repeatedly(), runIntakeMotors)
+                : runIntakeMotors 
+        );
+
+        // --- 组合所有流 ---
+        return Commands.parallel(
+            launcherStream,
+            transportStream,
+            intakeStream
+        )
+        // 中断或结束时立刻清理所有电机
+        .finallyDo((interrupted) -> {
+            launcher.setFrictionWheelVelocity(0);
+            launcher.setFeederVelocity(0);
+            launcher.setAngleVoltage(0);
+            transport.setTransportVelocity(0);
+            // intake.setIntakeMotorVelocity(0);
+            intake.setSupportMotorVelocity(0);
+            intake.applyIntakePitchMotorNeutral();
+        });
+    }
+
     public static Command createAutoDynamicShootingCommand(
         CommandSwerveDrivetrain drive,
         Intake intake,
