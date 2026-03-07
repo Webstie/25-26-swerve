@@ -36,16 +36,28 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "HumanToWarehouse"
+                  "pathName": "HumanToShoot3-1"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "Shoot_Auto_Dynamic"
+                  "name": "WarmUp_Auto_Far"
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Far_Right"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Shoot3-1ToWarehouse"
           }
         },
         {
@@ -70,7 +82,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Far_Left"
+            "name": "Shoot_Auto_Blue_Far_Left_toEnd"
           }
         }
       ]

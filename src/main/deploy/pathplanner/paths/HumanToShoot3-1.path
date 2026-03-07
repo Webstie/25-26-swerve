@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.4622416666666667,
-        "y": 1.7901749999999996
+        "x": 0.6974638264512453,
+        "y": 1.8748540147927928
       },
       "isLocked": false,
       "linkedName": "BlueHuman"
@@ -20,8 +20,8 @@
         "y": 2.065
       },
       "prevControl": {
-        "x": 1.0390000000000001,
-        "y": 2.065
+        "x": 1.918692881151733,
+        "y": 1.845851198601432
       },
       "nextControl": null,
       "isLocked": false,

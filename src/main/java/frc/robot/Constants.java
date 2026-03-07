@@ -168,10 +168,5 @@ public class Constants {
         //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
         public static final double ANGLE_TOLERANCE_DEGREES = 4;
-        
-        public static final double PitchSlope = -0.00843836;
-        public static final double PitchYIntercept = 0.0133425;
-        public static final double SpeedSlope = 5.69635;
-        public static final double SpeedYIntercept = 40.73202;
     }
 }

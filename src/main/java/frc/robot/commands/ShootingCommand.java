@@ -172,7 +172,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             //Transport停
             transport.setTransportVelocity(0);
             //Intake停
-            intake.setIntakeMotorVelocity(0);
+            // intake.setIntakeMotorVelocity(0);
             //搅拌停
             intake.setSupportMotorVelocity(0);
             //释放intakepitch

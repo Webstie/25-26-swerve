@@ -5,13 +5,19 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "StartToBack1"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToHuman"
+                  "pathName": "BackToIntake1"
                 }
               },
               {
@@ -19,44 +25,45 @@
                 "data": {
                   "name": "Intake_Auto"
                 }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeToShoot1"
+                }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "WarmUp_Auto_Far"
+                  "name": "WarmUp_Auto_Near"
                 }
               }
             ]
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Fixed_Blue_Far_Right"
+            "name": "Shoot_Auto_Blue_Near_Right"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot3-1ToWarehouse"
+            "pathName": "ShootToClimb1"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Fixed_Blue_Far_Left"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "LastCharge"
+            "name": "Climb_Auto"
           }
         }
       ]

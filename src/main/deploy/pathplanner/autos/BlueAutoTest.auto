@@ -5,9 +5,15 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "LastCharge"
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Fixed_Blue_Far_Left"
+            "name": "Shoot_Auto_Fixed_Blue_Far_Right"
           }
         }
       ]

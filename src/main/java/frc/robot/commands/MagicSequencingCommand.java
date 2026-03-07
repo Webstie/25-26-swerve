@@ -263,7 +263,7 @@ public class MagicSequencingCommand {
     }
 
     /**
-     * 创建一个顺序命令，在自动模式下直接开始射击，在过程中慢慢调整自己继续靠近最近的硬编码得分点
+     * 创建一个顺序命令，在自动模式下不预热，不调整pitch角度直接开始射击（相信预热），在过程中慢慢调整自己继续靠近最近的硬编码得分点
      * 
      * @param position_index 目标点位在表中的索引
      * @param drive 底盘子系统
@@ -286,7 +286,6 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             // 解析数组：当前行的数据格式预设为 {X坐标, Y坐标, Pitch角度, 射速}
             double[] currentParams = pointsParamsTable[position_index];
-            double launch_angle = currentParams[2];             // 提取角度
             double frictionWheelLaunchSpeed = currentParams[3]; // 提取转速
 
             return Commands.parallel(

@@ -5,19 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "StartToBack2"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "BackToIntake2"
+                  "pathName": "StartToHuman"
                 }
               },
               {
@@ -30,19 +24,31 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.2
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "HumanToWarehouse"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "IntakeToShoot2"
+                  "pathName": "WarehouseToShoot3-2"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "WarmUp_Auto_Near"
+                  "name": "WarmUp_Auto_Far"
                 }
               }
             ]
@@ -51,19 +57,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Near_Right"
+            "name": "Shoot_Auto_Blue_Far_Left"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "ShootToClimb2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Climb_Auto"
+            "pathName": "ShootToClimb4"
           }
         }
       ]

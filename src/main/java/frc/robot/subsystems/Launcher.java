@@ -22,7 +22,7 @@ import com.revrobotics.spark.SparkMax;
 
 public class Launcher extends SubsystemBase {
 
-    private static final double ANGLE_TOLERANCE = 0.0001;
+    private static final double ANGLE_TOLERANCE = 0.001;
 
     private double frictionWheelVelocityTarget = 0.0;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
@@ -149,7 +149,9 @@ public class Launcher extends SubsystemBase {
     public Command AdjustAngleToPositionCommand(double targetPosition){
         final double kP = 200.0;
         final double maxVoltage = 12.0;
-        final double minVoltage = 8.0;
+        
+        // 降低基础克服摩擦力的电压（kS）。8.0V太暴力了，2.0~3.0V通常足够让推杆缓慢移动
+        final double kS = 2.5; 
 
         return run(
             () -> {
@@ -157,19 +159,33 @@ public class Launcher extends SubsystemBase {
                 double error = targetPosition - current;
                 double absError = Math.abs(error);
 
+                // 1. 如果已经进入容差范围，直接输出 0 并返回
                 if (absError <= ANGLE_TOLERANCE) {
                     setAngleVoltage(0);
                     return;
                 }
 
-                double voltage = MathUtil.clamp(kP * error, -maxVoltage, maxVoltage);
-                if (Math.abs(voltage) < minVoltage) {
-                    voltage = Math.copySign(minVoltage, voltage);
-                }
+                // 2. 计算比例输出 (P)
+                double pOutput = kP * error;
+                
+                // 3. 摩擦力前馈补偿 (带有方向的最小启动电压)
+                // 只要有误差，我们就给它一个基础力 kS，再加上随误差变小的 P 力
+                double feedforward = Math.copySign(kS, error);
+                
+                // 4. 总输出 = P输出 + 前馈补偿，并限制在最大电压内
+                double voltage = MathUtil.clamp(pOutput + feedforward, -maxVoltage, maxVoltage);
+                
                 setAngleVoltage(voltage);
             }
         )
+        // 结束条件：绝对误差小于容差
         .until(() -> Math.abs(targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble()) <= ANGLE_TOLERANCE)
+        
+        // 🌟 核心保命机制：最多只给它 1.5 秒的时间调整！🌟
+        // 如果推杆发生机械卡死，或者由于某种原因还在轻微震荡，1.5秒一到强制宣告调整结束，进入下一步发射！
+        .withTimeout(1.5)
+        
+        // 无论是正常达到位置，还是超时被打断，都确保电机断电
         .finallyDo(() -> setAngleVoltage(0));
     }
 

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.801383333333334,
-        "y": 3.3093999999999992
+        "x": 7.740916666666667,
+        "y": 5.410616666666667
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.1286916666666675,
-        "y": 2.9088083333333326
+        "x": 6.932175,
+        "y": 5.433291666666666
       },
       "isLocked": false,
-      "linkedName": "BlueIntake2"
+      "linkedName": "BlueIntake1"
     },
     {
       "anchor": {
-        "x": 3.2,
-        "y": 2.6
+        "x": 0.5756166666666667,
+        "y": 5.977491666666667
       },
       "prevControl": {
-        "x": 4.0448916666666666,
-        "y": 1.7826166666666667
+        "x": 1.6549456480708153,
+        "y": 5.9245833333333335
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShoot2"
+      "linkedName": "BlueWarehouse"
     }
   ],
   "rotationTargets": [],
@@ -56,13 +56,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 45.4675979965987
+    "rotation": 179.88334612219998
   },
   "reversed": false,
-  "folder": "Blue2",
+  "folder": "Blue0",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -88.91907581333925
+    "rotation": -89.99999999976721
   },
   "useDefaultConstraints": false
 }
