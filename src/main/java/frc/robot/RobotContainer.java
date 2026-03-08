@@ -15,6 +15,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.events.TriggerEvent;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -65,8 +66,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // deadband applied manually in lambda
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
@@ -397,12 +397,17 @@ public class RobotContainer {
         /******************************************************（Driver）**********************************************************************/
         // 这个是默认的开环底盘控制，使用左操纵杆控制平移，右操纵杆控制旋转
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-Driver.getLeftY() * MaxSpeed * 0.75 * getInputScale()) // Drive forward with negative Y (forward)
-                    .withVelocityY(-Driver.getLeftX() * MaxSpeed * 0.75 * getInputScale()) // Drive left with negative X (left)
-                    .withRotationalRate(-Driver.getRightX() * MaxAngularRate * getInputScale()) // Drive counterclockwise with negative X (left)
-            )
+            drivetrain.applyRequest(() -> {
+                // 在归一化轴值（-1~1）上应用死区，保证任何速度模式下推杆响应一致
+                double rawX = MathUtil.applyDeadband(-Driver.getLeftY(), 0.1);
+                double rawY = MathUtil.applyDeadband(-Driver.getLeftX(), 0.1);
+                double rawR = MathUtil.applyDeadband(-Driver.getRightX(), 0.1);
+                double scale = getInputScale();
+                return drive
+                    .withVelocityX(rawX * MaxSpeed * 0.75 * scale)
+                    .withVelocityY(rawY * MaxSpeed * 0.75 * scale)
+                    .withRotationalRate(rawR * MaxAngularRate * scale);
+            })
         );
         drivetrain.registerTelemetry(logger::telemeterize);
 
@@ -410,14 +415,14 @@ public class RobotContainer {
         Driver.a().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // 切换是否使用视觉位姿融合
-        Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion )
-                            .alongWith(Commands.either(new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.Idle),candle), new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.VisionFusion),candle), ()->isVisionPoseFusion)));
-        Driver.start().onTrue(Commands.runOnce(() -> isSlowMode = !isSlowMode)
-                        .alongWith(
-                        Commands.either(
-                            new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.ClimbingUp),candle),
-                            new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.Idle),candle),
-                            () -> isSlowMode)));
+        Driver.b().onTrue(Commands.runOnce(() -> {
+            isVisionPoseFusion = !isVisionPoseFusion;
+            refreshBackgroundState();
+        }));
+        Driver.start().onTrue(Commands.runOnce(() -> {
+            isSlowMode = !isSlowMode;
+            refreshBackgroundState();
+        }));
                         
 
         // 电推杆微调
@@ -796,5 +801,20 @@ public class RobotContainer {
 
     private double getInputScale() {
         return isSlowMode ? 0.25 : 1.0;
+    }
+
+    /**
+     * 根据当前所有持久状态的组合刷新背景灯光。
+     * 优先级：SlowMode（青色）> VisionFusion（黄色）> Idle（灭灯）
+     * 在任何持久状态切换后调用，保证不同组合下灯光正确。
+     */
+    private void refreshBackgroundState() {
+        if (isSlowMode) {
+            candle.setBackgroundState(Constants.RobotState.State.ClimbingUp);
+        } else if (isVisionPoseFusion) {
+            candle.setBackgroundState(Constants.RobotState.State.VisionFusion);
+        } else {
+            candle.setBackgroundState(Constants.RobotState.State.Idle);
+        }
     }
 }
