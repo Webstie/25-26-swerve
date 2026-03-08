@@ -3,40 +3,40 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.5756166666666667,
-        "y": 5.977491666666667
+        "x": 7.748474999999999,
+        "y": 4.435591666666666
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.2090039814041487,
-        "y": 5.954816666666667
+        "x": 7.423466666666665,
+        "y": 6.264708333333334
       },
       "isLocked": false,
-      "linkedName": "BlueWarehouse"
+      "linkedName": "BlueIntake5"
     },
     {
       "anchor": {
-        "x": 2.17,
-        "y": 6.01
+        "x": 0.5756166666666667,
+        "y": 5.977491666666667
       },
       "prevControl": {
-        "x": 1.8076249999999998,
-        "y": 6.010166666666667
+        "x": 1.6549456480708153,
+        "y": 5.9245833333333335
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShootFarLeft"
+      "linkedName": "BlueWarehouse"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.3538205980066445,
+      "minWaypointRelativePos": 0.8039867109634554,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 2.0,
-        "maxAcceleration": 2.0,
+        "maxVelocity": 1.0,
+        "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -47,8 +47,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.0,
-    "maxAcceleration": 1.0,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -56,13 +56,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -47.316495313634945
-  },
-  "reversed": false,
-  "folder": "Blue0",
-  "idealStartingState": {
-    "velocity": 0,
     "rotation": 179.88334612219998
   },
-  "useDefaultConstraints": false
+  "reversed": false,
+  "folder": "Blue5",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -90.0
+  },
+  "useDefaultConstraints": true
 }

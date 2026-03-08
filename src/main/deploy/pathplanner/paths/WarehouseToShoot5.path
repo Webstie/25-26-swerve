@@ -3,40 +3,40 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.561158333333333,
-        "y": 0.6715416666666669
+        "x": 0.5756166666666667,
+        "y": 5.977491666666667
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.016595624525786,
-        "y": 0.6687050963583338
+        "x": 1.2090039814041487,
+        "y": 5.954816666666667
       },
       "isLocked": false,
-      "linkedName": "BlueStart_3_4"
+      "linkedName": "BlueWarehouse"
     },
     {
       "anchor": {
-        "x": 0.5605,
-        "y": 0.6715416666666669
+        "x": 2.17,
+        "y": 6.01
       },
       "prevControl": {
-        "x": 0.810498617543649,
-        "y": 0.6723730668496454
+        "x": 1.8076249999999998,
+        "y": 6.010166666666667
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueHuman"
+      "linkedName": "BlueShootFarLeft"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8970099667774086,
+      "minWaypointRelativePos": 0.3538205980066445,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 3.0,
-        "maxAcceleration": 3.0,
+        "maxVelocity": 2.0,
+        "maxAcceleration": 2.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -47,22 +47,22 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 1.0,
+    "maxAcceleration": 1.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
-    "unlimited": true
+    "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -47.316495313634945
   },
   "reversed": false,
-  "folder": "Blue3",
+  "folder": "Blue5",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 179.12532322887867
+    "rotation": 179.88334612219998
   },
   "useDefaultConstraints": false
 }

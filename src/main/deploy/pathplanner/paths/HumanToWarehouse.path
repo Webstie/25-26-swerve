@@ -9,7 +9,7 @@
       "prevControl": null,
       "nextControl": {
         "x": 2.790208333333333,
-        "y": 1.1023666666666678
+        "y": 1.102366666666668
       },
       "isLocked": false,
       "linkedName": "BlueHuman"
@@ -78,7 +78,7 @@
   "folder": "Blue4",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -178.43370881323887
+    "rotation": 180.0
   },
   "useDefaultConstraints": false
 }

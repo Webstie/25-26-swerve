@@ -3,67 +3,67 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.4629000000000003,
-        "y": 5.705391666666667
+        "x": 3.485575,
+        "y": 2.4628666666666663
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.128033333333333,
-        "y": 5.735625
+        "x": 4.320911227085461,
+        "y": 2.275337044506159
       },
       "isLocked": false,
-      "linkedName": "BlueStart_1_5"
+      "linkedName": "BlueStart_2_6"
     },
     {
       "anchor": {
-        "x": 5.805983333333334,
-        "y": 5.871675
+        "x": 5.836216666666667,
+        "y": 2.08495
       },
       "prevControl": {
-        "x": 5.569736814973269,
-        "y": 5.789897359029208
+        "x": 5.636216666666669,
+        "y": 2.23495
       },
       "nextControl": {
-        "x": 6.042229851693398,
-        "y": 5.9534526409707915
+        "x": 6.0478499999999995,
+        "y": 1.9262249999999996
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.801383333333334,
-        "y": 6.733325
+        "x": 7.740916666666667,
+        "y": 1.1855083333333334
       },
       "prevControl": {
-        "x": 7.806701278705978,
-        "y": 6.983268432514267
+        "x": 7.718282730156039,
+        "y": 0.9365350317164066
       },
       "nextControl": {
-        "x": 7.786266666666666,
-        "y": 6.022841666666667
+        "x": 7.763550603177295,
+        "y": 1.4344816349502594
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.801383333333334,
-        "y": 2.175649999999999
+        "x": 7.740916666666667,
+        "y": 3.6041749999999997
       },
       "prevControl": {
-        "x": 7.820279166666667,
-        "y": 1.8619791666666652
+        "x": 7.723716143762822,
+        "y": 3.354767417894254
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueIntake1"
+      "linkedName": "BlueIntake6"
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 2.0,
-      "rotationDegrees": -90.0
+      "rotationDegrees": 90.0
     }
   ],
   "constraintZones": [
@@ -93,13 +93,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -88.91907581333925
+    "rotation": 90.0
   },
   "reversed": false,
-  "folder": "Blue1",
+  "folder": "Blue6",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -47.1210963966615
+    "rotation": 49.93208742826484
   },
   "useDefaultConstraints": true
 }
