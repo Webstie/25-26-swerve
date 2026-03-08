@@ -131,7 +131,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(6.0)
@@ -155,7 +155,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(10.0)
@@ -179,7 +179,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(5.0)
@@ -203,7 +203,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(3.0)
@@ -227,7 +227,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(5.0)
@@ -251,7 +251,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(10.0)
@@ -275,7 +275,7 @@ public class RobotContainer {
                 Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
             ))
             .finallyDo((interrupted) -> {
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(10.0)
@@ -302,7 +302,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             }).withTimeout(5.0)
@@ -327,7 +327,7 @@ public class RobotContainer {
         //     ))
         //     .finallyDo((interrupted) -> {
         //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-        //         candle.Changecolor(Constants.RobotState.State.Idle);
+        //         candle.restoreBackground();
         //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
         //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
         //     }).withTimeout(5.0)
@@ -351,7 +351,7 @@ public class RobotContainer {
                     )
                 )
             .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
-            .finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+            .finallyDo(() -> candle.restoreBackground())
             .withTimeout(5.0) // 运行4秒后，瞄准逻辑会自动卸载，恢复正常寻路
             // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
@@ -411,12 +411,12 @@ public class RobotContainer {
 
         // 切换是否使用视觉位姿融合
         Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion )
-                            .alongWith(Commands.either(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle), new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.VisionFusion),candle), ()->isVisionPoseFusion)));
+                            .alongWith(Commands.either(new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.Idle),candle), new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.VisionFusion),candle), ()->isVisionPoseFusion)));
         Driver.start().onTrue(Commands.runOnce(() -> isSlowMode = !isSlowMode)
                         .alongWith(
                         Commands.either(
-                            new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingUp),candle),
-                            new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle),
+                            new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.ClimbingUp),candle),
+                            new InstantCommand(()->candle.setBackgroundState(Constants.RobotState.State.Idle),candle),
                             () -> isSlowMode)));
                         
 
@@ -447,7 +447,7 @@ public class RobotContainer {
         //             launchAngle
         //         )),
         //         Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-        //     ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+        //     ).finallyDo(() -> candle.restoreBackground())
         // );
 
         //单独执行发射命令
@@ -462,7 +462,7 @@ public class RobotContainer {
                     0.0031
                 )),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+            ).finallyDo(() -> candle.restoreBackground())
         );
 
         // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打)
@@ -478,7 +478,7 @@ public class RobotContainer {
                     true // 需要摆动
                 ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+            ).finallyDo(() -> candle.restoreBackground())
         );
 
         // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
@@ -494,7 +494,7 @@ public class RobotContainer {
                     false // 不需要摆动
                 ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+            ).finallyDo(() -> candle.restoreBackground())
         );
 
         //intake机构放下or回收
@@ -511,7 +511,7 @@ public class RobotContainer {
             .andThen(intake.IntakeSingleCommand())
             .andThen(Commands.either(
                 new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Intaking), candle),
-                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Idle), candle),
+                new InstantCommand(() -> candle.restoreBackground(), candle),
                 () -> intake.Intake_press_times % 2 == 1
             ))
             
@@ -567,7 +567,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -591,7 +591,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -615,7 +615,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -638,7 +638,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -662,7 +662,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -686,7 +686,7 @@ public class RobotContainer {
             ))
             .finallyDo((interrupted) -> {
                 //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Idle);
+                candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
@@ -727,7 +727,7 @@ public class RobotContainer {
         //         Constants.VisionConfig.BLUE_HUB_CENTER
         //     ))
         //     .finallyDo((interrupted) -> {
-        //         candle.Changecolor(Constants.RobotState.State.Idle);
+        //         candle.restoreBackground();
         //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
         //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
         //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
@@ -739,8 +739,8 @@ public class RobotContainer {
         Driver.leftTrigger().whileTrue(
             Commands.parallel(MoveWhileAimCommand.create(
                     drivetrain,
-                    () -> -Driver.getLeftY() * MaxSpeed * 0.125 * getInputScale(),
-                    () -> -Driver.getLeftX() * MaxSpeed * 0.125 * getInputScale(),
+                    () -> -Driver.getLeftY() * MaxSpeed * 0.175 * getInputScale(),
+                    () -> -Driver.getLeftX() * MaxSpeed * 0.150 * getInputScale(),
                     MaxAngularRate * getInputScale(),
                     Constants.VisionConfig.BLUE_HUB_CENTER
                     ),
@@ -753,7 +753,7 @@ public class RobotContainer {
                     )
                 )
                 .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
-                .finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+                .finallyDo(() -> candle.restoreBackground())
         );
             
             

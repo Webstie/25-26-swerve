@@ -52,7 +52,8 @@ public class CANdleSystem extends SubsystemBase {
     private AnimationTypes m_currentAnimation;
 
     public boolean isflow = false;
-    public Constants.RobotState.State m_current_state = Constants.RobotState.State.Idle;//default state
+    public Constants.RobotState.State m_current_state = Constants.RobotState.State.Idle;
+    private Constants.RobotState.State m_background_state = Constants.RobotState.State.Idle;
 
 
     public CANdleSystem() {
@@ -70,9 +71,21 @@ public class CANdleSystem extends SubsystemBase {
         m_candle2.configAllSettings(configAll, 100);
     }
 
-    public void Changecolor(Constants.RobotState.State state) {//change color according to the position of elevator
+    /** 设置临时前景状态（不影响背景，用于 Shooting/Intaking/Outtaking 等临时动作）。 */
+    public void Changecolor(Constants.RobotState.State state) {
         System.out.println("COLOR CHANGED!");
         m_current_state = state;
+    }
+
+    /** 设置持久背景状态（用于 SlowMode/VisionFusion/福灯 等持久切换），同时更新当前状态。 */
+    public void setBackgroundState(Constants.RobotState.State state) {
+        m_background_state = state;
+        m_current_state = state;
+    }
+
+    /** 临时动作结束后恢复到持久背景状态（代替直接 Changecolor(Idle)）。 */
+    public void restoreBackground() {
+        m_current_state = m_background_state;
     }
 
     public void setOff() {
