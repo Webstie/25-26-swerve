@@ -20,6 +20,7 @@ public class OuttakeCommand { // 注意：这里不再 extends ParallelCommandGr
             // 关键点：使用 finallyDo 在命令结束或中断时执行逻辑
             .finallyDo(() -> {
                 intake.applyIntakePitchMotorNeutral();
+                intake.resetIntakeCounter();
                 candle.restoreBackground();
         });
     }

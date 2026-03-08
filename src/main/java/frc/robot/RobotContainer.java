@@ -377,6 +377,9 @@ public class RobotContainer {
 
         configureBindings();
 
+        // 同步初始灯光状态，避免启动时 LED 与实际 flag 不一致
+        refreshBackgroundState();
+
         // Build an auto chooser. This will use Commands.none() as the default option.
         autoChooser = AutoBuilder.buildAutoChooser();
         // Another option that allows you to specify the default auto by its name
@@ -811,7 +814,8 @@ public class RobotContainer {
     private void refreshBackgroundState() {
         if (isSlowMode) {
             candle.setBackgroundState(Constants.RobotState.State.ClimbingUp);
-        } else if (isVisionPoseFusion) {
+        } else if (!isVisionPoseFusion) {
+            // vision 关闭时亮黄色警告
             candle.setBackgroundState(Constants.RobotState.State.VisionFusion);
         } else {
             candle.setBackgroundState(Constants.RobotState.State.Idle);

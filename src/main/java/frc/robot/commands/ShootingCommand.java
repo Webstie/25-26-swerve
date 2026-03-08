@@ -101,8 +101,9 @@ public class ShootingCommand extends SequentialCommandGroup {
             launcher.setFeederVelocity(0);
             //Transport停
             transport.setTransportVelocity(0);
-            //Intake停
+            //Intake停，同步重置计数器避免 toggle 需要多按一次
             intake.setIntakeMotorVelocity(0);
+            intake.resetIntakeCounter();
             //搅拌停
             intake.setSupportMotorVelocity(0);
             //释放intakepitch
@@ -275,6 +276,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             launcher.setAngleVoltage(0);
             transport.setTransportVelocity(0);
             intake.setIntakeMotorVelocity(0);
+            intake.resetIntakeCounter();
             intake.setSupportMotorVelocity(0);
             intake.applyIntakePitchMotorNeutral();
         });

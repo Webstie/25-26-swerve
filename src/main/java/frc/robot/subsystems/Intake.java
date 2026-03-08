@@ -96,6 +96,21 @@ public class Intake extends SubsystemBase {
         Intake_pitch_motor.setControl(Neutral_Request);
     }
 
+    /** 停止 intake 电机并重置计数器，保证 toggle 逻辑与实际电机状态同步。 */
+    public void resetIntakeCounter() {
+        Intake_press_times = 0;
+    }
+
+    /**
+     * 进入 teleop 时调用：重置计数器和 pitch flag，
+     * 保证无论 auto 路线如何结束，teleop 第一次按键都能正常响应。
+     * pitch flag 重置为 true（假设收起），第一次 Driver.x() 会放下。
+     */
+    public void resetTeleopState() {
+        Intake_press_times = 0;
+        IntakepitchPositionFlag = true;
+    }
+
     /**
     Intake速度设置接口
      */
