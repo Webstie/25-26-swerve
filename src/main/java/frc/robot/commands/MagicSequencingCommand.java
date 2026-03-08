@@ -230,13 +230,13 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             // 解析数组：当前行的数据格式预设为 {X坐标, Y坐标, Pitch角度, 射速}
             double[] currentParams = pointsParamsTable[position_index];
-            double launch_angle = currentParams[2];             // 提取角度
-            double frictionWheelLaunchSpeed = currentParams[3]; // 提取转速
+            double launch_angle = currentParams[2] + Constants.ShootingTrim.pitchOffset; // 提取角度并叠加偏移
+            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset; // 提取转速并叠加偏移
 
             return Commands.sequence(
                 // 第一阶段：移动到目标位置
-                Commands.parallel(     
-                    Commands.runOnce(()->launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),//预热       
+                Commands.parallel(
+                    Commands.runOnce(()->launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),//预热
                     launcher.AdjustAngleToPositionCommand(launch_angle), // 调整角度
                     MagicSequencingCommand.runToClosestPosition(
                         position_index, 
@@ -281,7 +281,7 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             // 解析数组：当前行的数据格式预设为 {X坐标, Y坐标, Pitch角度, 射速}
             double[] currentParams = pointsParamsTable[position_index];
-            double frictionWheelLaunchSpeed = currentParams[3]; // 提取转速
+            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset; // 提取转速并叠加偏移
 
             return Commands.parallel(
                 //同时运行1：开始射击

@@ -16,7 +16,7 @@ public class Constants {
     //variables for robot state
     public static class RobotState{
         public enum State {
-            Shooting, Intaking, ClimbingUp, Outtaking, ClimbingDown, Idle;
+            Shooting, Intaking, ClimbingUp, Outtaking, ClimbingDown, Idle, VisionFusion;
         };
     }
 
@@ -44,7 +44,7 @@ public class Constants {
     }
 
     public static final class ClimberConfig{
-        public static final double ClimberTopPosition = 120.0;
+        public static final double ClimberTopPosition = 95.0;
         public static final double ClimbPosition = 1.0;
         public static final int CLIMBER_MOTOR_ID = 1;
     }
@@ -174,5 +174,13 @@ public class Constants {
         //目前测量得出，x方向运动误差大约为+0.1左右，y方向较小，故调整容差在同一数量级稍小，使位置控制更稳定
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
         public static final double ANGLE_TOLERANCE_DEGREES = 4;
+    }
+
+    /** 比赛现场整体微调：叠加在所有查表结果之上的全局偏移量 */
+    public static class ShootingTrim {
+        /** 射速偏移（rps），正数=更快，负数=更慢 */
+        public static double speedOffset = 0.0;
+        /** Pitch角度偏移（rotations），正数=角度增大，负数=角度减小 */
+        public static double pitchOffset = 0.0;
     }
 }

@@ -218,6 +218,9 @@ public class CANdleSystem extends SubsystemBase {
             case Idle:
                 setOff();
                 break;
+            case VisionFusion:
+                setYellow();
+                break;
             case Shooting:
                 setPink();
                 break;

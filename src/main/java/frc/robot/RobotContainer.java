@@ -185,6 +185,30 @@ public class RobotContainer {
             }).withTimeout(5.0)
             // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
+        
+        //自动发射近中
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                candle.Changecolor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                1,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                candle.Changecolor(Constants.RobotState.State.Idle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(3.0)
+            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
 
         //自动发射近右
         NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",
@@ -260,30 +284,30 @@ public class RobotContainer {
 
         //！！！！！！！！！！求稳移动到固定点位的效果不好，到位调整浪费时间较多，弃用
 
-        // //自动发射远左，求稳移动到固定点位
-        // NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Left",
-        //     Commands.runOnce(() -> {
-        //         System.out.println("Starting Hub targeting command");
-        //         isVisionPoseFusion = true;
-        //         candle.Changecolor(Constants.RobotState.State.Shooting);
-        //     })
-        //     .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-        //         3,
-        //         drivetrain, 
-        //         intake, 
-        //         launcher, 
-        //         transport,
-        //         Constants.VisionConfig.BLUE_HUB_CENTER,
-        //         Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-        //     ))
-        //     .finallyDo((interrupted) -> {
-        //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-        //         candle.Changecolor(Constants.RobotState.State.Idle);
-        //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-        //     }).withTimeout(5.0)
-        //     // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        // );
+        //自动发射远左，求稳移动到固定点位
+        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",
+            Commands.runOnce(() -> {
+                System.out.println("Starting Hub targeting command");
+                isVisionPoseFusion = true;
+                candle.Changecolor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+                1,
+                drivetrain, 
+                intake, 
+                launcher, 
+                transport,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
+            ))
+            .finallyDo((interrupted) -> {
+                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
+                candle.Changecolor(Constants.RobotState.State.Idle);
+                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
+                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
+            }).withTimeout(5.0)
+            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        );
 
         // //自动发射远右，求稳移动到固定点位
         // NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Right",
@@ -364,6 +388,8 @@ public class RobotContainer {
     public void updateDashboard() {
         SmartDashboard.putNumber("Launcher/LaunchSpeed", launchSpeed);
         SmartDashboard.putNumber("Launcher/LaunchAngle", launchAngle);
+        SmartDashboard.putNumber("Launcher/SpeedOffset", Constants.ShootingTrim.speedOffset);
+        SmartDashboard.putNumber("Launcher/PitchOffset", Constants.ShootingTrim.pitchOffset);
     }
     // Bindings
     private void configureBindings() {
@@ -381,10 +407,11 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // 在视觉位姿关闭后的定头
-        // Driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        Driver.a().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // 切换是否使用视觉位姿融合
-        Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion ));
+        Driver.b().onTrue(Commands.runOnce(() -> isVisionPoseFusion = !isVisionPoseFusion )
+                            .alongWith(Commands.either(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Idle),candle), new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.VisionFusion),candle), ()->isVisionPoseFusion)));
         Driver.start().onTrue(Commands.runOnce(() -> isSlowMode = !isSlowMode)
                         .alongWith(
                         Commands.either(
@@ -394,36 +421,37 @@ public class RobotContainer {
                         
 
         // 电推杆微调
-        Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
-        Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
+        // Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
+        // Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
 
         //装福灯
         Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
 
-        Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
-        Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
+
+        //调试用途
+        // Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
+        // Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
 
         // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
         // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
-
-        Driver.b()
-            .debounce(0.3)
-            .whileTrue(
-            Commands.parallel(
-                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-                    intake,
-                    launcher,
-                    transport,
-                    launchSpeed,
-                    launchAngle
-                )),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
-        );
+        
+        //调试用途
+        // Driver.b()
+        //     .whileTrue(
+        //     Commands.parallel(
+        //         new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+        //             intake,
+        //             launcher,
+        //             transport,
+        //             launchSpeed,
+        //             launchAngle
+        //         )),
+        //         Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+        //     ).finallyDo(() -> candle.Changecolor(Constants.RobotState.State.Idle))
+        // );
 
         //单独执行发射命令
         Driver.rightTrigger()
-            .debounce(0.3)
             .whileTrue(
             Commands.parallel(
                 new ProxyCommand(() -> ShootingCommand.createShootingCommand(
@@ -439,7 +467,6 @@ public class RobotContainer {
 
         // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打)
         Operator.a()
-            .debounce(0.3)
             .whileTrue(
             Commands.parallel(
                 ShootingCommand.createDynamicFeedCommand(
@@ -456,7 +483,6 @@ public class RobotContainer {
 
         // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
         Operator.rightTrigger()
-            .debounce(0.3)
             .whileTrue(
             Commands.parallel(
                 ShootingCommand.createDynamicFeedCommand(
@@ -594,8 +620,7 @@ public class RobotContainer {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
         );
-
-        //半自动点位远左
+                //半自动点位远左
         Operator.povLeft().whileTrue(
             Commands.runOnce(() -> {
                 System.out.println("Starting Hub targeting command");
@@ -666,6 +691,25 @@ public class RobotContainer {
                 System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
             })
         );
+
+        // 比赛现场全局射击参数微调（整体偏移，叠加在所有查表结果之上）
+        // POV上下 = 射速偏移 ±1.25 rps；POV左右 = Pitch角度偏移 ±0.001 rot
+        Driver.povUp().onTrue(Commands.runOnce(() -> {
+            Constants.ShootingTrim.speedOffset += 1.25;
+            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
+        }));
+        Driver.povDown().onTrue(Commands.runOnce(() -> {
+            Constants.ShootingTrim.speedOffset -= 1.25;
+            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
+        }));
+        Driver.povRight().onTrue(Commands.runOnce(() -> {
+            Constants.ShootingTrim.pitchOffset += 0.001;
+            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
+        }));
+        Driver.povLeft().onTrue(Commands.runOnce(() -> {
+            Constants.ShootingTrim.pitchOffset -= 0.001;
+            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
+        }));
 
         // //半自动原地瞄准
         // Driver.leftTrigger().whileTrue(

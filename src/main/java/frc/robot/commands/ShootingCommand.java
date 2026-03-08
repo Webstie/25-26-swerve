@@ -205,8 +205,8 @@ public class ShootingCommand extends SequentialCommandGroup {
 
                 double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
 
-                double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
-                double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
+                double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget) + Constants.ShootingTrim.pitchOffset;
+                double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget) + Constants.ShootingTrim.speedOffset;
 
                 ChassisSpeeds robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
                 double cos = currentPose.getRotation().getCos();
@@ -385,8 +385,8 @@ public class ShootingCommand extends SequentialCommandGroup {
 
                 double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
 
-                double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
-                double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
+                double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget) + Constants.ShootingTrim.pitchOffset;
+                double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget) + Constants.ShootingTrim.speedOffset;
 
                 ChassisSpeeds robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
                 double cos = currentPose.getRotation().getCos();
