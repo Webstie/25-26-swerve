@@ -490,7 +490,7 @@ public class RobotContainer {
         );
 
         // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
-        Operator.rightTrigger()
+        Operator.povDown()
             .whileTrue(
             Commands.parallel(
                 ShootingCommand.createDynamicFeedCommand(
@@ -701,20 +701,20 @@ public class RobotContainer {
         );
 
         // 比赛现场全局射击参数微调（整体偏移，叠加在所有查表结果之上）
-        // POV上下 = 射速偏移 ±1.25 rps；POV左右 = Pitch角度偏移 ±0.001 rot
-        Driver.povUp().onTrue(Commands.runOnce(() -> {
+        // Right bumper/trigger = 射速偏移 ±1.25 rps；Left bumper/trigger = Pitch角度偏移 ±0.001 rot
+        Operator.rightBumper().onTrue(Commands.runOnce(() -> {
             Constants.ShootingTrim.speedOffset += 1.25;
             System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
         }));
-        Driver.povDown().onTrue(Commands.runOnce(() -> {
+        Operator.rightTrigger().onTrue(Commands.runOnce(() -> {
             Constants.ShootingTrim.speedOffset -= 1.25;
             System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
         }));
-        Driver.povRight().onTrue(Commands.runOnce(() -> {
+        Operator.leftBumper().onTrue(Commands.runOnce(() -> {
             Constants.ShootingTrim.pitchOffset += 0.001;
             System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
         }));
-        Driver.povLeft().onTrue(Commands.runOnce(() -> {
+        Operator.leftTrigger().onTrue(Commands.runOnce(() -> {
             Constants.ShootingTrim.pitchOffset -= 0.001;
             System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
         }));
