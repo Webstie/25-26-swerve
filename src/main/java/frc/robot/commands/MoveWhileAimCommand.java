@@ -20,6 +20,7 @@ import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.Transport;
 import frc.robot.util.MathUtils;
 
+//手动阶段跑打，对速度做了直接限制，可以理解为有较为固定的偏移量，目前效果不错
 public class MoveWhileAimCommand {
     private static final double LEAD_GAIN_RAD_PER_MPS = 0.5;
     private static final double MAX_LEAD_RAD = Units.degreesToRadians(30.0);

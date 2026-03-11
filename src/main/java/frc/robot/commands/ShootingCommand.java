@@ -362,6 +362,7 @@ public class ShootingCommand extends SequentialCommandGroup {
         });
     }
 
+    //自动阶段
     public static Command createAutoDynamicShootingCommand(
         CommandSwerveDrivetrain drive,
         Intake intake,

@@ -17,6 +17,7 @@ import frc.robot.Constants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.MathUtils;
 
+//自动阶段跑打（暂时还不好使），后续考虑结合卡尔曼滤波器和视觉系统做更智能的动态瞄准
 public class AutoMoveWhileAimCommand {
     private static final double LEAD_GAIN_RAD_PER_MPS = 0.5;
     private static final double MAX_LEAD_RAD = Units.degreesToRadians(15.0);

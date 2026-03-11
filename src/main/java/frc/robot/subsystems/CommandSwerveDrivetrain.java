@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
@@ -55,6 +56,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.util.KinematicPredictor;
 import frc.robot.util.MathUtils;
 import frc.robot.Constants;
 
@@ -104,6 +106,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final PIDController turnxController = new PIDController(2.0, 0, 0.2);
     private final PIDController turnyController = new PIDController(2.0, 0.1, 0.1);
     private final PIDController turnAngleController = new PIDController(8.0, 0.0, 0.05); 
+
+    //卡尔曼滤波器预测器
+    // 定义 X 和 Y 方向的预测器
+    private final KinematicPredictor m_xPredictor = new KinematicPredictor();
+    private final KinematicPredictor m_yPredictor = new KinematicPredictor();
+    private double dt = 0.05;
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -595,6 +603,25 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        //调用卡尔曼滤波器得到优化后的速度和位置
+        // 1. 获取当前观测值（来自底盘自身的 Odometry 和 Kinematics）
+        var robotRelativeSpeeds = this.getRobotRelativeSpeeds();
+        Pose2d currentPose = this.getPose();
+        double cos = currentPose.getRotation().getCos();
+        double sin = currentPose.getRotation().getSin();
+        double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
+        double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+
+        // 2. 更新滤波器,包含了预测和校正两步
+        m_xPredictor.update(currentPose.getX(), fieldVx);
+        m_yPredictor.update(currentPose.getY(), fieldVy);
+
+        // 3. (可选) 发布到仪表盘
+        SmartDashboard.putNumber("KF/EstVx", m_xPredictor.getPredictedVelocity(dt));
+        SmartDashboard.putNumber("KF/EstVy", m_yPredictor.getPredictedVelocity(dt));
+        SmartDashboard.putNumber("KF/EstXAcceleration", m_xPredictor.getEstimatedAcceleration());
+        SmartDashboard.putNumber("KF/EstYAcceleration", m_yPredictor.getEstimatedAcceleration());
     }
 
     private void startSimThread() {

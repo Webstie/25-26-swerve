@@ -50,20 +50,21 @@ import java.util.Locale.LanguageRange;
 
 public class RobotContainer {
      
-
+    //auto
     private final SendableChooser<Command> autoChooser;
+
+    //subsystems
     public final Climber climber = new Climber();
     public final Launcher launcher = new Launcher();
     public final Transport transport = new Transport();
     public final Intake intake = new Intake();
     public final CANdleSystem candle = new CANdleSystem();
     public final Vision vision = new Vision();
+    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-     
-
+    //底盘参数设置
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
-
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // deadband applied manually in lambda
@@ -72,13 +73,14 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
     
+    //joystick
     private final CommandXboxController Driver = new CommandXboxController(0);
     private final CommandXboxController Operator = new CommandXboxController(1);
 
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-
+    //是否开启半速模式
     private boolean isSlowMode = false;
 
+    //调试的发射参数，目前没有实际用途
     private double launchSpeed = 50;
     private double launchAngle = -0.01;
 
@@ -87,19 +89,17 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        
-
         new EventTrigger("Climb_UP").onTrue(climber.ClimbingProcessSingleCommand());
-        //register the named commands for auto mode
-        
 
+        //register the named commands for auto mode
+        //爬升到位命令，直接设定目标位置
         NamedCommands.registerCommand("Climb_DOWN",
             Commands.runOnce(() -> {
                 climber.setPosition(ClimbPosition);
             })
         );
         
-        //自动发射调用命令
+        //远预热命令，设置摩擦轮速度并调整角度到合适范围
         NamedCommands.registerCommand("WarmUp_Auto_Far",
             Commands.parallel(
                 Commands.runOnce(()->launcher.setFrictionWheelVelocity(58.5)),//预热       
@@ -107,6 +107,7 @@ public class RobotContainer {
             )
         );
 
+        //近预热命令，设置摩擦轮速度并调整角度到合适范围
         NamedCommands.registerCommand("WarmUp_Auto_Near",
             Commands.parallel(
                 Commands.runOnce(()->launcher.setFrictionWheelVelocity(50)),//预热       
@@ -282,8 +283,6 @@ public class RobotContainer {
             .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
-        //！！！！！！！！！！求稳移动到固定点位的效果不好，到位调整浪费时间较多，弃用
-
         //自动发射远左，求稳移动到固定点位
         NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",
             Commands.runOnce(() -> {
@@ -309,6 +308,7 @@ public class RobotContainer {
             // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         );
 
+        //********************************（deprecated）*******************************
         // //自动发射远右，求稳移动到固定点位
         // NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Right",
         //     Commands.runOnce(() -> {
@@ -333,28 +333,28 @@ public class RobotContainer {
         //     }).withTimeout(5.0)
         //     // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
         // );
-
-         //！！！！！！！！！！效果不好，弃用
-        //自动发射跑打
-        NamedCommands.registerCommand("Shoot_Auto_Dynamic",
-            Commands.parallel(
-                    AutoMoveWhileAimCommand.create(  // <--- 修改这里
-                        drivetrain,
-                        Constants.VisionConfig.BLUE_HUB_CENTER
-                    ),
-                    ShootingCommand.createAutoDynamicShootingCommand(
-                        drivetrain,
-                        intake,
-                        launcher,
-                        transport,
-                        Constants.VisionConfig.BLUE_HUB_CENTER
-                    )
-                )
-            .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
-            .finallyDo(() -> candle.restoreBackground())
-            .withTimeout(5.0) // 运行4秒后，瞄准逻辑会自动卸载，恢复正常寻路
-            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
+        
+        //********************************（deprecated）*******************************
+        // //自动发射跑打
+        // NamedCommands.registerCommand("Shoot_Auto_Dynamic",
+        //     Commands.parallel(
+        //             AutoMoveWhileAimCommand.create(  // <--- 修改这里
+        //                 drivetrain,
+        //                 Constants.VisionConfig.BLUE_HUB_CENTER
+        //             ),
+        //             ShootingCommand.createAutoDynamicShootingCommand(
+        //                 drivetrain,
+        //                 intake,
+        //                 launcher,
+        //                 transport,
+        //                 Constants.VisionConfig.BLUE_HUB_CENTER
+        //             )
+        //         )
+        //     .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
+        //     .finallyDo(() -> candle.restoreBackground())
+        //     .withTimeout(5.0) // 运行4秒后，瞄准逻辑会自动卸载，恢复正常寻路
+        //     // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        // );
 
         //自动intake调用命令
         NamedCommands.registerCommand("Intake_Auto",
@@ -422,13 +422,13 @@ public class RobotContainer {
             isVisionPoseFusion = !isVisionPoseFusion;
             refreshBackgroundState();
         }));
+        // 切换慢速模式（减半速度）
         Driver.start().onTrue(Commands.runOnce(() -> {
             isSlowMode = !isSlowMode;
             refreshBackgroundState();
         }));
                         
-
-        // 电推杆微调
+        // 手动电推杆微调
         // Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
         // Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
 
@@ -473,7 +473,7 @@ public class RobotContainer {
             ).finallyDo(() -> candle.restoreBackground())
         );
 
-        // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打)
+        // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打，球多需要摆动防止卡球)
         Operator.a()
             .whileTrue(
             Commands.parallel(
@@ -489,7 +489,7 @@ public class RobotContainer {
             ).finallyDo(() -> candle.restoreBackground())
         );
 
-        // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
+        // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打，球少不需要摆动)
         Operator.povDown()
             .whileTrue(
             Commands.parallel(
@@ -743,7 +743,7 @@ public class RobotContainer {
         //     })
         // );
 
-        // 操作手按住右扳机时：原地转向 + 动态发射（参考 MagicSequencingCommand 原地发射逻辑）
+        // 操作手按住左扳机时：原地转向 + 动态发射（参考 MagicSequencingCommand 原地发射逻辑）
         Driver.leftTrigger().whileTrue(
             Commands.parallel(MoveWhileAimCommand.create(
                     drivetrain,
@@ -802,6 +802,7 @@ public class RobotContainer {
         return autoChooser.getSelected();
     }
 
+    // 根据当前慢速模式状态返回输入缩放系数，慢速模式下为0.25，正常模式下为1.0
     private double getInputScale() {
         return isSlowMode ? 0.25 : 1.0;
     }
