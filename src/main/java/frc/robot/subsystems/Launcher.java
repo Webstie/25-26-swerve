@@ -151,7 +151,7 @@ public class Launcher extends SubsystemBase {
         final double maxVoltage = 12.0;
         
         // 降低基础克服摩擦力的电压（kS）。8.0V太暴力了，2.0~3.0V通常足够让推杆缓慢移动
-        final double kS = 2.5; 
+        final double kS = 5.0; 
 
         return run(
             () -> {

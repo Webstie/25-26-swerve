@@ -296,7 +296,7 @@ public class ShootingCommand extends SequentialCommandGroup {
         boolean needSwing
     ) {
         // 极短的预热时间，专为跑打和 Feed 设计 (0.3 秒足够摩擦轮达到较高转速)
-        double fastWarmupTime = 0.3; 
+        double fastWarmupTime = 0.5; 
 
         // --- 1. Launcher 的逻辑流 (极短预热 -> 发射) ---
         Command launcherStream = Commands.sequence(
