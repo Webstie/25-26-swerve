@@ -111,7 +111,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // 定义 X 和 Y 方向的预测器
     private final KinematicPredictor m_xPredictor = new KinematicPredictor();
     private final KinematicPredictor m_yPredictor = new KinematicPredictor();
-    private double dt = 0.05;
+    //预测时间0.1s
+    private double dt = 0.1;
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -617,11 +618,28 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         m_xPredictor.update(currentPose.getX(), fieldVx);
         m_yPredictor.update(currentPose.getY(), fieldVy);
 
+        //同步更新consnt
+        Constants.KalmanFilterConfig.predict_vx = m_xPredictor.getPredictedVelocity(dt);
+        Constants.KalmanFilterConfig.predict_vy = m_yPredictor.getPredictedVelocity(dt);
+        Constants.KalmanFilterConfig.predict_x = m_xPredictor.getPredictedPosition(dt);
+        Constants.KalmanFilterConfig.predict_y = m_yPredictor.getPredictedPosition(dt);
+
         // 3. (可选) 发布到仪表盘
+        //该时刻原始速度
+        SmartDashboard.putNumber("Origin/Vx", fieldVx) ;
+        SmartDashboard.putNumber("Origin/Vy", fieldVy) ;
+        //预测速度
         SmartDashboard.putNumber("KF/EstVx", m_xPredictor.getPredictedVelocity(dt));
         SmartDashboard.putNumber("KF/EstVy", m_yPredictor.getPredictedVelocity(dt));
         SmartDashboard.putNumber("KF/EstXAcceleration", m_xPredictor.getEstimatedAcceleration());
         SmartDashboard.putNumber("KF/EstYAcceleration", m_yPredictor.getEstimatedAcceleration());
+        //预测位置
+        SmartDashboard.putNumber("KF/EstX", m_xPredictor.getPredictedPosition(dt));
+        SmartDashboard.putNumber("KF/EstY", m_yPredictor.getPredictedPosition(dt));
+
+
+
+    
     }
 
     private void startSimThread() {

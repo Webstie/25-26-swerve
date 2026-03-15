@@ -184,4 +184,24 @@ public class Constants {
         /** Pitch角度偏移（rotations），正数=角度增大，负数=角度减小 */
         public static double pitchOffset = 0.0;
     }
+
+    //储存卡尔曼滤波器相关的常量
+    public static class KalmanFilterConfig {
+        public static final double kDt = 0.020; // 20ms
+        // 过程噪声 Q: 相信模型程度 (对加速度的不确定
+        //设高一点)
+        public static final double[] stateStdDevs = {0.01, 0.1, 0.5}; // [位置, 速度, 加速度] 的标准差
+        // 测量噪声 R: 相信传感器程度 (位置和速度都很准，设小一点)
+        public static final double[] measurementStdDevs = {0.01, 0.02}; // [位置, 速度] 的标准差
+        //预测后的速度
+        public static  double predict_vx = 0.0; // [x方向, y方向] 的预测速度
+        public static  double predict_vy = 0.0; // [x方向, y方向] 的预测速度
+        //预测后的位置
+        public static  double predict_x = 0.0; // [x方向, y方向] 的预测位置
+        public static  double predict_y = 0.0; // [x方向, y方向] 的预测位置
+
+        //补偿出来的角度
+        public static  double leadAngle = 0.0;
+    }
+
 }

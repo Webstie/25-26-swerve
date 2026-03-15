@@ -22,8 +22,8 @@ import frc.robot.util.MathUtils;
 
 //手动阶段跑打，对速度做了直接限制，可以理解为有较为固定的偏移量，目前效果不错
 public class MoveWhileAimCommand {
-    private static final double LEAD_GAIN_RAD_PER_MPS = 0.5;
-    private static final double MAX_LEAD_RAD = Units.degreesToRadians(30.0);
+    private static final double LEAD_GAIN_RAD_PER_MPS = 0.50;// 经验值：每增加 1 m/s 的径向速度，预瞄角增加约 0.5 rad（约 28.6 度），具体数值需要根据实际测试调整
+    private static final double MAX_LEAD_RAD = Units.degreesToRadians(180.0);
     private static final double MIN_TARGET_DISTANCE_METERS = 0.05;
 
     public static Command create(
@@ -61,8 +61,12 @@ public class MoveWhileAimCommand {
                 var robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
                 double cos = currentPose.getRotation().getCos();
                 double sin = currentPose.getRotation().getSin();
-                double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
-                double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+                // double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
+                // double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+
+                //使用卡尔曼预测后的速度
+                double fieldVx = Constants.KalmanFilterConfig.predict_vx;
+                double fieldVy = Constants.KalmanFilterConfig.predict_vy;
 
                 double ux = dx / distance;
                 double uy = dy / distance;
@@ -70,13 +74,13 @@ public class MoveWhileAimCommand {
                 double lateralUy = ux;
                 double lateralSpeed = fieldVx * lateralUx + fieldVy * lateralUy;
 
-                double leadAngle = MathUtils.clamp(
+                Constants.KalmanFilterConfig.leadAngle = MathUtils.clamp(
                     -LEAD_GAIN_RAD_PER_MPS * lateralSpeed,
                     -MAX_LEAD_RAD,
                     MAX_LEAD_RAD
                 );
-                targetHeadingRad += leadAngle;
-                SmartDashboard.putNumber("Aim/LeadAngleDeg", Units.radiansToDegrees(leadAngle));
+                targetHeadingRad += Constants.KalmanFilterConfig.leadAngle;
+                SmartDashboard.putNumber("Aim/LeadAngleDeg", Units.radiansToDegrees(Constants.KalmanFilterConfig.leadAngle));
                 SmartDashboard.putNumber("Aim/LateralSpeed", lateralSpeed);
             }
 

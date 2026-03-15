@@ -482,7 +482,7 @@ public class RobotContainer {
                     launcher,
                     transport,
                     70.0,    // 射速给到最大，保证能飞过半场
-                    -0.025,   // 对应适合跨越半场的抛物线角度
+                    -0.035,   // 对应适合跨越半场的抛物线角度
                     true // 需要摆动
                 ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
@@ -498,7 +498,7 @@ public class RobotContainer {
                     launcher,
                     transport,
                     70.0,    // 射速给到最大，保证能飞过半场
-                    -0.025,   // 对应适合跨越半场的抛物线角度
+                    -0.035,   // 对应适合跨越半场的抛物线角度
                     false // 不需要摆动
                 ),
                 Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
@@ -747,8 +747,8 @@ public class RobotContainer {
         Driver.leftTrigger().whileTrue(
             Commands.parallel(MoveWhileAimCommand.create(
                     drivetrain,
-                    () -> -Driver.getLeftY() * MaxSpeed * 0.175 * getInputScale(),
-                    () -> -Driver.getLeftX() * MaxSpeed * 0.150 * getInputScale(),
+                    () -> -Driver.getLeftY() * MaxSpeed * 0.5 * getInputScale(),
+                    () -> -Driver.getLeftX() * MaxSpeed * 0.4 * getInputScale(),
                     MaxAngularRate * getInputScale(),
                     Constants.VisionConfig.BLUE_HUB_CENTER
                     ),

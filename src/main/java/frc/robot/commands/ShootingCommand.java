@@ -20,7 +20,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.Constants;
 
 public class ShootingCommand extends SequentialCommandGroup {
-    private static final double PITCH_LEAD_RAD_PER_MPS = 0.025;
+    private static final double PITCH_LEAD_RAD_PER_MPS = 0.025;// 经验值：每增加 1 m/s 的径向速度，预瞄角增加约 0.025 rad（约 1.4 度），具体数值需要根据实际测试调整
     private static final double MAX_PITCH_LEAD_RAD = 0.02;
     /**
      * 创建一个射击命令
@@ -199,21 +199,39 @@ public class ShootingCommand extends SequentialCommandGroup {
                     isRed = true;
                 }
 
+                // 获取当前位姿和目标中心位置
                 Pose2d currentPose = drive.getPose();
                 Translation2d targetCenter = isRed
                     ? new Translation2d(Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(), Constants.Layout.FIELD_WIDTH_METERS-blueCenterPosition.getY())
                     : blueCenterPosition;
 
-                double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
+                //得到预测后的位置，预测后的位置不需要加上原始位置
+                Pose2d predictedPose = new Pose2d(
+                    new Translation2d(Constants.KalmanFilterConfig.predict_x, Constants.KalmanFilterConfig.predict_y),
+                    currentPose.getRotation()
+                );
+
+                //根据预测位置计算距离
+                double distanceToTarget = predictedPose.getTranslation().getDistance(targetCenter);
 
                 double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget) + Constants.ShootingTrim.pitchOffset;
                 double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget) + Constants.ShootingTrim.speedOffset;
 
-                ChassisSpeeds robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
-                double cos = currentPose.getRotation().getCos();
-                double sin = currentPose.getRotation().getSin();
-                double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
-                double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+                // ChassisSpeeds robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
+                // double cos = currentPose.getRotation().getCos();
+                // double sin = currentPose.getRotation().getSin();
+                // double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
+                // double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+
+                // 计算向前有效速度的保留比例 (cos)
+                double cosLoss = Math.cos(Constants.KalmanFilterConfig.leadAngle);
+                //将基础射速除以 cos，动态提升射击力度，避免向前速度不够，如果大于100，就设置为100,
+                bestSpeed = Math.min((bestSpeed / cosLoss), 100.0);
+
+                //使用卡尔曼预测后的速度
+                double fieldVx = Constants.KalmanFilterConfig.predict_vx;
+                double fieldVy = Constants.KalmanFilterConfig.predict_vy;
+
                 double dx = targetCenter.getX() - currentPose.getX();
                 double dy = targetCenter.getY() - currentPose.getY();
                 double dist = Math.hypot(dx, dy);
