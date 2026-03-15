@@ -1,10 +1,7 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
-<<<<<<< HEAD
-=======
     id "io.freefair.lombok" version "8.12.2.1"
->>>>>>> Leo
 }
 
 java {
@@ -109,9 +106,5 @@ wpi.java.configureTestTasks(test)
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
-<<<<<<< HEAD
-    
-=======
     options.encoding = "UTF-8"
->>>>>>> Leo
 }
