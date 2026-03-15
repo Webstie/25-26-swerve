@@ -1,6 +1,10 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
+<<<<<<< HEAD
+=======
+    id "io.freefair.lombok" version "8.12.2.1"
+>>>>>>> Leo
 }
 
 java {
@@ -54,6 +58,7 @@ def includeDesktopSupport = false
 // Also defines JUnit 5.
 dependencies {
     annotationProcessor wpi.java.deps.wpilibAnnotations()
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
@@ -104,5 +109,9 @@ wpi.java.configureTestTasks(test)
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+<<<<<<< HEAD
     
+=======
+    options.encoding = "UTF-8"
+>>>>>>> Leo
 }

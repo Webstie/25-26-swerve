@@ -1,0 +1,68 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.801383333333334,
+        "y": 5.954816666666667
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.332766666666666,
+        "y": 6.083308333333333
+      },
+      "isLocked": false,
+      "linkedName": "BlueIntake2"
+    },
+    {
+      "anchor": {
+        "x": 3.3,
+        "y": 5.4
+      },
+      "prevControl": {
+        "x": 3.7803500000000003,
+        "y": 5.962375
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "BlueShootNearLeft"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.7475083056478408,
+      "maxWaypointRelativePos": 1.0,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 1.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -45.82988430948251
+  },
+  "reversed": false,
+  "folder": "Blue2",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 90.0
+  },
+  "useDefaultConstraints": true
+}

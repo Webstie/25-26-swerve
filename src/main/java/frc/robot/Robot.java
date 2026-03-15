@@ -20,6 +20,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
+    m_robotContainer.updateDashboard();
   }
 
   @Override
@@ -33,15 +34,18 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    CommandScheduler.getInstance().schedule(m_robotContainer.getAutoInitCommand());
 
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    m_robotContainer.addMeasurements();
+  }
 
   @Override
   public void autonomousExit() {}
@@ -51,10 +55,20 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    // 重置 intake toggle 状态，防止 auto 遗留的计数器/flag 导致 teleop 第一次按键无效
+    m_robotContainer.intake.resetTeleopState();
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    
+    //是否使用视觉位姿
+    //System.out.println("FLAG"+m_robotContainer.isVisionPoseFusion);
+    if(m_robotContainer.isVisionPoseFusion){
+      m_robotContainer.addMeasurements();
+    }
+
+  }
 
   @Override
   public void teleopExit() {}
