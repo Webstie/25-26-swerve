@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.138330416078318,
-        "y": 6.004280398839385
+        "x": 3.1597799702666007,
+        "y": 5.995341111961115
       },
       "isLocked": false,
       "linkedName": "BlueShootFarLeft"
     },
     {
       "anchor": {
-        "x": 3.4629000000000003,
-        "y": 5.7885333333333335
+        "x": 6.064365361803085,
+        "y": 5.901720047449585
       },
       "prevControl": {
-        "x": 2.534978240660409,
-        "y": 6.037172921227802
+        "x": 5.058168905795949,
+        "y": 5.934368370885002
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,12 +33,12 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 7.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
-    "unlimited": false
+    "unlimited": true
   },
   "goalEndState": {
     "velocity": 0,
@@ -50,5 +50,5 @@
     "velocity": 0,
     "rotation": -47.316495313634945
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

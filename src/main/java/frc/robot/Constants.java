@@ -71,7 +71,7 @@ public class Constants {
         public static final double IntakeDownPosition = -16.5;
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
-        public static final double IntakeVelocity = -85.0;
+        public static final double IntakeVelocity = -100.0;
         public static final double SupportVelocity = 60.0;//////////////////////////////////////////////////////////(可以比较快)
     
         public static final int INTAKE_MOTOR_ID = 6;
