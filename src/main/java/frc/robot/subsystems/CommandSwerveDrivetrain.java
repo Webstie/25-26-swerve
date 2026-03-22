@@ -624,18 +624,31 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Constants.KalmanFilterConfig.predict_x = m_xPredictor.getPredictedPosition(dt);
         Constants.KalmanFilterConfig.predict_y = m_yPredictor.getPredictedPosition(dt);
 
-        // 3. (可选) 发布到仪表盘
-        //该时刻原始速度
-        SmartDashboard.putNumber("Origin/Vx", fieldVx) ;
-        SmartDashboard.putNumber("Origin/Vy", fieldVy) ;
-        //预测速度
-        SmartDashboard.putNumber("KF/EstVx", m_xPredictor.getPredictedVelocity(dt));
-        SmartDashboard.putNumber("KF/EstVy", m_yPredictor.getPredictedVelocity(dt));
+        // 3. 发布到仪表盘
+        // 原始观测值（未滤波）
+        SmartDashboard.putNumber("Origin/Vx", fieldVx);
+        SmartDashboard.putNumber("Origin/Vy", fieldVy);
+        SmartDashboard.putNumber("Origin/X", currentPose.getX());
+        SmartDashboard.putNumber("Origin/Y", currentPose.getY());
+
+        // 滤波器当前估计值（不含预测，t=0）
+        SmartDashboard.putNumber("KF/FilteredVx", m_xPredictor.getPredictedVelocity(0));
+        SmartDashboard.putNumber("KF/FilteredVy", m_yPredictor.getPredictedVelocity(0));
         SmartDashboard.putNumber("KF/EstXAcceleration", m_xPredictor.getEstimatedAcceleration());
         SmartDashboard.putNumber("KF/EstYAcceleration", m_yPredictor.getEstimatedAcceleration());
-        //预测位置
-        SmartDashboard.putNumber("KF/EstX", m_xPredictor.getPredictedPosition(dt));
-        SmartDashboard.putNumber("KF/EstY", m_yPredictor.getPredictedPosition(dt));
+
+        // 预测值（dt=100ms后）
+        SmartDashboard.putNumber("KF/PredictedVx", m_xPredictor.getPredictedVelocity(dt));
+        SmartDashboard.putNumber("KF/PredictedVy", m_yPredictor.getPredictedVelocity(dt));
+        SmartDashboard.putNumber("KF/PredictedX", m_xPredictor.getPredictedPosition(dt));
+        SmartDashboard.putNumber("KF/PredictedY", m_yPredictor.getPredictedPosition(dt));
+
+        // 速度大小（方便整体判断）
+        SmartDashboard.putNumber("Origin/Speed", Math.hypot(fieldVx, fieldVy));
+        SmartDashboard.putNumber("KF/FilteredSpeed", Math.hypot(
+            m_xPredictor.getPredictedVelocity(0), m_yPredictor.getPredictedVelocity(0)));
+        SmartDashboard.putNumber("KF/PredictedSpeed", Math.hypot(
+            m_xPredictor.getPredictedVelocity(dt), m_yPredictor.getPredictedVelocity(dt)));
 
 
 

@@ -52,7 +52,7 @@ public class KinematicPredictor {
 
         //增大响应，调大q，调小r
         // 过程噪声 Q: 相信模型程度 (对加速度的不确定性设高一点)
-        var stateStdDevs = VecBuilder.fill(0.01, 0.05, 5.0); 
+        var stateStdDevs = VecBuilder.fill(0.01, 0.05, 1.0);
         // 测量噪声 R: 相信传感器程度 (位置和速度都很准，设小一点)
         var measurementStdDevs = VecBuilder.fill(0.01, 0.02);
 
