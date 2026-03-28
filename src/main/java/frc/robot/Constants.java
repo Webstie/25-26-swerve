@@ -51,7 +51,7 @@ public class Constants {
 
     public static final class LauncherConfig {
         public static final double WarmupSecond = 1.0;
-        public static final double FeederSpeed = 55.0;
+        public static final double FeederSpeed = 100.0;
         public static final double OuttakeBallspeed = -30.0;
         public static final double shootingVoltage = 12.0;
         public static final double FrictionWheelVelocityRampRate = 50.0;
@@ -80,7 +80,7 @@ public class Constants {
     }
 
     public static final class TransportConfig{
-        public static double  TransportSpeed = 50.0;/////////////////////////////////////////////////////////////////////
+        public static double  TransportSpeed = 90.0;/////////////////////////////////////////////////////////////////////
         
         public static int TRANSPORT_MOTOR_ID = 10;
     }

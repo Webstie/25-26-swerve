@@ -81,7 +81,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             Commands.parallel(intake.IntakeSwingSingleCommand().repeatedly()
                         .alongWith(Commands.run(() -> {
                             intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
-                            intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
+                            // intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
                         }))
             )       
         );
