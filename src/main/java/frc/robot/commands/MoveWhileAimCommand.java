@@ -15,14 +15,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Launcher;
-import frc.robot.subsystems.Transport;
 import frc.robot.util.MathUtils;
 
-//手动阶段跑打，对速度做了直接限制，可以理解为有较为固定的偏移量，目前效果不错
+// Teleop mobile shooting. Applies a direct speed limit, effectively a fixed lead offset. Works well in practice.
 public class MoveWhileAimCommand {
-    private static final double LEAD_GAIN_RAD_PER_MPS = 0.50;// 经验值：每增加 1 m/s 的径向速度，预瞄角增加约 0.5 rad（约 28.6 度），具体数值需要根据实际测试调整
+    private static final double LEAD_GAIN_RAD_PER_MPS = 0.50; // Empirical: each 1 m/s of lateral speed adds ~0.5 rad (~28.6°) of lead angle. Tune from testing.
     private static final double MAX_LEAD_RAD = Units.degreesToRadians(180.0);
     private static final double MIN_TARGET_DISTANCE_METERS = 0.05;
 
@@ -64,7 +61,7 @@ public class MoveWhileAimCommand {
                 // double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
                 // double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
 
-                //使用卡尔曼预测后的速度
+                // Use Kalman-predicted velocity
                 double fieldVx = Constants.KalmanFilterConfig.predict_vx;
                 double fieldVy = Constants.KalmanFilterConfig.predict_vy;
 

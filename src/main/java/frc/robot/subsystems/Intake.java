@@ -29,10 +29,10 @@ public class Intake extends SubsystemBase {
     private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
     private final VelocityTorqueCurrentFOC Intake_support_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
 
-    public int Intake_press_times = 0;
-    public boolean IntakepitchPositionFlag = true;
+    private int Intake_press_times = 0;
+    private boolean IntakepitchPositionFlag = true;
 
-    private final NeutralOut Neutral_Request = new NeutralOut();//intake机构自然下放
+    private final NeutralOut Neutral_Request = new NeutralOut(); // Coast/neutral release for intake pitch motor
 
     public Intake() {
 
@@ -90,57 +90,69 @@ public class Intake extends SubsystemBase {
 
 
     /**
-    缓慢释放电机
+     * Releases the pitch motor to coast (neutral output).
      */
     public void applyIntakePitchMotorNeutral() {
         Intake_pitch_motor.setControl(Neutral_Request);
     }
 
-    /** 停止 intake 电机并重置计数器，保证 toggle 逻辑与实际电机状态同步。 */
+    /** Returns true if the intake motor is currently running (odd press count). */
+    public boolean isIntakeRunning() {
+        return Intake_press_times % 2 == 1;
+    }
+
+    /** Returns the current intake pitch flag (true = up position). */
+    public boolean getIntakePitchFlag() {
+        return IntakepitchPositionFlag;
+    }
+
+    /** Stops intake motor and resets counter, keeping toggle logic in sync with actual motor state. */
     public void resetIntakeCounter() {
         Intake_press_times = 0;
     }
 
     /**
-     * 进入 teleop 时调用：重置计数器和 pitch flag，
-     * 保证无论 auto 路线如何结束，teleop 第一次按键都能正常响应。
-     * pitch flag 重置为 true（假设收起），第一次 Driver.x() 会放下。
+     * Called on teleop init: resets counter and pitch flag.
+     * Ensures the first teleop button press works regardless of how auto ended.
+     * Pitch flag is reset to true (assumes stowed); first Driver.x() press will deploy.
      */
     public void resetTeleopState() {
         Intake_press_times = 0;
         IntakepitchPositionFlag = true;
+        setIntakeMotorVelocity(0);
+        setSupportMotorVelocity(0);
     }
 
     /**
-    Intake速度设置接口
+     * Sets intake roller velocity.
      */
     public void setIntakeMotorVelocity(double velocity) {
         Intake_motor.setControl(Intake_motor_Velocity_Request.withVelocity(velocity));
     }
 
     /**
-    Intake Pitch位置设置接口
+     * Sets intake pitch motor position.
      */
     public void setPitchMotorPosition(double position) {
         Intake_pitch_motor.setControl(Intake_pitch_motor_Voltage_Request.withPosition(position));
     }
 
     /**
-    Intake Pitch位置获取接口
+     * Returns current intake pitch motor position.
      */
     public double get_PitchMotorPosition() {
         return Intake_pitch_motor.getPosition().getValueAsDouble();
     }
 
     /**
-    Intake Support设置接口
+     * Sets intake support roller velocity.
      */
     public void setSupportMotorVelocity(double velocity) {
         Intake_support_motor.setControl(Intake_support_motor_Velocity_Request.withVelocity(velocity));
     }
 
     /**
-    Intake单独命令
+     * Toggles intake roller on/off (odd press count = on, even = off).
      */
     public Command IntakeSingleCommand() {
         return runOnce(
@@ -155,7 +167,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-    Outtake单独命令
+     * Outtakes until interrupted.
      */
     public Command OuttakeSingleCommand() {
         return startEnd(
@@ -168,7 +180,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-    切换Intake Pitch位置单独命令
+     * Toggles the intake pitch position flag.
      */
     public Command ChangePitchPositionSingleCommand() {
         return runOnce(
@@ -180,7 +192,7 @@ public class Intake extends SubsystemBase {
     };
 
     /**
-    切换Intake速度单独命令
+     * Increments the intake press counter to toggle speed.
      */
     public Command ChangeIntakeSpeedSingleCommand() {
         return runOnce(
@@ -192,7 +204,7 @@ public class Intake extends SubsystemBase {
     };
 
     /**
-    自动时打开Intake单独命令
+     * Sets intake to running state (press count = 1) for auto.
      */
     public Command SetIntakeSpeedOneSingleCommand() {
         return runOnce(
@@ -204,7 +216,7 @@ public class Intake extends SubsystemBase {
     };
 
     /**
-    自动时关闭Intake单独命令
+     * Sets intake to stopped state (press count = 0) for auto.
      */
     public Command SetIntakeSpeedZeroSingleCommand() {
         return runOnce(
@@ -217,9 +229,9 @@ public class Intake extends SubsystemBase {
 
 
     /**
-    调整Intake位置单独命令,下放时到位后释放电机
+     * Moves intake to the expected pitch position; holds until within tolerance.
      */
-    public Command AdjustIntakePositionSingleCommand(double expected_position) { 
+    public Command AdjustIntakePositionSingleCommand(double expected_position) {
         return runEnd(
             () -> {
                    setPitchMotorPosition(expected_position);
@@ -227,16 +239,16 @@ public class Intake extends SubsystemBase {
             () -> {
                    setPitchMotorPosition(get_PitchMotorPosition());
                   }
-        ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5)
-        .finallyDo(
-            ()->{if (expected_position == Constants.IntakeConfig.IntakeDownPosition){
-                    applyIntakePitchMotorNeutral();
-                    }
-                });
+        ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
+        // .finallyDo(
+        //     ()->{if (expected_position == Constants.IntakeConfig.IntakeDownPosition){
+        //             applyIntakePitchMotorNeutral();
+        //             }
+        //         });
     }
 
     /**
-    调整Intake位置并同时Outtake的单独命令
+     * Moves intake to expected pitch while simultaneously outtaking.
      */
     private Command AdjustIntakePosition_WithOuttakeSingleCommand(double expected_position) {
         return runEnd(
@@ -252,7 +264,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-    Outtake持续时间单独命令
+     * Outtakes for a fixed duration.
      */
     private Command OuttakeForSingleCommand(double seconds) {
         return startEnd(
@@ -262,7 +274,7 @@ public class Intake extends SubsystemBase {
     }
     
     /**
-    Intake摇摆单独命令
+     * Swings intake between SwingUp and SwingDown positions.
      */
     public Command IntakeSwingSingleCommand() {
         return AdjustIntakePositionSingleCommand(IntakeSwingUpPosition)
@@ -272,7 +284,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-    Intake Feeding摇摆单独命令
+     * Swings intake between SwingUp and Down positions for feeding.
      */
     public Command IntakeFeedingSwingSingleCommand() {
         return AdjustIntakePositionSingleCommand(IntakeSwingUpPosition)
@@ -282,7 +294,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-    Outtake摇摆单独命令
+     * Swings intake while outtaking for clearing jams.
      */
     public Command OuttakeSwingSingleCommand() {
         return AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingUpPosition)//up

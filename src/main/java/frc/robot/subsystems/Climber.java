@@ -45,14 +45,14 @@ public class Climber extends SubsystemBase{
     }
 
     /**
-    攀爬位置设置接口
+     * Sets climber motor to target position.
      */
     public void setPosition(double position){
         ClimberMotor.setControl(ClimberRequest.withPosition(position));
     }
 
     /**
-    攀爬位置获取接口
+     * Returns current climber position.
      */
     public double getCurrentPosition(){
         return ClimberMotor.getPosition().getValueAsDouble();
@@ -63,7 +63,7 @@ public class Climber extends SubsystemBase{
     }
     
     /**
-    攀爬流程单独命令
+     * Runs climber to top position and holds until reached.
      */
     public Command ClimbingProcessSingleCommand(){
         return runEnd(
@@ -72,19 +72,4 @@ public class Climber extends SubsystemBase{
             ).until(() -> isAtPosition(ClimberTopPosition));
     }
 
-        public Command ClimbingDownSingleCommand(){
-            return runEnd(
-                () -> setPosition(ClimbPosition), 
-                () -> setPosition(getCurrentPosition())
-            ).until(() -> isAtPosition(ClimbPosition));
-    }
-
-    /**
-    攀爬开始单独命令
-     */
-    public Command ClimbSingleCommand(){
-        return run(
-                () -> setPosition(ClimbPosition)
-            ).until(() -> isAtPosition(ClimbPosition));
-    }
 }

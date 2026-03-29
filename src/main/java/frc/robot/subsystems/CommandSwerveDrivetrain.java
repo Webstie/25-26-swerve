@@ -92,26 +92,24 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // PID controller for translation to target position
     //private final PIDController pidLineup = new PIDController(3, 0.1, 0.1), angleController = new PIDController(2, 0, 0.1);
     private boolean inPidTranslate = false;
-    private static final double PID_TRANSLATION_SPEED_MPS = 1.5;// 最大线速度（m/s）
-    private static final double PID_ROTATION_RAD_PER_SEC = Math.PI;// 最大角速度（rad/s）
+    private static final double PID_TRANSLATION_SPEED_MPS = 1.5; // Max linear speed (m/s)
+    private static final double PID_ROTATION_RAD_PER_SEC = Math.PI; // Max angular speed (rad/s)
 
-    // 在类成员变量区域
-    // 替换原来的 pidLineup
-    // 跑点位的pid
+    // PID controllers for driving to a position
     private final PIDController xController = new PIDController(8.0, 0, 0.2);
     private final PIDController yController = new PIDController(5.0, 0.1, 0.1);
-    private final PIDController angleController = new PIDController(8.0, 0.0, 0.05); 
+    private final PIDController angleController = new PIDController(8.0, 0.0, 0.05);
 
-    //原地发射的pid
+    // PID controllers for stationary rotation (turn-in-place)
     private final PIDController turnxController = new PIDController(2.0, 0, 0.2);
     private final PIDController turnyController = new PIDController(2.0, 0.1, 0.1);
-    private final PIDController turnAngleController = new PIDController(8.0, 0.0, 0.05); 
+    private final PIDController turnAngleController = new PIDController(8.0, 0.0, 0.05);
 
-    //卡尔曼滤波器预测器
-    // 定义 X 和 Y 方向的预测器
+    // Kalman filter predictors for velocity/position lookahead
+    // Separate predictors for X and Y axes
     private final KinematicPredictor m_xPredictor = new KinematicPredictor();
     private final KinematicPredictor m_yPredictor = new KinematicPredictor();
-    //预测时间0.1s
+    // Lookahead time: 100 ms
     private double dt = 0.1;
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
@@ -204,10 +202,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
-        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // Recommended range: -PI to PI
 
         turnAngleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
-        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // Recommended range: -PI to PI
 
         //auto builder 
         configureAutoBuilder();
@@ -244,10 +242,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
-        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // Recommended range: -PI to PI
 
         turnAngleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
-        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // Recommended range: -PI to PI
         //auto builder 
         configureAutoBuilder();
     }
@@ -291,10 +289,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         xController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         yController.setTolerance(Constants.VisionConfig.LINEUP_TOLERANCE_METERS);
         angleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
-        angleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        angleController.enableContinuousInput(-Math.PI, Math.PI); // Recommended range: -PI to PI
         
         turnAngleController.setTolerance(Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES));
-        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // 建议使用 -PI 到 PI
+        turnAngleController.enableContinuousInput(-Math.PI, Math.PI); // Recommended range: -PI to PI
 
         //auto builder 
         configureAutoBuilder();
@@ -362,39 +360,39 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // @SuppressWarnings("removal")
     // public Command translateToPositionWithPID(Pose2d pose) {
     //     System.out.println("translateToPositionWithPID command started");
-    //     DoubleSupplier theta = () -> new Pose2d(pose.getTranslation(), new Rotation2d())//计算目标方向角
+    //     DoubleSupplier theta = () -> new Pose2d(pose.getTranslation(), new Rotation2d()) // compute target heading angle
     //             .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
     //             .getTranslation().getAngle().getRadians();
-        
-    //     DoubleSupplier driveYaw = () -> (getRotation().getRadians() + 2 * Math.PI) % (2 * Math.PI);//获取当前朝向角
-        
+
+    //     DoubleSupplier driveYaw = () -> (getRotation().getRadians() + 2 * Math.PI) % (2 * Math.PI); // get current heading
+
     //     DoubleSupplier distanceToTarget = () -> -new Pose2d(pose.getTranslation(), new Rotation2d())
     //             .relativeTo(new Pose2d(getPose().getTranslation(), new Rotation2d()))
-    //             .getTranslation().getNorm();//当前位置与目标的距离
-        
+    //             .getTranslation().getNorm(); // distance from current position to target
+
     //     return new PIDCommand(
-    //         pidLineup, // PID控制器
-    //         distanceToTarget, // 测量值供应商：当前距离
-    //         0, // 设定值：目标距离为0
-    //         (pidOutput) -> { // 控制输出处理
+    //         pidLineup, // PID controller
+    //         distanceToTarget, // measurement supplier: current distance
+    //         0, // setpoint: target distance = 0
+    //         (pidOutput) -> { // control output handler
     //             inPidTranslate = true;
-                
-    //             // 使用PID输出计算底盘速度
+
+    //             // Use PID output to compute chassis speeds
     //             runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-    //                 MathUtils.clamp(pidOutput * Math.cos(theta.getAsDouble()), 
-    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vx速度
-    //                 MathUtils.clamp(pidOutput * Math.sin(theta.getAsDouble()), 
-    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS),//计算Vy速度
+    //                 MathUtils.clamp(pidOutput * Math.cos(theta.getAsDouble()),
+    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS), // compute Vx
+    //                 MathUtils.clamp(pidOutput * Math.sin(theta.getAsDouble()),
+    //                     -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS), // compute Vy
     //                 MathUtils.clamp(
     //                     angleController.calculate(driveYaw.getAsDouble(), pose.getRotation().getRadians()),
-    //                     -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC)),//计算角速度
+    //                     -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC)), // compute angular velocity
     //                 getRotation()));
     //         },
-    //         this // 子系统需求
+    //         this // subsystem requirement
     //     )
-    //     .until(() -> pidLineup.atSetpoint()) // 使用until判断命令退出条件
+    //     .until(() -> pidLineup.atSetpoint()) // exit condition
     //     .andThen(() -> {
-    //             // 命令结束后重置所有参数
+    //             // Reset all state on exit
     //             inPidTranslate = false;
     //             pidLineup.reset();
     //             angleController.reset();
@@ -404,38 +402,35 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // }
 
     /**
-     * 使用独立的 X, Y 和 Rotation PID 控制器将机器人移动到目标位姿。
+     * Drives the robot to a target pose using independent X, Y, and rotation PID controllers.
      */
     public Command translateToPositionWithPID(Pose2d targetPose) {
         return run(() -> {
-            // 1. 获取当前位姿
+            // 1. Get current pose
             Pose2d currentPose = getPose();
 
-            // 2. 计算各个轴的反馈速度 (Field Relative)
-            // 注意：计算的是目标 - 当前，所以结果是正向速度
+            // 2. Compute feedback velocities per axis (field-relative)
+            // Note: target - current, so output is a positive toward-target speed
             double xFeedback = xController.calculate(currentPose.getX(), targetPose.getX());
             double yFeedback = yController.calculate(currentPose.getY(), targetPose.getY());
             double rotFeedback = angleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
 
-            // 3. 限制最大速度 (Clamp)
+            // 3. Clamp to max speed
             double xSpeed = MathUtils.clamp(xFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
             double ySpeed = MathUtils.clamp(yFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
             double rotSpeed = MathUtils.clamp(rotFeedback, -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC);
 
-            // 4. 发送到底盘
-            // 因为我们计算的是 Field Relative 的误差，所以要转换成 ChassisSpeeds
-            // 这里的 runVelocity 内部调用的是 applyRequest (robot relative)，
-            // 所以我们需要将 场地的 x/y 转换为 机器人相对的 vx/vy
+            // 4. Send to drivetrain — convert field-relative error to robot-relative ChassisSpeeds
             ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(xSpeed, ySpeed, rotSpeed);
             ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, currentPose.getRotation());
-            
+
             runVelocity(robotRelativeSpeeds);
 
         })
-        // 退出条件：三个控制器都到达 Setpoint
+        // Exit when all three controllers reach their setpoints
         .until(() -> xController.atSetpoint() && yController.atSetpoint() && angleController.atSetpoint())
         .finallyDo(() -> {
-            // 结束时停车并重置
+            // Stop and reset on exit
             stop();
             xController.reset();
             yController.reset();
@@ -446,48 +441,44 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
 
     /**
-     * 原地瞄准，只需要pid进行角度调整。
+     * Rotates in place to the target heading using PID angle control.
      */
-
-
     public Command translateToRotationWithPID(Pose2d targetPose) {
         final double angleToleranceRad = Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES);
         return run(() -> {
-            // 1. 获取当前位姿
+            // 1. Get current pose
             Pose2d currentPose = getPose();
 
-            // 2. 计算各个轴的反馈速度 (Field Relative)
-            // 注意：计算的是目标 - 当前，所以结果是正向速度
+            // 2. Compute rotation feedback (field-relative)
+            // Note: target - current, so output is a positive toward-target speed
             double xFeedback = turnxController.calculate(currentPose.getX(), targetPose.getX());
             double yFeedback = turnyController.calculate(currentPose.getY(), targetPose.getY());
             double rotFeedback = turnAngleController.calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
 
-            // 3. 限制最大速度 (Clamp)
+            // 3. Clamp to max speed
             double xSpeed = MathUtils.clamp(xFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
             double ySpeed = MathUtils.clamp(yFeedback, -PID_TRANSLATION_SPEED_MPS, PID_TRANSLATION_SPEED_MPS);
             double rotSpeed = MathUtils.clamp(rotFeedback, -PID_ROTATION_RAD_PER_SEC, PID_ROTATION_RAD_PER_SEC);
 
-            // 4. 发送到底盘
-            // 因为我们计算的是 Field Relative 的误差，所以要转换成 ChassisSpeeds
-            // 这里的 runVelocity 内部调用的是 applyRequest (robot relative)，
-            // 所以我们需要将 场地的 x/y 转换为 机器人相对的 vx/vy
+            // 4. Send to drivetrain — rotation only, no translation
             ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(0.0, 0.0, rotSpeed);
             ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, currentPose.getRotation());
-            
+
             runVelocity(robotRelativeSpeeds);
 
         })
-        // 退出条件：三个控制器都到达 Setpoint
-        .until(() -> {double currentAngle = getPose().getRotation().getRadians();
-        double targetAngle  = targetPose.getRotation().getRadians();
+        // Exit when angle error is within tolerance
+        .until(() -> {
+            double currentAngle = getPose().getRotation().getRadians();
+            double targetAngle  = targetPose.getRotation().getRadians();
 
-        // 归一化角度差到 [-pi, pi]
-        double angleError = MathUtil.angleModulus(targetAngle - currentAngle);
+            // Normalize angle error to [-pi, pi]
+            double angleError = MathUtil.angleModulus(targetAngle - currentAngle);
 
-        return Math.abs(angleError) < angleToleranceRad;
+            return Math.abs(angleError) < angleToleranceRad;
         })
         .finallyDo(() -> {
-            // 结束时停车并重置
+            // Stop and reset on exit
             stop();
             turnxController.reset();
             turnyController.reset();
@@ -552,7 +543,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param robotRelativeSpeeds The desired chassis speeds in the robot's reference frame
      */
     private void runVelocity(ChassisSpeeds robotRelativeSpeeds) {
-        // m_pathApplyRobotSpeeds 是你类里已存在的 ApplyRobotSpeeds 实例
         this.setControl(m_autoSpeeds.withSpeeds(robotRelativeSpeeds));
     }
 
@@ -605,8 +595,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        //调用卡尔曼滤波器得到优化后的速度和位置
-        // 1. 获取当前观测值（来自底盘自身的 Odometry 和 Kinematics）
+        // Run Kalman filters to get optimized velocity and position estimates
+        // 1. Get current observations from odometry and kinematics
         var robotRelativeSpeeds = this.getRobotRelativeSpeeds();
         Pose2d currentPose = this.getPose();
         double cos = currentPose.getRotation().getCos();
@@ -614,36 +604,36 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
         double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
 
-        // 2. 更新滤波器,包含了预测和校正两步
+        // 2. Update filters (predict + correct steps)
         m_xPredictor.update(currentPose.getX(), fieldVx);
         m_yPredictor.update(currentPose.getY(), fieldVy);
 
-        //同步更新consnt
+        // Publish to Constants for use by other commands
         Constants.KalmanFilterConfig.predict_vx = m_xPredictor.getPredictedVelocity(dt);
         Constants.KalmanFilterConfig.predict_vy = m_yPredictor.getPredictedVelocity(dt);
         Constants.KalmanFilterConfig.predict_x = m_xPredictor.getPredictedPosition(dt);
         Constants.KalmanFilterConfig.predict_y = m_yPredictor.getPredictedPosition(dt);
 
-        // 3. 发布到仪表盘
-        // 原始观测值（未滤波）
+        // 3. Publish to dashboard
+        // Raw observations (unfiltered)
         SmartDashboard.putNumber("Origin/Vx", fieldVx);
         SmartDashboard.putNumber("Origin/Vy", fieldVy);
         SmartDashboard.putNumber("Origin/X", currentPose.getX());
         SmartDashboard.putNumber("Origin/Y", currentPose.getY());
 
-        // 滤波器当前估计值（不含预测，t=0）
+        // Kalman filter current estimates (t=0, no lookahead)
         SmartDashboard.putNumber("KF/FilteredVx", m_xPredictor.getPredictedVelocity(0));
         SmartDashboard.putNumber("KF/FilteredVy", m_yPredictor.getPredictedVelocity(0));
         SmartDashboard.putNumber("KF/EstXAcceleration", m_xPredictor.getEstimatedAcceleration());
         SmartDashboard.putNumber("KF/EstYAcceleration", m_yPredictor.getEstimatedAcceleration());
 
-        // 预测值（dt=100ms后）
+        // Predicted values (dt=100ms lookahead)
         SmartDashboard.putNumber("KF/PredictedVx", m_xPredictor.getPredictedVelocity(dt));
         SmartDashboard.putNumber("KF/PredictedVy", m_yPredictor.getPredictedVelocity(dt));
         SmartDashboard.putNumber("KF/PredictedX", m_xPredictor.getPredictedPosition(dt));
         SmartDashboard.putNumber("KF/PredictedY", m_yPredictor.getPredictedPosition(dt));
 
-        // 速度大小（方便整体判断）
+        // Speed magnitude (for quick sanity check)
         SmartDashboard.putNumber("Origin/Speed", Math.hypot(fieldVx, fieldVy));
         SmartDashboard.putNumber("KF/FilteredSpeed", Math.hypot(
             m_xPredictor.getPredictedVelocity(0), m_yPredictor.getPredictedVelocity(0)));

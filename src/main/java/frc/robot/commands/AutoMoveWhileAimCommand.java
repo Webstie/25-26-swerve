@@ -17,7 +17,9 @@ import frc.robot.Constants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.MathUtils;
 
-//自动阶段跑打（暂时还不好使），后续考虑结合卡尔曼滤波器和视觉系统做更智能的动态瞄准，不涉及发射，只控制角度
+// Auto-phase mobile shooting (currently not working well).
+// Future: integrate Kalman filter and vision for smarter dynamic aiming.
+// Controls heading only — does not trigger launching.
 public class AutoMoveWhileAimCommand {
     private static final double LEAD_GAIN_RAD_PER_MPS = 0.5;
     private static final double MAX_LEAD_RAD = Units.degreesToRadians(15.0);
@@ -27,11 +29,11 @@ public class AutoMoveWhileAimCommand {
         CommandSwerveDrivetrain drive,
         Translation2d blueCenterPosition
     ) {
-        // 使用 Commands.startEnd，确保命令启动时挂载瞄准逻辑，结束时卸载
+        // Use Commands.startEnd to attach aiming logic on start and detach on end
         return Commands.startEnd(
             () -> {
-                // 开启 PathPlanner 的旋转目标覆盖 (Rotation Override)
-                // PathPlanner 在运行时会自动调用这个 Supplier，以此角度代替原路径中的朝向
+                // Enable PathPlanner rotation target override.
+                // PathPlanner will call this supplier each loop, replacing the path's original heading.
                 PPHolonomicDriveController.setRotationTargetOverride(() -> {
                     boolean isRed = false;
                     var alliance = DriverStation.getAlliance();
@@ -72,17 +74,17 @@ public class AutoMoveWhileAimCommand {
                         SmartDashboard.putNumber("Aim/LateralSpeed", lateralSpeed);
                     }
 
-                    // 返回计算出的带提前量的目标朝向
+                    // Return the calculated lead-compensated target heading
                     return Optional.of(new Rotation2d(targetHeadingRad));
                 });
             },
             () -> {
-                // 当命令结束（例如过了 timeout 时限或发射完毕），清空旋转覆盖
-                // 底盘会自动恢复到顺着 PathPlanner 原本设定的方向
+                // When the command ends (timeout or shot complete), clear the rotation override.
+                // Drivetrain will automatically resume the original PathPlanner heading.
                 PPHolonomicDriveController.setRotationTargetOverride(null);
             }
-        ); 
-        // 关键：不要在这里加 .addRequirements(drive) !
-        // 这个命令只负责修改 PathPlanner 的静态参数，实际开车的依然是正在跑路径的 PathPlanner
+        );
+        // Important: do NOT add .addRequirements(drive) here!
+        // This command only modifies a PathPlanner static parameter; actual driving is still handled by the active path.
     }
 }
