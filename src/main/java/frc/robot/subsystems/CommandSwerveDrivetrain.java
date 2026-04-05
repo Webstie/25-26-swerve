@@ -521,6 +521,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return getPose().getRotation();
     }
 
+    public boolean isAtHeading(Rotation2d target) {
+        double error = MathUtil.angleModulus(target.getRadians() - getPose().getRotation().getRadians());
+        return Math.abs(error) < Units.degreesToRadians(Constants.VisionConfig.ANGLE_TOLERANCE_DEGREES);
+    }
+
     public Pose2d getPose() {
         return getState().Pose;
     }

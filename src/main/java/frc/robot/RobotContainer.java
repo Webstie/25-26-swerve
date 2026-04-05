@@ -68,24 +68,28 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        new EventTrigger("Climb_UP").onTrue(climber.ClimbingProcessSingleCommand());
+        new EventTrigger("Climb_UP").onTrue(climber.climbingProcessCommand());
 
         NamedCommands.registerCommand("Climb_DOWN",
             Commands.runOnce(() -> climber.setPosition(ClimbPosition))
         );
 
         NamedCommands.registerCommand("WarmUp_Auto_Far",
-            Commands.parallel(
-                Commands.runOnce(() -> launcher.setFrictionWheelVelocity(58.5)),
-                launcher.AdjustAngleToPositionCommand(-0.015)
-            )
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(58.5);
+                launcher.setAngleToTarget(-0.015);
+            }, launcher)
+            .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(-0.015))
+            .withTimeout(Constants.LauncherConfig.WarmupSecond)
         );
 
         NamedCommands.registerCommand("WarmUp_Auto_Near",
-            Commands.parallel(
-                Commands.runOnce(() -> launcher.setFrictionWheelVelocity(50)),
-                launcher.AdjustAngleToPositionCommand(-0.0015)
-            )
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(50);
+                launcher.setAngleToTarget(-0.0015);
+            }, launcher)
+            .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(-0.0015))
+            .withTimeout(Constants.LauncherConfig.WarmupSecond)
         );
 
         // Auto shoot commands: positionIndex, timeout, stopIntakeAfter, useFast
@@ -99,15 +103,15 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",   makeAutoScoreCommand(1, 5.0,  false, false));
 
         NamedCommands.registerCommand("Intake_Auto",
-            intake.AdjustIntakePositionSingleCommand(IntakeDownPosition)
-            .andThen(intake.SetIntakeSpeedOneSingleCommand())
-            .andThen(intake.IntakeSingleCommand())
+            intake.adjustIntakePositionCommand(IntakeDownPosition)
+            .andThen(intake.setIntakeSpeedOneCommand())
+            .andThen(intake.intakeCommand())
         );
 
         NamedCommands.registerCommand("Climb_Auto",
             Commands.sequence(
-                climber.ClimbingProcessSingleCommand()
-                    .alongWith(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.ClimbingUp), candle)),
+                climber.climbingProcessCommand()
+                    .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingUp), candle)),
                 Commands.runOnce(() -> climber.setPosition(ClimbPosition), climber)
             )
         );
@@ -158,7 +162,7 @@ public class RobotContainer {
         }));
 
         // Celebration lights
-        Driver.y().onTrue(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.ClimbingDown), candle));
+        Driver.y().onTrue(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingDown), candle));
 
         // Manual fixed-speed shoot
         Driver.rightTrigger().whileTrue(
@@ -168,7 +172,7 @@ public class RobotContainer {
                     LauncherConfig.ManualShootSpeed,
                     LauncherConfig.ManualShootAngle
                 )),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+                Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.restoreBackground())
         );
 
@@ -177,36 +181,37 @@ public class RobotContainer {
             Commands.parallel(
                 MoveWhileAimCommand.create(
                     drivetrain,
-                    () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * getInputScale(),
-                    () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * getInputScale(),
+                    () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.25,
+                    () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.25,
                     MaxAngularRate * getInputScale(),
                     Constants.VisionConfig.BLUE_HUB_CENTER
                 ),
                 ShootingCommand.createDynamicShootingCommand(
                     drivetrain, intake, launcher,
-                    Constants.VisionConfig.BLUE_HUB_CENTER
+                    Constants.VisionConfig.BLUE_HUB_CENTER,
+                    Constants.LauncherConfig.WarmupSecond
                 )
             )
-            .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
+            .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
             .finallyDo(() -> candle.restoreBackground())
         );
 
         // Intake pitch toggle (up/down)
         Driver.x().onTrue(
-            intake.ChangePitchPositionSingleCommand()
+            intake.changePitchPositionCommand()
                 .andThen(Commands.either(
-                    intake.AdjustIntakePositionSingleCommand(IntakeUpPosition),
-                    intake.AdjustIntakePositionSingleCommand(IntakeDownPosition),
+                    intake.adjustIntakePositionCommand(IntakeUpPosition),
+                    intake.adjustIntakePositionCommand(IntakeDownPosition),
                     () -> intake.getIntakePitchFlag()
                 ))
         );
 
         // Intake on/off toggle
         Driver.rightBumper().onTrue(
-            intake.ChangeIntakeSpeedSingleCommand()
-            .andThen(intake.IntakeSingleCommand())
+            intake.changeIntakeSpeedCommand()
+            .andThen(intake.intakeCommand())
             .andThen(Commands.either(
-                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Intaking), candle),
+                new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Intaking), candle),
                 new InstantCommand(() -> candle.restoreBackground(), candle),
                 () -> intake.isIntakeRunning()
             ))
@@ -215,7 +220,11 @@ public class RobotContainer {
         // Outtake
         Driver.leftBumper().whileTrue(
             OuttakeCommand.create(intake, launcher, candle)
-                .alongWith(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Outtaking), candle))
+                .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Outtaking), candle))
+        );
+
+        Driver.povDown().onTrue(
+            launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
         );
 
         /*** Operator ***/
@@ -229,7 +238,7 @@ public class RobotContainer {
                     LauncherConfig.MidFieldFeedAngle,
                     true
                 ),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+                Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.restoreBackground())
         );
 
@@ -242,12 +251,12 @@ public class RobotContainer {
                     LauncherConfig.MidFieldFeedAngle,
                     false
                 ),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
+                Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.restoreBackground())
         );
 
         // Climber
-        Operator.back().onTrue(climber.ClimbingProcessSingleCommand());
+        Operator.back().onTrue(climber.climbingProcessCommand());
         Operator.start().whileTrue(
             Commands.run(() -> climber.setPosition(ClimbPosition))
         ).onFalse(
@@ -326,7 +335,7 @@ public class RobotContainer {
 
         Command cmd = Commands.runOnce(() -> {
                 isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
+                candle.changeColor(Constants.RobotState.State.Shooting);
             })
             .andThen(scoreCmd)
             .finallyDo((interrupted) -> {
@@ -335,14 +344,14 @@ public class RobotContainer {
             })
             .withTimeout(timeout);
 
-        return stopIntakeAfter ? cmd.andThen(intake.SetIntakeSpeedZeroSingleCommand()) : cmd;
+        return stopIntakeAfter ? cmd.andThen(intake.setIntakeSpeedZeroCommand()) : cmd;
     }
 
     /** Builds a teleop fixed-point auto score command for operator button bindings. */
     private Command makeFixedPointShootCommand(int positionIndex) {
         return Commands.runOnce(() -> {
                 isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
+                candle.changeColor(Constants.RobotState.State.Shooting);
             })
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 positionIndex, drivetrain, intake, launcher,

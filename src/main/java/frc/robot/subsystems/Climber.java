@@ -6,70 +6,68 @@ import edu.wpi.first.math.MathUtil;
 import static frc.robot.Constants.ClimberConfig.*;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 
-public class Climber extends SubsystemBase{
-    public final TalonFX ClimberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("canivore"));
+public class Climber extends SubsystemBase {
+    public final TalonFX climberMotor = new TalonFX(CLIMBER_MOTOR_ID, new CANBus("canivore"));
 
-    private final MotionMagicVoltage ClimberRequest = new MotionMagicVoltage(0).withSlot(0);
-    private final VoltageOut ZeroVoltageRequest = new VoltageOut(0.0);
+    private final MotionMagicVoltage climberRequest = new MotionMagicVoltage(0).withSlot(0);
+    private final VoltageOut zeroVoltageRequest = new VoltageOut(0.0);
     private static final double POSITION_TOLERANCE = 1.0;
 
 
-    public Climber(){
-        var ClimberMotorConfigs = new TalonFXConfiguration();
+    public Climber() {
+        var climberMotorConfigs = new TalonFXConfiguration();
 
-        ClimberMotorConfigs.Slot0.kP = 10;
-        ClimberMotorConfigs.Slot0.kI = 0.0;
-        ClimberMotorConfigs.Slot0.kD = 0.0;
-        ClimberMotorConfigs.Slot0.kS = 0.5;
-        ClimberMotorConfigs.Slot0.kV = 0.5;
-        ClimberMotorConfigs.Slot0.kA = 0.0;
-        ClimberMotorConfigs.MotionMagic.MotionMagicAcceleration = 1000;
-        ClimberMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 50;
-        ClimberMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.12;
-        ClimberMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.1;
-        ClimberMotorConfigs.MotionMagic.MotionMagicJerk = 0;
-        ClimberMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        climberMotorConfigs.Slot0.kP = 10;
+        climberMotorConfigs.Slot0.kI = 0.0;
+        climberMotorConfigs.Slot0.kD = 0.0;
+        climberMotorConfigs.Slot0.kS = 0.5;
+        climberMotorConfigs.Slot0.kV = 0.5;
+        climberMotorConfigs.Slot0.kA = 0.0;
+        climberMotorConfigs.MotionMagic.MotionMagicAcceleration = 1000;
+        climberMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 50;
+        climberMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.12;
+        climberMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.1;
+        climberMotorConfigs.MotionMagic.MotionMagicJerk = 0;
+        climberMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-        ClimberMotor.getConfigurator().apply(ClimberMotorConfigs);
+        climberMotor.getConfigurator().apply(climberMotorConfigs);
     }
 
     public void releaseClimber() {
-        ClimberMotor.setControl(ZeroVoltageRequest);
+        climberMotor.setControl(zeroVoltageRequest);
     }
 
     /**
      * Sets climber motor to target position.
      */
-    public void setPosition(double position){
-        ClimberMotor.setControl(ClimberRequest.withPosition(position));
+    public void setPosition(double position) {
+        climberMotor.setControl(climberRequest.withPosition(position));
     }
 
     /**
      * Returns current climber position.
      */
-    public double getCurrentPosition(){
-        return ClimberMotor.getPosition().getValueAsDouble();
+    public double getCurrentPosition() {
+        return climberMotor.getPosition().getValueAsDouble();
     }
 
-    public boolean isAtPosition(double targetPosition){
+    public boolean isAtPosition(double targetPosition) {
         return Math.abs(getCurrentPosition() - targetPosition) < POSITION_TOLERANCE;
     }
-    
+
     /**
      * Runs climber to top position and holds until reached.
      */
-    public Command ClimbingProcessSingleCommand(){
+    public Command climbingProcessCommand() {
         return runEnd(
-                () -> setPosition(ClimberTopPosition), 
+                () -> setPosition(ClimberTopPosition),
                 () -> setPosition(getCurrentPosition())
             ).until(() -> isAtPosition(ClimberTopPosition));
     }
-
 }

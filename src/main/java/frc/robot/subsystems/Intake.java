@@ -17,85 +17,81 @@ import frc.robot.Constants;
 import static frc.robot.Constants.IntakeConfig.*;
 
 
-
-
 public class Intake extends SubsystemBase {
 
-    private final TalonFX Intake_left_motor = new TalonFX(INTAKE_LEFT_MOTOR_ID, new CANBus("canivore"));
-    private final TalonFX Intake_right_motor = new TalonFX(INTAKE_RIGHT_MOTOR_ID, new CANBus("canivore"));
-    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID, new CANBus("rio"));
+    private final TalonFX intakeLeftMotor = new TalonFX(INTAKE_LEFT_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX intakeRightMotor = new TalonFX(INTAKE_RIGHT_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX intakePitchMotor = new TalonFX(INTAKE_PITCH_MOTOR_ID, new CANBus("rio"));
 
-    private final VelocityTorqueCurrentFOC Intake_left_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
-    private final VelocityTorqueCurrentFOC Intake_right_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
-    private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
+    private final VelocityTorqueCurrentFOC intakeLeftMotorRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
+    private final VelocityTorqueCurrentFOC intakeRightMotorRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
+    private final MotionMagicVoltage intakePitchMotorRequest = new MotionMagicVoltage(0.0).withSlot(0);
 
-    private int Intake_press_times = 0;
-    private boolean IntakepitchPositionFlag = true;
+    private int intakePressCount = 0;
+    private boolean intakePitchPositionFlag = true;
 
-    private final NeutralOut Neutral_Request = new NeutralOut(); // Coast/neutral release for intake pitch motor
+    private final NeutralOut neutralRequest = new NeutralOut(); // Coast/neutral release for intake pitch motor
 
     public Intake() {
 
-        var IntakePitchEncoderConfigs = new CANcoderConfiguration();
+        var intakePitchEncoderConfigs = new CANcoderConfiguration();
 
-        IntakePitchEncoderConfigs.MagnetSensor.MagnetOffset = 0.642977;
-        IntakePitchEncoderConfigs.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
-        IntakePitchEncoderConfigs.MagnetSensor.SensorDirection=SensorDirectionValue.Clockwise_Positive;
+        intakePitchEncoderConfigs.MagnetSensor.MagnetOffset = 0.642977;
+        intakePitchEncoderConfigs.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
+        intakePitchEncoderConfigs.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
 
 
-        var IntakeMotorConfigs = new TalonFXConfiguration();
-        IntakeMotorConfigs.Slot0.kS = 0.0;
-        IntakeMotorConfigs.Slot0.kV = 0.0;
-        IntakeMotorConfigs.Slot0.kA = 0;
-        IntakeMotorConfigs.Slot0.kP = 5;
-        IntakeMotorConfigs.Slot0.kI = 0;
-        IntakeMotorConfigs.Slot0.kD = 0;
-        IntakeMotorConfigs.MotionMagic.MotionMagicAcceleration = 100;
-        IntakeMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200;
-        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
-        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
-        IntakeMotorConfigs.MotionMagic.MotionMagicJerk = 0;
-        Intake_left_motor.getConfigurator().apply(IntakeMotorConfigs);
-        Intake_right_motor.getConfigurator().apply(IntakeMotorConfigs);
+        var intakeMotorConfigs = new TalonFXConfiguration();
+        intakeMotorConfigs.Slot0.kS = 0.0;
+        intakeMotorConfigs.Slot0.kV = 0.0;
+        intakeMotorConfigs.Slot0.kA = 0;
+        intakeMotorConfigs.Slot0.kP = 5;
+        intakeMotorConfigs.Slot0.kI = 0;
+        intakeMotorConfigs.Slot0.kD = 0;
+        intakeMotorConfigs.MotionMagic.MotionMagicAcceleration = 100;
+        intakeMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200;
+        intakeMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
+        intakeMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
+        intakeMotorConfigs.MotionMagic.MotionMagicJerk = 0;
+        intakeLeftMotor.getConfigurator().apply(intakeMotorConfigs);
+        intakeRightMotor.getConfigurator().apply(intakeMotorConfigs);
 
-        var IntakePitchMotorConfigs = new TalonFXConfiguration();
-        IntakePitchMotorConfigs.Slot0.kS = 0.0;
-        IntakePitchMotorConfigs.Slot0.kV = 0.0;
-        IntakePitchMotorConfigs.Slot0.kA = 0;
-        IntakePitchMotorConfigs.Slot0.kP = 5;
-        IntakePitchMotorConfigs.Slot0.kI = 0;
-        IntakePitchMotorConfigs.Slot0.kD = 0;
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 200; 
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 400; 
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
-        IntakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
-        IntakePitchMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        Intake_pitch_motor.getConfigurator().apply(IntakePitchMotorConfigs);
-
+        var intakePitchMotorConfigs = new TalonFXConfiguration();
+        intakePitchMotorConfigs.Slot0.kS = 0.0;
+        intakePitchMotorConfigs.Slot0.kV = 0.0;
+        intakePitchMotorConfigs.Slot0.kA = 0;
+        intakePitchMotorConfigs.Slot0.kP = 5;
+        intakePitchMotorConfigs.Slot0.kI = 0;
+        intakePitchMotorConfigs.Slot0.kD = 0;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 200;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 400;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
+        intakePitchMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        intakePitchMotor.getConfigurator().apply(intakePitchMotorConfigs);
     }
-
 
     /**
      * Releases the pitch motor to coast (neutral output).
      */
     public void applyIntakePitchMotorNeutral() {
-        Intake_pitch_motor.setControl(Neutral_Request);
+        intakePitchMotor.setControl(neutralRequest);
     }
 
     /** Returns true if the intake motor is currently running (odd press count). */
     public boolean isIntakeRunning() {
-        return Intake_press_times % 2 == 1;
+        return intakePressCount % 2 == 1;
     }
 
     /** Returns the current intake pitch flag (true = up position). */
     public boolean getIntakePitchFlag() {
-        return IntakepitchPositionFlag;
+        return intakePitchPositionFlag;
     }
 
     /** Stops intake motor and resets counter, keeping toggle logic in sync with actual motor state. */
     public void resetIntakeCounter() {
-        Intake_press_times = 0;
+        intakePressCount = 0;
     }
 
     /**
@@ -104,8 +100,8 @@ public class Intake extends SubsystemBase {
      * Pitch flag is reset to true (assumes stowed); first Driver.x() press will deploy.
      */
     public void resetTeleopState() {
-        Intake_press_times = 0;
-        IntakepitchPositionFlag = true;
+        intakePressCount = 0;
+        intakePitchPositionFlag = true;
         setIntakeMotorVelocity(0);
     }
 
@@ -113,34 +109,34 @@ public class Intake extends SubsystemBase {
      * Sets both intake roller motors (left and right) to the given velocity.
      */
     public void setIntakeMotorVelocity(double velocity) {
-        Intake_left_motor.setControl(Intake_left_motor_Velocity_Request.withVelocity(velocity));
-        Intake_right_motor.setControl(Intake_right_motor_Velocity_Request.withVelocity(-velocity));
+        intakeLeftMotor.setControl(intakeLeftMotorRequest.withVelocity(velocity));
+        intakeRightMotor.setControl(intakeRightMotorRequest.withVelocity(-velocity));
     }
 
     /**
      * Sets intake pitch motor position.
      */
     public void setPitchMotorPosition(double position) {
-        Intake_pitch_motor.setControl(Intake_pitch_motor_Voltage_Request.withPosition(position));
+        intakePitchMotor.setControl(intakePitchMotorRequest.withPosition(position));
     }
 
     /**
      * Returns current intake pitch motor position.
      */
-    public double get_PitchMotorPosition() {
-        return Intake_pitch_motor.getPosition().getValueAsDouble();
+    public double getPitchMotorPosition() {
+        return intakePitchMotor.getPosition().getValueAsDouble();
     }
 
     /**
      * Toggles intake roller on/off (odd press count = on, even = off).
      */
-    public Command IntakeSingleCommand() {
+    public Command intakeCommand() {
         return runOnce(
-            () -> {if(Intake_press_times % 2 == 0){
-                setIntakeMotorVelocity(0);
-            }
-            else{
-                 setIntakeMotorVelocity(IntakeVelocity);
+            () -> {
+                if (intakePressCount % 2 == 0) {
+                    setIntakeMotorVelocity(0);
+                } else {
+                    setIntakeMotorVelocity(IntakeVelocity);
                 }
             }
         );
@@ -149,137 +145,104 @@ public class Intake extends SubsystemBase {
     /**
      * Outtakes until interrupted.
      */
-    public Command OuttakeSingleCommand() {
+    public Command outtakeCommand() {
         return startEnd(
-            () -> { setIntakeMotorVelocity(OuttakeVelocity);
-                  },
-
-            () -> {setIntakeMotorVelocity(0);
-                  }
-            );
+            () -> setIntakeMotorVelocity(OuttakeVelocity),
+            () -> setIntakeMotorVelocity(0)
+        );
     }
 
     /**
      * Toggles the intake pitch position flag.
      */
-    public Command ChangePitchPositionSingleCommand() {
-        return runOnce(
-            () -> { 
-                IntakepitchPositionFlag = !IntakepitchPositionFlag; 
-            }
-            
-        );
-    };
+    public Command changePitchPositionCommand() {
+        return runOnce(() -> intakePitchPositionFlag = !intakePitchPositionFlag);
+    }
 
     /**
      * Increments the intake press counter to toggle speed.
      */
-    public Command ChangeIntakeSpeedSingleCommand() {
-        return runOnce(
-            () -> { 
-                Intake_press_times += 1;
-            }
-            
-        );
-    };
+    public Command changeIntakeSpeedCommand() {
+        return runOnce(() -> intakePressCount += 1);
+    }
 
     /**
      * Sets intake to running state (press count = 1) for auto.
      */
-    public Command SetIntakeSpeedOneSingleCommand() {
-        return runOnce(
-            () -> { 
-                Intake_press_times = 1;
-            }
-            
-        );
-    };
+    public Command setIntakeSpeedOneCommand() {
+        return runOnce(() -> intakePressCount = 1);
+    }
 
     /**
      * Sets intake to stopped state (press count = 0) for auto.
      */
-    public Command SetIntakeSpeedZeroSingleCommand() {
-        return runOnce(
-            () -> { 
-                Intake_press_times = 0;
-            }
-            
-        );
-    };
-
+    public Command setIntakeSpeedZeroCommand() {
+        return runOnce(() -> intakePressCount = 0);
+    }
 
     /**
      * Moves intake to the expected pitch position; holds until within tolerance.
      */
-    public Command AdjustIntakePositionSingleCommand(double expected_position) {
+    public Command adjustIntakePositionCommand(double expectedPosition) {
         return runEnd(
-            () -> {
-                   setPitchMotorPosition(expected_position);
-                  },
-            () -> {
-                   setPitchMotorPosition(get_PitchMotorPosition());
-                  }
-        ).until( ()->Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
-        // .finallyDo(
-        //     ()->{if (expected_position == Constants.IntakeConfig.IntakeDownPosition){
-        //             applyIntakePitchMotorNeutral();
-        //             }
-        //         });
+            () -> setPitchMotorPosition(expectedPosition),
+            () -> setPitchMotorPosition(getPitchMotorPosition())
+        ).until(() -> Math.abs(getPitchMotorPosition() - expectedPosition) < 0.5);
     }
 
     /**
      * Moves intake to expected pitch while simultaneously outtaking.
      */
-    private Command AdjustIntakePosition_WithOuttakeSingleCommand(double expected_position) {
+    private Command adjustIntakePositionWithOuttakeCommand(double expectedPosition) {
         return runEnd(
             () -> {
-                setPitchMotorPosition(expected_position);
+                setPitchMotorPosition(expectedPosition);
                 setIntakeMotorVelocity(OuttakeVelocity);
             },
             () -> {
-                setPitchMotorPosition(get_PitchMotorPosition());
+                setPitchMotorPosition(getPitchMotorPosition());
                 setIntakeMotorVelocity(0);
             }
-        ).until(() -> Math.abs(get_PitchMotorPosition() - expected_position) < 0.5);
+        ).until(() -> Math.abs(getPitchMotorPosition() - expectedPosition) < 0.5);
     }
 
     /**
      * Outtakes for a fixed duration.
      */
-    private Command OuttakeForSingleCommand(double seconds) {
+    private Command outtakeForCommand(double seconds) {
         return startEnd(
             () -> setIntakeMotorVelocity(OuttakeVelocity),
             () -> setIntakeMotorVelocity(0)
         ).withTimeout(seconds);
     }
-    
+
     /**
      * Swings intake between SwingUp and SwingDown positions.
      */
-    public Command IntakeSwingSingleCommand() {
-        return AdjustIntakePositionSingleCommand(IntakeSwingUpPosition)
+    public Command intakeSwingCommand() {
+        return adjustIntakePositionCommand(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(AdjustIntakePositionSingleCommand(IntakeSwingDownPosition))
+            .andThen(adjustIntakePositionCommand(IntakeSwingDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
     }
 
     /**
      * Swings intake between SwingUp and Down positions for feeding.
      */
-    public Command IntakeFeedingSwingSingleCommand() {
-        return AdjustIntakePositionSingleCommand(IntakeSwingUpPosition)
+    public Command intakeFeedingSwingCommand() {
+        return adjustIntakePositionCommand(IntakeSwingUpPosition)
             .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(AdjustIntakePositionSingleCommand(IntakeDownPosition))
+            .andThen(adjustIntakePositionCommand(IntakeDownPosition))
             .andThen(new WaitCommand(SwingWaitTime));
     }
 
     /**
      * Swings intake while outtaking for clearing jams.
      */
-    public Command OuttakeSwingSingleCommand() {
-        return AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingUpPosition)//up
-            .andThen(OuttakeForSingleCommand(SwingWaitTime))
-            .andThen(AdjustIntakePosition_WithOuttakeSingleCommand(IntakeSwingDownPosition))//down
-            .andThen(OuttakeForSingleCommand(SwingWaitTime));
+    public Command outtakeSwingCommand() {
+        return adjustIntakePositionWithOuttakeCommand(IntakeSwingUpPosition)
+            .andThen(outtakeForCommand(SwingWaitTime))
+            .andThen(adjustIntakePositionWithOuttakeCommand(IntakeSwingDownPosition))
+            .andThen(outtakeForCommand(SwingWaitTime));
     }
 }

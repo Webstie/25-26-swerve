@@ -44,6 +44,7 @@ public class Constants {
     }
 
     public static final class LauncherConfig {
+        public static final double WarmupSpeed = 60.0;
         public static final double WarmupSecond = 1.0;
         public static final double FeederSpeed = 100.0;
         public static final double OuttakeBallspeed = -30.0;

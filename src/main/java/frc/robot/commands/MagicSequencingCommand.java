@@ -65,58 +65,6 @@ public class MagicSequencingCommand {
     }
 
     /**
-     * Moves to the fixed scoring position, then shoots.
-     * Uses standard (slower) path — more reliable for qualifying.
-     */
-    public static Command createFixedPointAutoScoreCommand(
-        int position_index,
-        CommandSwerveDrivetrain drive,
-        Intake intakeSubsystem,
-        Launcher launcher,
-        Translation2d blueCenterPosition,
-        double[][] pointsParamsTable
-    ) {
-        return Commands.defer(() -> {
-            double[] currentParams = pointsParamsTable[position_index];
-            double launch_angle = currentParams[2] + Constants.ShootingTrim.pitchOffset;
-            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
-
-            return Commands.sequence(
-                Commands.parallel(
-                    Commands.runOnce(() -> launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed)),
-                    launcher.AdjustAngleToPositionCommand(launch_angle),
-                    runToClosestPosition(position_index, drive, pointsParamsTable, blueCenterPosition)
-                ),
-                Commands.waitSeconds(0.3),
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed)
-            );
-        }, Set.of(drive, intakeSubsystem, launcher));
-    }
-
-    /**
-     * Starts shooting immediately while simultaneously driving to position (fast variant).
-     * Assumes friction wheels are already pre-warmed by a prior WarmUp named command.
-     */
-    public static Command createFastFixedPointAutoScoreCommand(
-        int position_index,
-        CommandSwerveDrivetrain drive,
-        Intake intakeSubsystem,
-        Launcher launcher,
-        Translation2d blueCenterPosition,
-        double[][] pointsParamsTable
-    ) {
-        return Commands.defer(() -> {
-            double[] currentParams = pointsParamsTable[position_index];
-            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
-
-            return Commands.parallel(
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed),
-                runToClosestPosition(position_index, drive, pointsParamsTable, blueCenterPosition)
-            );
-        }, Set.of(drive, intakeSubsystem, launcher));
-    }
-
-    /**
      * Rotates in place to face the hub, then shoots based on distance lookup.
      */
     public static Command createAnyPointAutoScoreCommand(
@@ -140,16 +88,25 @@ public class MagicSequencingCommand {
             double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget);
             double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget);
 
+            double dx = targetCenter.getX() - currentPose.getX();
+            double dy = targetCenter.getY() - currentPose.getY();
+            Rotation2d targetHeading = new Rotation2d(Math.atan2(dy, dx));
+
             SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
             SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
             SmartDashboard.putNumber("AutoScore/Target_Speed", bestSpeed);
 
             return Commands.sequence(
                 Commands.parallel(
-                    Commands.runOnce(() -> launcher.setFrictionWheelVelocity(bestSpeed)),
-                    launcher.AdjustAngleToPositionCommand(bestPitch),
+                    Commands.run(() -> {
+                        launcher.setFrictionWheelVelocity(bestSpeed);
+                        launcher.setAngleToTarget(bestPitch);
+                    }, launcher),
                     turnToPosition(drive, blueCenterPosition)
-                ),
+                ).until(() -> launcher.isFrictionWheelReady()
+                           && launcher.isAngleAtPosition(bestPitch)
+                           && drive.isAtHeading(targetHeading))
+                 .withTimeout(2.5),
                 ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, bestSpeed)
             );
         }, Set.of(drive, intakeSubsystem, launcher));
@@ -185,4 +142,60 @@ public class MagicSequencingCommand {
 
         }, Set.of(drive));
     }
+
+    /**
+     * Moves to the fixed scoring position, then shoots.
+     * Uses standard (slower) path — more reliable for qualifying.
+     */
+    public static Command createFixedPointAutoScoreCommand(
+        int position_index,
+        CommandSwerveDrivetrain drive,
+        Intake intakeSubsystem,
+        Launcher launcher,
+        Translation2d blueCenterPosition,
+        double[][] pointsParamsTable
+    ) {
+        return Commands.defer(() -> {
+            double[] currentParams = pointsParamsTable[position_index];
+            double launch_angle = currentParams[2] + Constants.ShootingTrim.pitchOffset;
+            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
+
+            return Commands.sequence(
+                Commands.deadline(
+                    runToClosestPosition(position_index, drive, pointsParamsTable, blueCenterPosition),
+                    Commands.run(() -> {
+                        launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
+                        launcher.setAngleToTarget(launch_angle);
+                    }, launcher)
+                ),
+                Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launch_angle))
+                    .withTimeout(0.5),
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed)
+            );
+        }, Set.of(drive, intakeSubsystem, launcher));
+    }
+
+    /**
+     * Starts shooting immediately while simultaneously driving to position (fast variant).
+     * Assumes friction wheels are already pre-warmed by a prior WarmUp named command.
+     */
+    public static Command createFastFixedPointAutoScoreCommand(
+        int position_index,
+        CommandSwerveDrivetrain drive,
+        Intake intakeSubsystem,
+        Launcher launcher,
+        Translation2d blueCenterPosition,
+        double[][] pointsParamsTable
+    ) {
+        return Commands.defer(() -> {
+            double[] currentParams = pointsParamsTable[position_index];
+            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
+
+            return Commands.parallel(
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed),
+                runToClosestPosition(position_index, drive, pointsParamsTable, blueCenterPosition)
+            );
+        }, Set.of(drive, intakeSubsystem, launcher));
+    }
 }
+
