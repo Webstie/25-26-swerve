@@ -38,18 +38,15 @@ public class ShootingCommand extends SequentialCommandGroup {
                 Commands.run(() -> {
                     launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
                     launcher.setFeederVelocity(0);
+                    launcher.setTransportVelocity(0);
                 })
                 .alongWith(launcher.AdjustAngleToPositionCommand(launch_angle))
             ).withTimeout(warmupTime),
             Commands.run(() -> {
                 launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
                 launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
             }, launcher)
-        );
-
-        Command transportStream = Commands.sequence(
-            Commands.waitSeconds(warmupTime),
-            Commands.run(() -> launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed), launcher)
         );
 
         Command intakeStream = Commands.sequence(
@@ -61,14 +58,13 @@ public class ShootingCommand extends SequentialCommandGroup {
             )
         );
 
-        return Commands.parallel(launcherStream, transportStream, intakeStream)
+        return Commands.parallel(launcherStream, intakeStream)
             .finallyDo((interrupted) -> {
                 launcher.setFrictionWheelVelocity(0);
                 launcher.setFeederVelocity(0);
                 launcher.setTransportVelocity(0);
                 intake.setIntakeMotorVelocity(0);
                 intake.resetIntakeCounter();
-                intake.setSupportMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
                 launcher.setAngleVoltage(0);
             });
@@ -85,26 +81,21 @@ public class ShootingCommand extends SequentialCommandGroup {
         Command launcherStream = Commands.run(() -> {
             launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
             launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
-        });
-
-        Command transportStream = Commands.run(
-            () -> launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed), launcher);
+            launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+        }, launcher);
 
         Command intakeStream = Commands.parallel(
             intake.IntakeSwingSingleCommand().repeatedly()
-                .alongWith(Commands.run(() -> {
-                    intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
-                    intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
-                }))
+                .alongWith(Commands.run(() ->
+                    intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
         );
 
-        return Commands.parallel(launcherStream, transportStream, intakeStream)
+        return Commands.parallel(launcherStream, intakeStream)
             .finallyDo((interrupted) -> {
                 launcher.setFrictionWheelVelocity(0);
                 launcher.setFeederVelocity(0);
                 launcher.setTransportVelocity(0);
                 intake.setIntakeMotorVelocity(0);
-                intake.setSupportMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
             });
     }
@@ -155,10 +146,11 @@ public class ShootingCommand extends SequentialCommandGroup {
                     -PITCH_LEAD_RAD_PER_MPS * radialSpeed, -MAX_PITCH_LEAD_RAD, MAX_PITCH_LEAD_RAD);
                 double targetPitch = bestPitch - pitchLead;
 
+                boolean warmedUp = warmupTimer.hasElapsed(warmupSeconds);
                 launcher.setFrictionWheelVelocity(bestSpeed);
                 launcher.setAngleToTarget(targetPitch);
-                launcher.setFeederVelocity(
-                    warmupTimer.hasElapsed(warmupSeconds) ? Constants.LauncherConfig.FeederSpeed : 0);
+                launcher.setFeederVelocity(warmedUp ? Constants.LauncherConfig.FeederSpeed : 0);
+                launcher.setTransportVelocity(warmedUp ? Constants.TransportConfig.TransportSpeed : 0);
 
                 SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
                 SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
@@ -169,21 +161,14 @@ public class ShootingCommand extends SequentialCommandGroup {
             launcher
         );
 
-        Command transportStream = Commands.sequence(
-            Commands.waitSeconds(warmupSeconds),
-            Commands.run(() -> launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed), launcher)
-        );
-
         Command intakeStream = Commands.sequence(
             Commands.waitSeconds(warmupSeconds),
-            Commands.runOnce(() -> {
-                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
-                intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
-            }, intake),
+            Commands.runOnce(() ->
+                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
             intake.IntakeSwingSingleCommand().repeatedly()
         );
 
-        return Commands.parallel(launcherStream, transportStream, intakeStream)
+        return Commands.parallel(launcherStream, intakeStream)
             .beforeStarting(() -> { warmupTimer.reset(); warmupTimer.start(); })
             .finallyDo((interrupted) -> {
                 warmupTimer.stop();
@@ -193,7 +178,6 @@ public class ShootingCommand extends SequentialCommandGroup {
                 launcher.setTransportVelocity(0);
                 intake.setIntakeMotorVelocity(0);
                 intake.resetIntakeCounter();
-                intake.setSupportMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
             });
     }
@@ -215,24 +199,19 @@ public class ShootingCommand extends SequentialCommandGroup {
                 Commands.run(() -> {
                     launcher.setFrictionWheelVelocity(feedSpeed);
                     launcher.setFeederVelocity(0);
+                    launcher.setTransportVelocity(0);
                 })
                 .alongWith(launcher.AdjustAngleToPositionCommand(feedAngle))
             ).withTimeout(fastWarmupTime),
             Commands.run(() -> {
                 launcher.setFrictionWheelVelocity(feedSpeed);
                 launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
             }, launcher)
         );
 
-        Command transportStream = Commands.sequence(
-            Commands.waitSeconds(fastWarmupTime),
-            Commands.run(() -> launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed), launcher)
-        );
-
-        Command runIntakeMotors = Commands.run(() -> {
-            intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
-            intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
-        });
+        Command runIntakeMotors = Commands.run(() ->
+            intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity));
 
         Command intakeStream = Commands.sequence(
             Commands.waitSeconds(fastWarmupTime),
@@ -241,14 +220,13 @@ public class ShootingCommand extends SequentialCommandGroup {
                 : runIntakeMotors
         );
 
-        return Commands.parallel(launcherStream, transportStream, intakeStream)
+        return Commands.parallel(launcherStream, intakeStream)
             .finallyDo((interrupted) -> {
                 launcher.setFrictionWheelVelocity(0);
                 launcher.setFeederVelocity(0);
                 launcher.setAngleVoltage(0);
                 launcher.setTransportVelocity(0);
                 intake.setIntakeMotorVelocity(0);
-                intake.setSupportMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
             });
     }
@@ -299,10 +277,11 @@ public class ShootingCommand extends SequentialCommandGroup {
                     -PITCH_LEAD_RAD_PER_MPS * radialSpeed, -MAX_PITCH_LEAD_RAD, MAX_PITCH_LEAD_RAD);
                 double targetPitch = bestPitch - pitchLead;
 
+                boolean warmedUp = warmupTimer.hasElapsed(warmupSeconds);
                 launcher.setFrictionWheelVelocity(bestSpeed);
                 launcher.setAngleToTarget(targetPitch);
-                launcher.setFeederVelocity(
-                    warmupTimer.hasElapsed(warmupSeconds) ? Constants.LauncherConfig.FeederSpeed : 0);
+                launcher.setFeederVelocity(warmedUp ? Constants.LauncherConfig.FeederSpeed : 0);
+                launcher.setTransportVelocity(warmedUp ? Constants.TransportConfig.TransportSpeed : 0);
 
                 SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
                 SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
@@ -313,21 +292,14 @@ public class ShootingCommand extends SequentialCommandGroup {
             launcher
         );
 
-        Command transportStream = Commands.sequence(
-            Commands.waitSeconds(warmupSeconds),
-            Commands.run(() -> launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed), launcher)
-        );
-
         Command intakeStream = Commands.sequence(
             Commands.waitSeconds(warmupSeconds),
-            Commands.runOnce(() -> {
-                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity);
-                intake.setSupportMotorVelocity(Constants.IntakeConfig.SupportVelocity);
-            }, intake),
+            Commands.runOnce(() ->
+                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
             intake.IntakeSwingSingleCommand().repeatedly()
         );
 
-        return Commands.parallel(launcherStream, transportStream, intakeStream)
+        return Commands.parallel(launcherStream, intakeStream)
             .beforeStarting(() -> { warmupTimer.reset(); warmupTimer.start(); })
             .finallyDo((interrupted) -> {
                 warmupTimer.stop();
@@ -336,7 +308,6 @@ public class ShootingCommand extends SequentialCommandGroup {
                 launcher.setAngleVoltage(0);
                 launcher.setTransportVelocity(0);
                 intake.setIntakeMotorVelocity(0);
-                intake.setSupportMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
             });
     }

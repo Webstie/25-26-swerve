@@ -196,10 +196,12 @@ public class Launcher extends SubsystemBase {
             () -> {
                 setFrictionWheelVelocity(FrictionWheelOuttakeVelocity);
                 setFeederVelocity(OuttakeBallspeed);
+                setTransportVelocity(-TransportSpeed);
             },
             () -> {
                 setFrictionWheelVelocity(0.0);
                 setFeederVelocity(0.0);
+                setTransportVelocity(0.0);
             }
         );
     }

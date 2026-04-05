@@ -21,13 +21,13 @@ import static frc.robot.Constants.IntakeConfig.*;
 
 public class Intake extends SubsystemBase {
 
-    private final TalonFX Intake_motor = new TalonFX(INTAKE_MOTOR_ID, new CANBus("canivore"));
-    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID,new CANBus("rio"));
-    private final TalonFX Intake_support_motor = new TalonFX(INTAKE_SUPPORT_MOTOR_ID,new CANBus("canivore"));
+    private final TalonFX Intake_left_motor = new TalonFX(INTAKE_LEFT_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX Intake_right_motor = new TalonFX(INTAKE_RIGHT_MOTOR_ID, new CANBus("canivore"));
+    private final TalonFX Intake_pitch_motor = new TalonFX(INTAKE_PITCH_MOTOR_ID, new CANBus("rio"));
 
-    private final VelocityTorqueCurrentFOC Intake_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
+    private final VelocityTorqueCurrentFOC Intake_left_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
+    private final VelocityTorqueCurrentFOC Intake_right_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final MotionMagicVoltage Intake_pitch_motor_Voltage_Request = new MotionMagicVoltage(0.0).withSlot(0);
-    private final VelocityTorqueCurrentFOC Intake_support_motor_Velocity_Request = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
 
     private int Intake_press_times = 0;
     private boolean IntakepitchPositionFlag = true;
@@ -50,12 +50,13 @@ public class Intake extends SubsystemBase {
         IntakeMotorConfigs.Slot0.kP = 5;
         IntakeMotorConfigs.Slot0.kI = 0;
         IntakeMotorConfigs.Slot0.kD = 0;
-        IntakeMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
-        IntakeMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
-        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
-        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
-        IntakeMotorConfigs.MotionMagic.MotionMagicJerk = 0; 
-        Intake_motor.getConfigurator().apply(IntakeMotorConfigs);
+        IntakeMotorConfigs.MotionMagic.MotionMagicAcceleration = 100;
+        IntakeMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200;
+        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
+        IntakeMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
+        IntakeMotorConfigs.MotionMagic.MotionMagicJerk = 0;
+        Intake_left_motor.getConfigurator().apply(IntakeMotorConfigs);
+        Intake_right_motor.getConfigurator().apply(IntakeMotorConfigs);
 
         var IntakePitchMotorConfigs = new TalonFXConfiguration();
         IntakePitchMotorConfigs.Slot0.kS = 0.0;
@@ -72,20 +73,6 @@ public class Intake extends SubsystemBase {
         IntakePitchMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         Intake_pitch_motor.getConfigurator().apply(IntakePitchMotorConfigs);
 
-        var IntakeSupportMotorConfigs = new TalonFXConfiguration();
-        IntakeSupportMotorConfigs.Slot0.kS = 0.0;
-        IntakeSupportMotorConfigs.Slot0.kV = 0.0;
-        IntakeSupportMotorConfigs.Slot0.kA = 0;
-        IntakeSupportMotorConfigs.Slot0.kP = 5;
-        IntakeSupportMotorConfigs.Slot0.kI = 0;
-        IntakeSupportMotorConfigs.Slot0.kD = 0;
-        IntakeSupportMotorConfigs.MotionMagic.MotionMagicAcceleration = 100; 
-        IntakeSupportMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 200; 
-        IntakeSupportMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12; 
-        IntakeSupportMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1; 
-        IntakeSupportMotorConfigs.MotionMagic.MotionMagicJerk = 0;
-        IntakeSupportMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        Intake_support_motor.getConfigurator().apply(IntakeSupportMotorConfigs);
     }
 
 
@@ -120,14 +107,14 @@ public class Intake extends SubsystemBase {
         Intake_press_times = 0;
         IntakepitchPositionFlag = true;
         setIntakeMotorVelocity(0);
-        setSupportMotorVelocity(0);
     }
 
     /**
-     * Sets intake roller velocity.
+     * Sets both intake roller motors (left and right) to the given velocity.
      */
     public void setIntakeMotorVelocity(double velocity) {
-        Intake_motor.setControl(Intake_motor_Velocity_Request.withVelocity(velocity));
+        Intake_left_motor.setControl(Intake_left_motor_Velocity_Request.withVelocity(velocity));
+        Intake_right_motor.setControl(Intake_right_motor_Velocity_Request.withVelocity(-velocity));
     }
 
     /**
@@ -142,13 +129,6 @@ public class Intake extends SubsystemBase {
      */
     public double get_PitchMotorPosition() {
         return Intake_pitch_motor.getPosition().getValueAsDouble();
-    }
-
-    /**
-     * Sets intake support roller velocity.
-     */
-    public void setSupportMotorVelocity(double velocity) {
-        Intake_support_motor.setControl(Intake_support_motor_Velocity_Request.withVelocity(velocity));
     }
 
     /**

@@ -78,12 +78,11 @@ public class Constants {
         public static final double IntakeDownPosition = -17.5;
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
-        public static final double IntakeVelocity = -100.0;
-        public static final double SupportVelocity = 60.0;
+        public static final double IntakeVelocity = -75.0;
 
-        public static final int INTAKE_MOTOR_ID = 6;
+        public static final int INTAKE_LEFT_MOTOR_ID = 6;
+        public static final int INTAKE_RIGHT_MOTOR_ID = 7;
         public static final int INTAKE_PITCH_MOTOR_ID = 9;
-        public static final int INTAKE_SUPPORT_MOTOR_ID = 7;
     }
 
     public static final class TransportConfig {

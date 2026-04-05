@@ -11,8 +11,7 @@ public class OuttakeCommand {
     public static Command create(Intake intake, Launcher launcher, CANdleSystem candle) {
         return new ParallelCommandGroup(
             intake.OuttakeSwingSingleCommand().repeatedly(),
-            launcher.OuttakeSingleCommand(),
-            launcher.TransportOuttakeSingleCommand()
+            launcher.OuttakeSingleCommand()
         )
         .finallyDo(() -> {
             intake.applyIntakePitchMotorNeutral();
