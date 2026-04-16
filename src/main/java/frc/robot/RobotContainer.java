@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConfig;
 import frc.robot.commands.MagicSequencingCommand;
 import frc.robot.commands.MoveWhileAimCommand;
@@ -65,6 +66,9 @@ public class RobotContainer {
 
     private boolean isSlowMode = false;
     public boolean isVisionPoseFusion = true;
+
+    // Flag to ensure auto-reverse fires at most once per intake cycle
+    private boolean autoReverseFired = false;
 
     public RobotContainer() {
 
@@ -211,11 +215,41 @@ public class RobotContainer {
             intake.changeIntakeSpeedCommand()
             .andThen(intake.intakeCommand())
             .andThen(Commands.either(
-                new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Intaking), candle),
-                new InstantCommand(() -> candle.restoreBackground(), candle),
+                // Intake ON: run transport + feeder + hold friction wheels, reset auto-reverse flag + LED
+                Commands.runOnce(() -> {
+                    launcher.setTransportVelocity(10);
+                    launcher.setFrictionWheelVelocity(-1);
+                    launcher.setFeederVelocity(10);
+                    autoReverseFired = false;
+                }).andThen(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Intaking), candle)),
+                // Intake OFF: if auto-reverse hasn't fired yet, do 0.3s reverse; otherwise just stop feeder
+                Commands.either(
+                    Commands.startEnd(
+                        () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                        () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); },
+                        launcher
+                    ).withTimeout(0.3),
+                    Commands.runOnce(() -> launcher.setFeederVelocity(0)),
+                    () -> !autoReverseFired
+                ).andThen(new InstantCommand(() -> candle.restoreBackground(), candle))
+                .andThen(Commands.waitSeconds(0.5)),
                 () -> intake.isIntakeRunning()
             ))
         );
+
+        // Auto-reverse: if feeder < 1 rps for 1s while intake is running, trigger reverse once
+        new Trigger(() -> !autoReverseFired
+                      && intake.isIntakeRunning()
+                      && Math.abs(launcher.getFeederVelocity()) < 1.0)
+            .debounce(1.0)
+            .onTrue(
+                Commands.runOnce(() -> autoReverseFired = true)
+                .andThen(Commands.startEnd(
+                    () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                    () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); },
+                    launcher
+                ).withTimeout(0.3))
+            );
 
         // Outtake
         Driver.leftBumper().whileTrue(

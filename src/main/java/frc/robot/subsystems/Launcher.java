@@ -169,6 +169,10 @@ public class Launcher extends SubsystemBase {
         transportMotor.setControl(transportRequest.withVelocity(-velocity));
     }
 
+    public double getFeederVelocity() {
+        return feederMotor.getVelocity().getValueAsDouble();
+    }
+
     public Command launchCommand(double frictionWheelLaunchSpeed) {
         return startEnd(
             () -> {
