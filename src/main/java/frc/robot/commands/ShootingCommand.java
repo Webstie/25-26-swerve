@@ -91,20 +91,20 @@ public class ShootingCommand extends SequentialCommandGroup {
         Intake intake,
         Launcher launcher,
         double frictionWheelLaunchSpeed,
-        double launch_angle
+        double launchAngle
     ) {
         double warmupTime = Constants.LauncherConfig.WarmupSecond;
 
         Command launcherStream = Commands.sequence(
             Commands.run(() -> {
                 launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
-                launcher.setAngleToTarget(launch_angle);
+                launcher.setAngleToTarget(launchAngle);
                 launcher.setFeederVelocity(0);
                 launcher.setTransportVelocity(0);
                 SmartDashboard.putBoolean("Shoot/WheelReady", launcher.isFrictionWheelReady());
-                SmartDashboard.putBoolean("Shoot/AngleReady", launcher.isAngleAtPosition(launch_angle));
+                SmartDashboard.putBoolean("Shoot/AngleReady", launcher.isAngleAtPosition(launchAngle));
             }, launcher)
-            .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launch_angle))
+            .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launchAngle))
             .withTimeout(warmupTime),
             Commands.run(() -> {
                 launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
@@ -114,7 +114,7 @@ public class ShootingCommand extends SequentialCommandGroup {
         );
 
         Command intakeStream = Commands.sequence(
-            Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launch_angle))
+            Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launchAngle))
                 .withTimeout(warmupTime),
             Commands.parallel(
                 intake.progressiveIntakeSwingCommand()
