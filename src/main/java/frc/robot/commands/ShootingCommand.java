@@ -117,7 +117,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launch_angle))
                 .withTimeout(warmupTime),
             Commands.parallel(
-                intake.intakeSwingCommand().repeatedly()
+                intake.progressiveIntakeSwingCommand()
                     .alongWith(Commands.run(() ->
                         intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
             )
@@ -150,7 +150,7 @@ public class ShootingCommand extends SequentialCommandGroup {
         }, launcher);
 
         Command intakeStream = Commands.parallel(
-            intake.intakeSwingCommand().repeatedly()
+            intake.progressiveIntakeSwingCommand()
                 .alongWith(Commands.run(() ->
                     intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
         );
@@ -201,7 +201,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                 .withTimeout(warmupSeconds),
             Commands.runOnce(() ->
                 intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
-            intake.intakeSwingCommand().repeatedly()
+            intake.progressiveIntakeSwingCommand()
         );
 
         return Commands.parallel(launcherStream, intakeStream)
@@ -251,7 +251,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedAngle))
                 .withTimeout(fastWarmupTime),
             needSwing
-                ? Commands.parallel(intake.intakeFeedingSwingCommand().repeatedly(), runIntakeMotors)
+                ? Commands.parallel(intake.progressiveIntakeSwingCommand(), runIntakeMotors)
                 : runIntakeMotors
         );
 

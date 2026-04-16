@@ -14,6 +14,11 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.networktables.BooleanEntry;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringEntry;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConfig;
 import frc.robot.commands.MagicSequencingCommand;
+import frc.robot.commands.MatchStateCommand;
 import frc.robot.commands.MoveWhileAimCommand;
 import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
@@ -64,6 +70,10 @@ public class RobotContainer {
     private final CommandXboxController Driver = new CommandXboxController(0);
     private final CommandXboxController Operator = new CommandXboxController(1);
 
+    // Elastic auto win tracking
+    private final BooleanEntry isAutoWinEntry;
+    private final StringEntry isAutoWinTextEntry;
+
     private boolean isSlowMode = false;
     public boolean isVisionPoseFusion = true;
 
@@ -71,6 +81,16 @@ public class RobotContainer {
     private boolean autoReverseFired = false;
 
     public RobotContainer() {
+
+        NetworkTable elasticTable = NetworkTableInstance.getDefault().getTable("Elastic");
+        isAutoWinEntry = elasticTable.getBooleanTopic("isAutoWin").getEntry(false);
+        isAutoWinTextEntry = elasticTable.getStringTopic("isAutoWinText").getEntry("AUTO LOST");
+        isAutoWinEntry.set(false);
+        isAutoWinTextEntry.set("AUTO LOST");
+
+        // Start match state tracking when teleop begins
+        new Trigger(() -> DriverStation.isTeleopEnabled())
+            .onTrue(new MatchStateCommand(() -> isAutoWinEntry.get(false)));
 
         new EventTrigger("Climb_UP").onTrue(climber.climbingProcessCommand());
 
@@ -131,6 +151,10 @@ public class RobotContainer {
     public void updateDashboard() {
         SmartDashboard.putNumber("Launcher/SpeedOffset", Constants.ShootingTrim.speedOffset);
         SmartDashboard.putNumber("Launcher/PitchOffset", Constants.ShootingTrim.pitchOffset);
+    }
+
+    public boolean isAutoWin() {
+        return isAutoWinEntry.get(false);
     }
 
     private void configureBindings() {

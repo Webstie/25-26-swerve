@@ -10,6 +10,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
@@ -216,24 +217,41 @@ public class Intake extends SubsystemBase {
         ).withTimeout(seconds);
     }
 
-    /**
-     * Swings intake between SwingUp and SwingDown positions.
-     */
-    public Command intakeSwingCommand() {
-        return adjustIntakePositionCommand(IntakeSwingUpPosition)
-            .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(adjustIntakePositionCommand(IntakeSwingDownPosition))
-            .andThen(new WaitCommand(SwingWaitTime));
+    /** Shared helper: one up-down swing step between two positions. */
+    private Command createSwingStep(double upPos, double downPos) {
+        return Commands.sequence(
+            adjustIntakePositionCommand(upPos),
+            new WaitCommand(SwingWaitTime),
+            adjustIntakePositionCommand(downPos),
+            new WaitCommand(SwingWaitTime)
+        );
     }
 
     /**
-     * Swings intake between SwingUp and Down positions for feeding.
+     * Swings intake between SwingUp and SwingDown positions (single cycle, caller adds .repeatedly()).
+     */
+    public Command intakeSwingCommand() {
+        return createSwingStep(IntakeSwingUpPosition, IntakeSwingDownPosition);
+    }
+
+    /**
+     * Swings intake between SwingUp and Down positions for feeding (single cycle).
      */
     public Command intakeFeedingSwingCommand() {
-        return adjustIntakePositionCommand(IntakeSwingUpPosition)
-            .andThen(new WaitCommand(SwingWaitTime))
-            .andThen(adjustIntakePositionCommand(IntakeDownPosition))
-            .andThen(new WaitCommand(SwingWaitTime));
+        return createSwingStep(IntakeSwingUpPosition, IntakeDownPosition);
+    }
+
+    /**
+     * Progressive 4-stage intake swing for faster ball pickup:
+     * stages 1-3 run once each, stage 4 repeats until interrupted.
+     */
+    public Command progressiveIntakeSwingCommand() {
+        return Commands.sequence(
+            createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition),
+            createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition + 1),
+            createSwingStep(IntakeSwingUpPosition + 2.5, IntakeDownPosition + 2.5),
+            createSwingStep(-8.9, -11.9).repeatedly()
+        );
     }
 
     /**
