@@ -167,12 +167,12 @@ public class Constants {
             }
         }
 
-        // Far-field corner feed targets (blue alliance frame)
-        public static final Translation2d BLUE_CORNER_LEFT  = new Translation2d(16.0, 7.0);
-        public static final Translation2d BLUE_CORNER_RIGHT = new Translation2d(16.0, 1.0);
+        // Corner feed targets — blue alliance loading station corners (blue alliance frame)
+        public static final Translation2d BLUE_CORNER_LEFT  = new Translation2d(1.5, 7.0);
+        public static final Translation2d BLUE_CORNER_RIGHT = new Translation2d(1.5, 1.0);
 
         // Reject corner feed if robot is closer than this to the hub (ball won't clear)
-        public static final double CORNER_FEED_MIN_HUB_DISTANCE = 4.5;
+        public static final double CORNER_FEED_MIN_HUB_DISTANCE = 0.5;
 
         // Corner feed distance → {pitch_rot, speed_rps} — long lob shots
         public static final double[][] CORNER_FEED_DISTANCE_TABLE = {

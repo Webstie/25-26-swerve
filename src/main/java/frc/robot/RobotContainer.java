@@ -45,6 +45,7 @@ import frc.robot.subsystems.Vision;
 import static frc.robot.Constants.ClimberConfig.ClimbPosition;
 import static frc.robot.Constants.IntakeConfig.*;
 import java.util.List;
+import java.util.Set;
 
 
 public class RobotContainer {
@@ -67,7 +68,7 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    private double launchSpeed = 50.0;
+    private double launchSpeed = 45.0;
     private double launchAngle = 0.0;
 
     private final CommandXboxController Driver = new CommandXboxController(0);
@@ -197,6 +198,30 @@ public class RobotContainer {
         // Celebration lights
         Driver.y().onTrue(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingDown), candle));
 
+        Driver.rightTrigger().whileTrue(
+            Commands.either(
+                Commands.defer(() -> ShootingCommand.createShootingCommand(
+                    intake, launcher, launchSpeed, launchAngle)
+                    .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
+                    .finallyDo(() -> candle.restoreBackground()), 
+                    Set.of(intake, launcher)),
+                ShootingCommand.createCornerFeedCommand(
+                    drivetrain, intake, launcher,
+                    () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.5,
+                    () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.5,
+                    MaxAngularRate * getInputScale()),
+                () -> {
+                    boolean isRed = DriverStation.getAlliance()
+                        .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+                    double x = drivetrain.getPose().getX();
+                    double hubX = isRed
+                        ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+                        : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+                    return isRed ? x > hubX : x < hubX;
+                }
+            )
+        );
+
         
         
         Driver.povUp().onTrue(new InstantCommand(() -> launchSpeed += 0.25));
@@ -204,21 +229,21 @@ public class RobotContainer {
         Driver.povLeft().onTrue(new InstantCommand(() -> launchAngle += 0.0005));
         Driver.povRight().onTrue(new InstantCommand(() -> launchAngle -= 0.0005));
 
-        Driver.back().whileTrue(launcher.adjustAngleCommand(12));
+        // Driver.back().whileTrue(launcher.adjustAngleCommand(12));
 
         // Manual fixed-speed shoot
-        Driver.rightTrigger().whileTrue(
-            Commands.parallel(
-                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-                    intake, launcher,
-                    // LauncherConfig.ManualShootSpeed,
-                    // LauncherConfig.ManualShootAngle
-                    launchSpeed,
-                    launchAngle
-                )),
-                Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.restoreBackground())
-        );
+        // Driver.rightTrigger().whileTrue(
+        //     Commands.parallel(
+        //         new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+        //             intake, launcher,
+        //             // LauncherConfig.ManualShootSpeed,
+        //             // LauncherConfig.ManualShootAngle
+        //             launchSpeed,
+        //             launchAngle
+        //         )),
+        //         Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
+        //     ).finallyDo(() -> candle.restoreBackground())
+        // );
 
         // Move-while-aim dynamic shoot (left trigger)
         Driver.leftTrigger().whileTrue(
@@ -299,9 +324,9 @@ public class RobotContainer {
                 .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Outtaking), candle))
         );
 
-        // Driver.povDown().onTrue(
-        //     launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
-        // );
+        Driver.back().onTrue(
+            launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
+        );
 
         /*** Operator ***/
 

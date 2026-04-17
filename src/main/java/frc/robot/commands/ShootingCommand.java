@@ -281,7 +281,6 @@ public class ShootingCommand extends SequentialCommandGroup {
 
     /**
      * Auto-aims and feeds to whichever field corner is closer to the robot.
-     * Silently aborts if the robot is too close to the hub (ball would hit the reef).
      */
     public static Command createCornerFeedCommand(
         CommandSwerveDrivetrain drive,
@@ -311,20 +310,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             Translation2d targetCorner = distLeft < distRight ? cornerLeft : cornerRight;
             double distToCorner = Math.min(distLeft, distRight);
 
-            Translation2d hubCenter = isRed
-                ? new Translation2d(
-                    Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX(),
-                    Constants.Layout.FIELD_WIDTH_METERS  - Constants.VisionConfig.BLUE_HUB_CENTER.getY())
-                : Constants.VisionConfig.BLUE_HUB_CENTER;
-            double distToHub = currentPose.getTranslation().getDistance(hubCenter);
-
             SmartDashboard.putNumber("CornerFeed/DistToCorner", distToCorner);
-            SmartDashboard.putNumber("CornerFeed/DistToHub", distToHub);
-            SmartDashboard.putBoolean("CornerFeed/HubClear", distToHub >= Constants.VisionConfig.CORNER_FEED_MIN_HUB_DISTANCE);
-
-            if (distToHub < Constants.VisionConfig.CORNER_FEED_MIN_HUB_DISTANCE) {
-                return Commands.none();
-            }
 
             double feedPitch = Constants.VisionConfig.distanceToCornerPitchMap.get(distToCorner);
             double feedSpeed = Constants.VisionConfig.distanceToCornerSpeedMap.get(distToCorner);
@@ -356,7 +342,9 @@ public class ShootingCommand extends SequentialCommandGroup {
             Command intakeStream = Commands.sequence(
                 Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch))
                     .withTimeout(Constants.LauncherConfig.FastWarmupSeconds),
-                Commands.run(() -> intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake)
+                intake.progressiveIntakeSwingCommand()
+                    .alongWith(Commands.run(() ->
+                        intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
             );
 
             return Commands.parallel(aimCommand, launcherStream, intakeStream)
