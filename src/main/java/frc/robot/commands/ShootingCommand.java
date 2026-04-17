@@ -327,8 +327,10 @@ public class ShootingCommand extends SequentialCommandGroup {
                     SmartDashboard.putBoolean("CornerFeed/WheelReady", launcher.isFrictionWheelReady());
                     SmartDashboard.putBoolean("CornerFeed/AngleReady", launcher.isAngleAtPosition(feedPitch));
                 }, launcher)
-                .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch))
-                .withTimeout(Constants.LauncherConfig.FastWarmupSeconds),
+                .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch)
+                          && drive.isAtHeading(new Rotation2d(Math.atan2(
+                              targetCorner.getY() - drive.getPose().getY(),
+                              targetCorner.getX() - drive.getPose().getX())))),
                 Commands.sequence(
                     Commands.runOnce(() -> launcher.startFireBoost()),
                     Commands.run(() -> {
@@ -340,8 +342,10 @@ public class ShootingCommand extends SequentialCommandGroup {
             );
 
             Command intakeStream = Commands.sequence(
-                Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch))
-                    .withTimeout(Constants.LauncherConfig.FastWarmupSeconds),
+                Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch)
+                          && drive.isAtHeading(new Rotation2d(Math.atan2(
+                              targetCorner.getY() - drive.getPose().getY(),
+                              targetCorner.getX() - drive.getPose().getX())))),
                 intake.progressiveIntakeSwingCommand()
                     .alongWith(Commands.run(() ->
                         intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))

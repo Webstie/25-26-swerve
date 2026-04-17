@@ -176,14 +176,10 @@ public class Constants {
 
         // Corner feed distance → {pitch_rot, speed_rps} — long lob shots
         public static final double[][] CORNER_FEED_DISTANCE_TABLE = {
-            {7.0,  -0.055,  85.0},
-            {8.0,  -0.060,  90.0},
-            {9.0,  -0.065,  94.0},
-            {10.0, -0.070,  98.0},
-            {11.0, -0.074, 102.0},
-            {12.0, -0.078, 105.0},
-            {13.0, -0.082, 108.0},
-            {14.0, -0.086, 111.0},
+            {7.0,  -0.020,  75.0},
+            {8.0,  -0.030,  80.0},
+            {9.0,  -0.040,  90.0},
+            {10.0, -0.050,  100.0},
         };
 
         public static final InterpolatingDoubleTreeMap distanceToCornerPitchMap = new InterpolatingDoubleTreeMap();
