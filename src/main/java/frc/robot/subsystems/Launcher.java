@@ -10,6 +10,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.LauncherConfig.*;
@@ -25,6 +26,9 @@ public class Launcher extends SubsystemBase {
     private static final double VELOCITY_TOLERANCE = 2.0; // rps
 
     private double frictionWheelVelocityTarget = 0.0;
+    private double targetDistanceMeters = 0.0;
+    private double fireBoostRps = 0.0;
+    private double fireBoostEndTime = 0.0;
     private boolean intakeBrake = false;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut neutralRequest = new NeutralOut();
@@ -101,11 +105,22 @@ public class Launcher extends SubsystemBase {
         intakeBrake = brake;
     }
 
+    public void setTargetDistance(double distanceMeters) {
+        targetDistanceMeters = distanceMeters;
+    }
+
+    /** Boosts friction wheels by the current target distance (rps) for 2 seconds. */
+    public void startFireBoost() {
+        fireBoostRps = targetDistanceMeters;
+        fireBoostEndTime = Timer.getFPGATimestamp() + 2.0;
+    }
+
     @Override
     public void periodic() {
         if (frictionWheelVelocityTarget != 0.0) {
             double limitedVelocity = velocityLimiter.calculate(frictionWheelVelocityTarget);
-            applyFrictionWheelVelocity(limitedVelocity);
+            double boost = Timer.getFPGATimestamp() < fireBoostEndTime ? fireBoostRps : 0.0;
+            applyFrictionWheelVelocity(limitedVelocity + boost);
         } else if (intakeBrake) {
             applyFrictionWheelVelocity(0);
         } else {

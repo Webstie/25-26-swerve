@@ -67,6 +67,9 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
+    private double launchSpeed = 50.0;
+    private double launchAngle = 0.0;
+
     private final CommandXboxController Driver = new CommandXboxController(0);
     private final CommandXboxController Operator = new CommandXboxController(1);
 
@@ -149,6 +152,8 @@ public class RobotContainer {
     }
 
     public void updateDashboard() {
+        SmartDashboard.putNumber("Launcher/Speed", launchSpeed);
+        SmartDashboard.putNumber("Launcher/Angle", launchAngle);
         SmartDashboard.putNumber("Launcher/SpeedOffset", Constants.ShootingTrim.speedOffset);
         SmartDashboard.putNumber("Launcher/PitchOffset", Constants.ShootingTrim.pitchOffset);
     }
@@ -192,13 +197,24 @@ public class RobotContainer {
         // Celebration lights
         Driver.y().onTrue(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingDown), candle));
 
+        
+        
+        Driver.povUp().onTrue(new InstantCommand(() -> launchSpeed += 0.25));
+        Driver.povDown().onTrue(new InstantCommand(() -> launchSpeed -= 0.25));
+        Driver.povLeft().onTrue(new InstantCommand(() -> launchAngle += 0.0005));
+        Driver.povRight().onTrue(new InstantCommand(() -> launchAngle -= 0.0005));
+
+        Driver.back().whileTrue(launcher.adjustAngleCommand(12));
+
         // Manual fixed-speed shoot
         Driver.rightTrigger().whileTrue(
             Commands.parallel(
                 new ProxyCommand(() -> ShootingCommand.createShootingCommand(
                     intake, launcher,
-                    LauncherConfig.ManualShootSpeed,
-                    LauncherConfig.ManualShootAngle
+                    // LauncherConfig.ManualShootSpeed,
+                    // LauncherConfig.ManualShootAngle
+                    launchSpeed,
+                    launchAngle
                 )),
                 Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
             ).finallyDo(() -> candle.restoreBackground())
@@ -283,9 +299,9 @@ public class RobotContainer {
                 .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Outtaking), candle))
         );
 
-        Driver.povDown().onTrue(
-            launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
-        );
+        // Driver.povDown().onTrue(
+        //     launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
+        // );
 
         /*** Operator ***/
 

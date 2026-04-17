@@ -42,6 +42,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             : blueCenterPosition;
 
         double distanceToTarget = currentPose.getTranslation().getDistance(targetCenter);
+        launcher.setTargetDistance(distanceToTarget);
         double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget)
             + Constants.ShootingTrim.pitchOffset;
         double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget)
@@ -106,11 +107,14 @@ public class ShootingCommand extends SequentialCommandGroup {
             }, launcher)
             .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launchAngle))
             .withTimeout(warmupTime),
-            Commands.run(() -> {
-                launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
-                launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
-                launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
-            }, launcher)
+            Commands.sequence(
+                // Commands.runOnce(() -> launcher.startFireBoost()),
+                Commands.run(() -> {
+                    launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
+                    launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                    launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+                }, launcher)
+            )
         );
 
         Command intakeStream = Commands.sequence(
@@ -143,11 +147,14 @@ public class ShootingCommand extends SequentialCommandGroup {
         Launcher launcher,
         double frictionWheelLaunchSpeed
     ) {
-        Command launcherStream = Commands.run(() -> {
-            launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
-            launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
-            launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
-        }, launcher);
+        Command launcherStream = Commands.sequence(
+            Commands.runOnce(() -> launcher.startFireBoost()),
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
+                launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+            }, launcher)
+        );
 
         Command intakeStream = Commands.parallel(
             intake.progressiveIntakeSwingCommand()
@@ -188,9 +195,12 @@ public class ShootingCommand extends SequentialCommandGroup {
                   && drive.isAtHeading(new Rotation2d(latestTargetHeadingRad[0])))
         .withTimeout(warmupSeconds);
 
-        Command launcherFire = Commands.run(
-            () -> updateDynamic(drive, launcher, blueCenterPosition, latestTargetPitch, latestTargetHeadingRad, true),
-            launcher);
+        Command launcherFire = Commands.sequence(
+            Commands.runOnce(() -> launcher.startFireBoost()),
+            Commands.run(
+                () -> updateDynamic(drive, launcher, blueCenterPosition, latestTargetPitch, latestTargetHeadingRad, true),
+                launcher)
+        );
 
         Command launcherStream = Commands.sequence(launcherWarmup, launcherFire);
 
@@ -202,6 +212,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             Commands.runOnce(() ->
                 intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
                 Commands.waitSeconds(2),
+                
                 intake.progressiveIntakeSwingCommand()
         );
 

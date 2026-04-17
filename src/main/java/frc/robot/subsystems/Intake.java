@@ -250,7 +250,7 @@ public class Intake extends SubsystemBase {
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition),
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition + 1),
             createSwingStep(IntakeSwingUpPosition + 2.5, IntakeDownPosition + 2.5),
-            createSwingStep(-8.9, -11.9).repeatedly()
+            createSwingStep(-8.9, -11.9)
         );
     }
 
