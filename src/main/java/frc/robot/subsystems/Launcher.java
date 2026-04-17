@@ -112,7 +112,7 @@ public class Launcher extends SubsystemBase {
     /** Boosts friction wheels by the current target distance (rps) for 2 seconds. */
     public void startFireBoost() {
         fireBoostRps = targetDistanceMeters;
-        fireBoostEndTime = Timer.getFPGATimestamp() + 2.0;
+        fireBoostEndTime = Timer.getFPGATimestamp() + 0.5;
     }
 
     @Override

@@ -124,19 +124,37 @@ public class Constants {
         // Distance-based interpolation table for dynamic shooting
         // Columns: {distance_m, pitch_rot, speed_rps}
         public static final double[][] DISTANCE_PARAMS_TABLE = {
-            {1.125, 0.0031,  47.5},  // Point 1
-            {1.5,   0.0029,  50},    // Point 2
-            {1.875, -0.001,  50},    // Point 3
-            {2.25,  -0.008,  53.75}, // Point 4
-            {2.625, -0.014,  55},    // Point 5
-            {3.0,   -0.015,  57.5},  // Point 6
-            {3.375, -0.015,  60},    // Point 7
-            {3.75,  -0.016,  62.5},  // Point 8
-            {4.125, -0.020,  63.75}, // Point 9
-            {4.5,   -0.022,  65.5},  // Point 10
-            {4.875, -0.025,  67},    // Point 11
-            {5.25,  -0.025,  69},    // Point 12
-            {5.625, -0.025,  70.25}, // Point 13
+            // {1.125, 0.0031,  47.5},  // Point 1
+            // {1.5,   0.0029,  50},    // Point 2
+            // {1.875, -0.001,  50},    // Point 3
+            // {2.25,  -0.008,  53.75}, // Point 4
+            // {2.625, -0.014,  55},    // Point 5
+            // {3.0,   -0.015,  57.5},  // Point 6
+            // {3.375, -0.015,  60},    // Point 7
+            // {3.75,  -0.016,  62.5},  // Point 8
+            // {4.125, -0.020,  63.75}, // Point 9
+            // {4.5,   -0.022,  65.5},  // Point 10
+            // {4.875, -0.025,  67},    // Point 11
+            // {5.25,  -0.025,  69},    // Point 12
+            // {5.625, -0.025,  70.25}, // Point 13
+            {1.25, -0.0000,  45.00},  // Point 1
+            {1.50, -0.0000,  47.50},    // Point 2
+            {1.75, -0.0000,  49.50},    // Point 3
+            {2.00, -0.0015,  51.50}, // Point 4
+            {2.25, -0.0020,  52.00},    // Point 5
+            {2.50, -0.0040,  54.50},  // Point 6
+            {2.75, -0.0055,  55.25},    // Point 7
+            {3.00, -0.0065,  56.50},  // Point 8
+            {3.25, -0.0090,  59.00}, // Point 9
+            {3.50, -0.0100,  60.00},  // Point 10
+            {3.75, -0.0105,  60.25},    // Point 11
+            {4.00, -0.0120,  61.50},    // Point 12
+            {4.25, -0.0125,  61.75}, // Point 13
+            {4.50, -0.0135,  62.25},  // Point 14
+            {4.75, -0.0170,  64.00},    // Point 15
+            {5.00, -0.0180,  65.00},    // Point 16
+            {5.25, -0.0190,  66.00}, // Point 7
+            {5.50, -0.0200,  66.50},  // Point 18
         };
 
         public static final InterpolatingDoubleTreeMap distanceToPitchMap = new InterpolatingDoubleTreeMap();
@@ -146,6 +164,35 @@ public class Constants {
             for (double[] point : DISTANCE_PARAMS_TABLE) {
                 distanceToPitchMap.put(point[0], point[1]);
                 distanceToSpeedMap.put(point[0], point[2]);
+            }
+        }
+
+        // Far-field corner feed targets (blue alliance frame)
+        public static final Translation2d BLUE_CORNER_LEFT  = new Translation2d(16.0, 7.0);
+        public static final Translation2d BLUE_CORNER_RIGHT = new Translation2d(16.0, 1.0);
+
+        // Reject corner feed if robot is closer than this to the hub (ball won't clear)
+        public static final double CORNER_FEED_MIN_HUB_DISTANCE = 4.5;
+
+        // Corner feed distance → {pitch_rot, speed_rps} — long lob shots
+        public static final double[][] CORNER_FEED_DISTANCE_TABLE = {
+            {7.0,  -0.055,  85.0},
+            {8.0,  -0.060,  90.0},
+            {9.0,  -0.065,  94.0},
+            {10.0, -0.070,  98.0},
+            {11.0, -0.074, 102.0},
+            {12.0, -0.078, 105.0},
+            {13.0, -0.082, 108.0},
+            {14.0, -0.086, 111.0},
+        };
+
+        public static final InterpolatingDoubleTreeMap distanceToCornerPitchMap = new InterpolatingDoubleTreeMap();
+        public static final InterpolatingDoubleTreeMap distanceToCornerSpeedMap = new InterpolatingDoubleTreeMap();
+
+        static {
+            for (double[] point : CORNER_FEED_DISTANCE_TABLE) {
+                distanceToCornerPitchMap.put(point[0], point[1]);
+                distanceToCornerSpeedMap.put(point[0], point[2]);
             }
         }
 

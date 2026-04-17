@@ -1,5 +1,8 @@
 package frc.robot.commands;
 
+import java.util.Set;
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -194,7 +197,6 @@ public class ShootingCommand extends SequentialCommandGroup {
                   && launcher.isAngleAtPosition(latestTargetPitch[0])
                   && drive.isAtHeading(new Rotation2d(latestTargetHeadingRad[0])))
         .withTimeout(warmupSeconds);
-
         Command launcherFire = Commands.sequence(
             Commands.runOnce(() -> launcher.startFireBoost()),
             Commands.run(
@@ -202,7 +204,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                 launcher)
         );
 
-        Command launcherStream = Commands.sequence(launcherWarmup, launcherFire);
+        Command launcherStream = Commands.sequence(launcherWarmup, Commands.waitSeconds(0.2), launcherFire);
 
         Command intakeStream = Commands.sequence(
             Commands.waitUntil(() -> launcher.isFrictionWheelReady()
@@ -211,8 +213,7 @@ public class ShootingCommand extends SequentialCommandGroup {
                 .withTimeout(warmupSeconds),
             Commands.runOnce(() ->
                 intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
-                Commands.waitSeconds(2),
-                
+                Commands.waitSeconds(0.5),
                 intake.progressiveIntakeSwingCommand()
         );
 
@@ -276,6 +277,98 @@ public class ShootingCommand extends SequentialCommandGroup {
                 intake.setIntakeMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
             });
+    }
+
+    /**
+     * Auto-aims and feeds to whichever field corner is closer to the robot.
+     * Silently aborts if the robot is too close to the hub (ball would hit the reef).
+     */
+    public static Command createCornerFeedCommand(
+        CommandSwerveDrivetrain drive,
+        Intake intake,
+        Launcher launcher,
+        DoubleSupplier xVelocityMps,
+        DoubleSupplier yVelocityMps,
+        double maxRotRate
+    ) {
+        return Commands.defer(() -> {
+            boolean isRed = DriverStation.getAlliance().map(a -> a == Alliance.Red).orElse(false);
+            Pose2d currentPose = drive.getPose();
+
+            Translation2d cornerLeft = isRed
+                ? new Translation2d(
+                    Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_CORNER_LEFT.getX(),
+                    Constants.Layout.FIELD_WIDTH_METERS  - Constants.VisionConfig.BLUE_CORNER_LEFT.getY())
+                : Constants.VisionConfig.BLUE_CORNER_LEFT;
+            Translation2d cornerRight = isRed
+                ? new Translation2d(
+                    Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_CORNER_RIGHT.getX(),
+                    Constants.Layout.FIELD_WIDTH_METERS  - Constants.VisionConfig.BLUE_CORNER_RIGHT.getY())
+                : Constants.VisionConfig.BLUE_CORNER_RIGHT;
+
+            double distLeft  = currentPose.getTranslation().getDistance(cornerLeft);
+            double distRight = currentPose.getTranslation().getDistance(cornerRight);
+            Translation2d targetCorner = distLeft < distRight ? cornerLeft : cornerRight;
+            double distToCorner = Math.min(distLeft, distRight);
+
+            Translation2d hubCenter = isRed
+                ? new Translation2d(
+                    Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX(),
+                    Constants.Layout.FIELD_WIDTH_METERS  - Constants.VisionConfig.BLUE_HUB_CENTER.getY())
+                : Constants.VisionConfig.BLUE_HUB_CENTER;
+            double distToHub = currentPose.getTranslation().getDistance(hubCenter);
+
+            SmartDashboard.putNumber("CornerFeed/DistToCorner", distToCorner);
+            SmartDashboard.putNumber("CornerFeed/DistToHub", distToHub);
+            SmartDashboard.putBoolean("CornerFeed/HubClear", distToHub >= Constants.VisionConfig.CORNER_FEED_MIN_HUB_DISTANCE);
+
+            if (distToHub < Constants.VisionConfig.CORNER_FEED_MIN_HUB_DISTANCE) {
+                return Commands.none();
+            }
+
+            double feedPitch = Constants.VisionConfig.distanceToCornerPitchMap.get(distToCorner);
+            double feedSpeed = Constants.VisionConfig.distanceToCornerSpeedMap.get(distToCorner);
+            launcher.setTargetDistance(distToCorner);
+
+            Command aimCommand = MoveWhileAimCommand.create(drive, xVelocityMps, yVelocityMps, maxRotRate, targetCorner);
+
+            Command launcherStream = Commands.sequence(
+                Commands.run(() -> {
+                    launcher.setFrictionWheelVelocity(feedSpeed);
+                    launcher.setAngleToTarget(feedPitch);
+                    launcher.setFeederVelocity(0);
+                    launcher.setTransportVelocity(0);
+                    SmartDashboard.putBoolean("CornerFeed/WheelReady", launcher.isFrictionWheelReady());
+                    SmartDashboard.putBoolean("CornerFeed/AngleReady", launcher.isAngleAtPosition(feedPitch));
+                }, launcher)
+                .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch))
+                .withTimeout(Constants.LauncherConfig.FastWarmupSeconds),
+                Commands.sequence(
+                    Commands.runOnce(() -> launcher.startFireBoost()),
+                    Commands.run(() -> {
+                        launcher.setFrictionWheelVelocity(feedSpeed);
+                        launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
+                        launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
+                    }, launcher)
+                )
+            );
+
+            Command intakeStream = Commands.sequence(
+                Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch))
+                    .withTimeout(Constants.LauncherConfig.FastWarmupSeconds),
+                Commands.run(() -> intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake)
+            );
+
+            return Commands.parallel(aimCommand, launcherStream, intakeStream)
+                .finallyDo((interrupted) -> {
+                    launcher.setFrictionWheelVelocity(0);
+                    launcher.setFeederVelocity(0);
+                    launcher.setAngleVoltage(0);
+                    launcher.setTransportVelocity(0);
+                    intake.setIntakeMotorVelocity(0);
+                    intake.applyIntakePitchMotorNeutral();
+                });
+        }, Set.of(drive, launcher, intake));
     }
 
 }
