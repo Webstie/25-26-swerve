@@ -201,7 +201,8 @@ public class ShootingCommand extends SequentialCommandGroup {
                 .withTimeout(warmupSeconds),
             Commands.runOnce(() ->
                 intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
-            intake.progressiveIntakeSwingCommand()
+                Commands.waitSeconds(2),
+                intake.progressiveIntakeSwingCommand()
         );
 
         return Commands.parallel(launcherStream, intakeStream)

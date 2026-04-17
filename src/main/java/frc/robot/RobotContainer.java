@@ -244,6 +244,7 @@ public class RobotContainer {
                     launcher.setTransportVelocity(10);
                     launcher.setFrictionWheelVelocity(-1);
                     launcher.setFeederVelocity(10);
+                    launcher.setIntakeBrake(true);
                     autoReverseFired = false;
                 }).andThen(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Intaking), candle)),
                 // Intake OFF: if auto-reverse hasn't fired yet, do 0.3s reverse; otherwise just stop feeder
@@ -256,7 +257,8 @@ public class RobotContainer {
                     Commands.runOnce(() -> launcher.setFeederVelocity(0)),
                     () -> !autoReverseFired
                 ).andThen(new InstantCommand(() -> candle.restoreBackground(), candle))
-                .andThen(Commands.waitSeconds(0.5)),
+                .andThen(Commands.waitSeconds(0.5))
+                .finallyDo(() -> launcher.setIntakeBrake(false)),
                 () -> intake.isIntakeRunning()
             ))
         );

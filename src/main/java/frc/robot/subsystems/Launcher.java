@@ -25,6 +25,7 @@ public class Launcher extends SubsystemBase {
     private static final double VELOCITY_TOLERANCE = 2.0; // rps
 
     private double frictionWheelVelocityTarget = 0.0;
+    private boolean intakeBrake = false;
     private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut neutralRequest = new NeutralOut();
 
@@ -96,13 +97,19 @@ public class Launcher extends SubsystemBase {
         return cfg;
     }
 
+    public void setIntakeBrake(boolean brake) {
+        intakeBrake = brake;
+    }
+
     @Override
     public void periodic() {
-        if (frictionWheelVelocityTarget == 0.0) {
-            applyFrictionWheelNeutral();
-        } else {
+        if (frictionWheelVelocityTarget != 0.0) {
             double limitedVelocity = velocityLimiter.calculate(frictionWheelVelocityTarget);
             applyFrictionWheelVelocity(limitedVelocity);
+        } else if (intakeBrake) {
+            applyFrictionWheelVelocity(0);
+        } else {
+            applyFrictionWheelNeutral();
         }
     }
 
