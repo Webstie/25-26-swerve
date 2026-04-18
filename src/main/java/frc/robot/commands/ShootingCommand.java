@@ -213,7 +213,6 @@ public class ShootingCommand extends SequentialCommandGroup {
                 .withTimeout(warmupSeconds),
             Commands.runOnce(() ->
                 intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake),
-                Commands.waitSeconds(0.5),
                 intake.progressiveIntakeSwingCommand()
         );
 
