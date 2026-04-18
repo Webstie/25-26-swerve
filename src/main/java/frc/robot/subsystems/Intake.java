@@ -64,8 +64,8 @@ public class Intake extends SubsystemBase {
         intakePitchMotorConfigs.Slot0.kP = 5;
         intakePitchMotorConfigs.Slot0.kI = 0;
         intakePitchMotorConfigs.Slot0.kD = 0;
-        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 200;
-        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 400;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 400;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 800;
         intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
         intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
         intakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
@@ -247,10 +247,11 @@ public class Intake extends SubsystemBase {
      */
     public Command progressiveIntakeSwingCommand() {
         return Commands.sequence(
+            new WaitCommand(0.5),
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition),
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition + 1),
             createSwingStep(IntakeSwingUpPosition + 2.5, IntakeDownPosition + 2.5),
-            createSwingStep(-8.9, -11.9)
+            createSwingStep(-8.9, -11.9).repeatedly()
         );
     }
 

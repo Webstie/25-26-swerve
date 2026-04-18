@@ -8,42 +8,44 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.423466666666665,
-        "y": 6.264708333333334
+        "x": 7.554725858134551,
+        "y": 4.593583027273513
       },
       "isLocked": false,
       "linkedName": "BlueIntake5"
     },
     {
       "anchor": {
-        "x": 0.760083036773429,
-        "y": 5.966275207591934
+        "x": 5.948775059444468,
+        "y": 5.4
       },
       "prevControl": {
-        "x": 1.8394120181775777,
-        "y": 5.9133668742586005
+        "x": 6.90713943233277,
+        "y": 5.180858918210531
+      },
+      "nextControl": {
+        "x": 4.920124573572748,
+        "y": 5.635212813241196
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.3,
+        "y": 5.4
+      },
+      "prevControl": {
+        "x": 3.526124855509619,
+        "y": 5.5066187118697
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueWarehouse"
+      "linkedName": "BlueShootNearLeft"
     }
   ],
   "rotationTargets": [],
-  "constraintZones": [
-    {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8039867109634554,
-      "maxWaypointRelativePos": 1.0,
-      "constraints": {
-        "maxVelocity": 1.0,
-        "maxAcceleration": 1.0,
-        "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 720.0,
-        "nominalVoltage": 12.0,
-        "unlimited": false
-      }
-    }
-  ],
+  "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
@@ -56,7 +58,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 179.88334612219998
+    "rotation": -45.82988430948251
   },
   "reversed": false,
   "folder": "Blue5",

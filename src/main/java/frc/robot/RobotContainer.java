@@ -198,6 +198,7 @@ public class RobotContainer {
         // Celebration lights
         Driver.y().onTrue(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingDown), candle));
 
+        //根据它目前在场地上的坐标，决定是“发射”还是“Feed”
         Driver.rightTrigger().whileTrue(
             Commands.either(
                 Commands.defer(() -> ShootingCommand.createShootingCommand(
@@ -222,8 +223,6 @@ public class RobotContainer {
             )
         );
 
-        
-        
         Driver.povUp().onTrue(new InstantCommand(() -> launchSpeed += 0.25));
         Driver.povDown().onTrue(new InstantCommand(() -> launchSpeed -= 0.25));
         Driver.povLeft().onTrue(new InstantCommand(() -> launchAngle += 0.0005));
@@ -246,6 +245,8 @@ public class RobotContainer {
         // );
 
         // Move-while-aim dynamic shoot (left trigger)
+
+        //跑打
         Driver.leftTrigger().whileTrue(
             Commands.parallel(
                 MoveWhileAimCommand.create(
