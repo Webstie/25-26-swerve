@@ -10,6 +10,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.LauncherConfig.*;
@@ -107,17 +108,18 @@ public class Launcher extends SubsystemBase {
         targetDistanceMeters = distanceMeters;
     }
 
-    /** Boosts friction wheels by the current target distance (rps) for 2 seconds. */
+    /** Boosts friction wheels to the table-defined boost speed for 0.5 seconds. */
     public void startFireBoost() {
-        fireBoostRps = targetDistanceMeters * 1.5;
-        fireBoostEndTime = Timer.getFPGATimestamp() + 0.5;
+        fireBoostRps = frc.robot.Constants.VisionConfig.distanceToBoostSpeedMap.get(targetDistanceMeters);
+        SmartDashboard.putNumber("Launcher/BoostSpeed", fireBoostRps);
+        fireBoostEndTime = Timer.getFPGATimestamp() + 1.0;
     }
 
     @Override
     public void periodic() {
         if (frictionWheelVelocityTarget != 0.0) {
-            double boost = Timer.getFPGATimestamp() < fireBoostEndTime ? fireBoostRps : 0.0;
-            applyFrictionWheelVelocity(frictionWheelVelocityTarget + boost);
+            boolean boosting = Timer.getFPGATimestamp() < fireBoostEndTime;
+            applyFrictionWheelVelocity(boosting ? fireBoostRps : frictionWheelVelocityTarget);
         } else if (intakeBrake) {
             applyFrictionWheelVelocity(0);
         } else {

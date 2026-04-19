@@ -48,8 +48,15 @@ public class ShootingCommand extends SequentialCommandGroup {
         launcher.setTargetDistance(distanceToTarget);
         double bestPitch = Constants.VisionConfig.distanceToPitchMap.get(distanceToTarget)
             + Constants.ShootingTrim.pitchOffset;
-        double bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget)
+        double bestSpeed = 0;
+        if(fire){
+            bestSpeed = Constants.VisionConfig.distanceToSpeedMap.get(distanceToTarget)
             + Constants.ShootingTrim.speedOffset;
+        }else{
+            bestSpeed = Constants.VisionConfig.distanceToBoostSpeedMap.get(distanceToTarget)
+            + Constants.ShootingTrim.speedOffset;
+        }
+        
 
         ChassisSpeeds speeds = drive.getRobotRelativeSpeeds();
         double cos = currentPose.getRotation().getCos();
@@ -308,7 +315,12 @@ public class ShootingCommand extends SequentialCommandGroup {
 
             double distLeft  = currentPose.getTranslation().getDistance(cornerLeft);
             double distRight = currentPose.getTranslation().getDistance(cornerRight);
-            Translation2d targetCorner = distLeft < distRight ? cornerLeft : cornerRight;
+            boolean useLeft = distLeft < distRight;
+            Translation2d targetCorner = useLeft ? cornerLeft : cornerRight;
+            // Pass the blue corner to MoveWhileAimCommand — it handles the alliance flip internally
+            Translation2d blueTargetCorner = useLeft
+                ? Constants.VisionConfig.BLUE_CORNER_LEFT
+                : Constants.VisionConfig.BLUE_CORNER_RIGHT;
             double distToCorner = Math.min(distLeft, distRight);
 
             SmartDashboard.putNumber("CornerFeed/DistToCorner", distToCorner);
@@ -317,7 +329,7 @@ public class ShootingCommand extends SequentialCommandGroup {
             double feedSpeed = Constants.VisionConfig.distanceToCornerSpeedMap.get(distToCorner);
             launcher.setTargetDistance(distToCorner);
 
-            Command aimCommand = MoveWhileAimCommand.create(drive, xVelocityMps, yVelocityMps, maxRotRate, targetCorner);
+            Command aimCommand = MoveWhileAimCommand.create(drive, xVelocityMps, yVelocityMps, maxRotRate, blueTargetCorner);
 
             Command launcherStream = Commands.sequence(
                 Commands.run(() -> {

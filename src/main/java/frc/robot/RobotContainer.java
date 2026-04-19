@@ -323,15 +323,15 @@ public class RobotContainer {
         })
         .onTrue(Commands.sequence(
             Commands.runOnce(() -> launchAngle = 0.0),
-            Commands.run(() -> launcher.setAngleToTarget(0.0), launcher)
+            Commands.run(() -> launcher.setAngleToTarget(0.0))
                 .until(() -> launcher.isAngleAtPosition(0.0))
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ))
         .onFalse(Commands.sequence(
             Commands.runOnce(() -> launchAngle = -0.02),
-            Commands.run(() -> launcher.setAngleToTarget(-0.02), launcher)
+            Commands.run(() -> launcher.setAngleToTarget(-0.02))
                 .until(() -> launcher.isAngleAtPosition(-0.02))
-                .finallyDo(() -> launcher.setAngleVoltage(0))   
+                .finallyDo(() -> launcher.setAngleVoltage(0))
         ));
 
         // Auto-reverse: if feeder < 1 rps for 1s while intake is running, trigger reverse once
