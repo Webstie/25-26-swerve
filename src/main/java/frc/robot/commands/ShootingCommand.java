@@ -78,6 +78,8 @@ public class ShootingCommand extends SequentialCommandGroup {
 
         SmartDashboard.putNumber("AutoScore/Distance_Meters", distanceToTarget);
         SmartDashboard.putNumber("AutoScore/Target_Pitch", bestPitch);
+        SmartDashboard.putNumber("AutoScore/Target_Heading_Deg", targetHeading.getDegrees());
+        SmartDashboard.putNumber("AutoScore/Actual_Heading_Deg", drive.getPose().getRotation().getDegrees());
         SmartDashboard.putNumber("AutoScore/Target_Speed", bestSpeed);
         SmartDashboard.putNumber("AutoScore/PitchLead", pitchLead);
         SmartDashboard.putNumber("AutoScore/RadialSpeed", radialSpeed);
@@ -326,6 +328,9 @@ public class ShootingCommand extends SequentialCommandGroup {
                     launcher.setTransportVelocity(0);
                     SmartDashboard.putBoolean("CornerFeed/WheelReady", launcher.isFrictionWheelReady());
                     SmartDashboard.putBoolean("CornerFeed/AngleReady", launcher.isAngleAtPosition(feedPitch));
+                    SmartDashboard.putBoolean("CornerFeed/HeadingReady", drive.isAtHeading(new Rotation2d(Math.atan2(
+                        targetCorner.getY() - drive.getPose().getY(),
+                        targetCorner.getX() - drive.getPose().getX()))));
                 }, launcher)
                 .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(feedPitch)
                           && drive.isAtHeading(new Rotation2d(Math.atan2(

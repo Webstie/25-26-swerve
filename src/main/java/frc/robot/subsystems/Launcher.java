@@ -8,7 +8,6 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,7 +29,6 @@ public class Launcher extends SubsystemBase {
     private double fireBoostRps = 0.0;
     private double fireBoostEndTime = 0.0;
     private boolean intakeBrake = false;
-    private final SlewRateLimiter velocityLimiter = new SlewRateLimiter(FrictionWheelVelocityRampRate);
     private final NeutralOut neutralRequest = new NeutralOut();
 
     private final TalonFX feederMotor = new TalonFX(FEEDER_MOTOR_ID, new CANBus("canivore"));
@@ -111,16 +109,15 @@ public class Launcher extends SubsystemBase {
 
     /** Boosts friction wheels by the current target distance (rps) for 2 seconds. */
     public void startFireBoost() {
-        fireBoostRps = targetDistanceMeters;
+        fireBoostRps = targetDistanceMeters * 1.5;
         fireBoostEndTime = Timer.getFPGATimestamp() + 0.5;
     }
 
     @Override
     public void periodic() {
         if (frictionWheelVelocityTarget != 0.0) {
-            double limitedVelocity = velocityLimiter.calculate(frictionWheelVelocityTarget);
             double boost = Timer.getFPGATimestamp() < fireBoostEndTime ? fireBoostRps : 0.0;
-            applyFrictionWheelVelocity(limitedVelocity + boost);
+            applyFrictionWheelVelocity(frictionWheelVelocityTarget + boost);
         } else if (intakeBrake) {
             applyFrictionWheelVelocity(0);
         } else {
@@ -150,6 +147,10 @@ public class Launcher extends SubsystemBase {
         if (frictionWheelVelocityTarget == 0) return false;
         double actual = leftFrictionWheelMotor.getVelocity().getValueAsDouble();
         return Math.abs(actual - frictionWheelVelocityTarget) < VELOCITY_TOLERANCE;
+    }
+
+    public double getCurrentAngle() {
+        return angleEncoder.getAbsolutePosition().getValueAsDouble();
     }
 
     /** True when the angle encoder is within tolerance of the target position. */

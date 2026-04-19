@@ -176,10 +176,10 @@ public class Constants {
 
         // Corner feed distance → {pitch_rot, speed_rps} — long lob shots
         public static final double[][] CORNER_FEED_DISTANCE_TABLE = {
-            {7.0,  -0.020,  75.0},
-            {8.0,  -0.030,  80.0},
-            {9.0,  -0.040,  90.0},
-            {10.0, -0.050,  100.0},
+            {5.0,  -0.015,  70.0},
+            {6.0,  -0.020,  75.0},
+            {7.0,  -0.025,  80.0},
+            {8.0, -0.030,  85.0},
         };
 
         public static final InterpolatingDoubleTreeMap distanceToCornerPitchMap = new InterpolatingDoubleTreeMap();
@@ -193,7 +193,7 @@ public class Constants {
         }
 
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
-        public static final double ANGLE_TOLERANCE_DEGREES = 1;
+        public static final double ANGLE_TOLERANCE_DEGREES = 3.0;
     }
 
     /** Global in-match shooting trim: additive offsets applied on top of all table lookups. */

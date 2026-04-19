@@ -82,7 +82,9 @@ public class RobotContainer {
     public boolean isVisionPoseFusion = true;
 
     // Flag to ensure auto-reverse fires at most once per intake cycle
-    private boolean autoReverseFired = false;
+    private boolean autoReverseFired = true;
+    // Flag set by hub-line Trigger; consumed by updateDashboard until angle reaches target
+    private boolean launchAngleNeedsUpdate = true;
 
     public RobotContainer() {
 
@@ -157,6 +159,22 @@ public class RobotContainer {
         SmartDashboard.putNumber("Launcher/Angle", launchAngle);
         SmartDashboard.putNumber("Launcher/SpeedOffset", Constants.ShootingTrim.speedOffset);
         SmartDashboard.putNumber("Launcher/PitchOffset", Constants.ShootingTrim.pitchOffset);
+        SmartDashboard.putBoolean("Launcher/Update", launchAngleNeedsUpdate);
+
+        boolean isRed = DriverStation.getAlliance()
+            .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+        double x = drivetrain.getPose().getX();
+        double hubX = isRed
+            ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+            : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+        SmartDashboard.putBoolean("Launcher/IsOurHalf", isRed ? x > hubX : x < hubX);
+        if (launchAngleNeedsUpdate) {
+            launcher.setAngleToTarget(launchAngle);
+            if (launcher.isAngleAtPosition(launchAngle)) {
+                launcher.setAngleVoltage(0);
+                launchAngleNeedsUpdate = false;
+            }
+        }
     }
 
     public boolean isAutoWin() {
@@ -198,28 +216,14 @@ public class RobotContainer {
         // Celebration lights
         Driver.y().onTrue(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingDown), candle));
 
-        //根据它目前在场地上的坐标，决定是“发射”还是“Feed”
+        // Manual shoot (right trigger)
         Driver.rightTrigger().whileTrue(
-            Commands.either(
-                Commands.defer(() -> ShootingCommand.createShootingCommand(
+            Commands.sequence(
+                makePreShootReverseCommand(),
+                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
                     intake, launcher, launchSpeed, launchAngle)
                     .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
-                    .finallyDo(() -> candle.restoreBackground()), 
-                    Set.of(intake, launcher)),
-                ShootingCommand.createCornerFeedCommand(
-                    drivetrain, intake, launcher,
-                    () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.5,
-                    () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.5,
-                    MaxAngularRate * getInputScale()),
-                () -> {
-                    boolean isRed = DriverStation.getAlliance()
-                        .map(a -> a == DriverStation.Alliance.Red).orElse(false);
-                    double x = drivetrain.getPose().getX();
-                    double hubX = isRed
-                        ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
-                        : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
-                    return isRed ? x > hubX : x < hubX;
-                }
+                    .finallyDo(() -> candle.restoreBackground()))
             )
         );
 
@@ -230,40 +234,43 @@ public class RobotContainer {
 
         // Driver.back().whileTrue(launcher.adjustAngleCommand(12));
 
-        // Manual fixed-speed shoot
-        // Driver.rightTrigger().whileTrue(
-        //     Commands.parallel(
-        //         new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-        //             intake, launcher,
-        //             // LauncherConfig.ManualShootSpeed,
-        //             // LauncherConfig.ManualShootAngle
-        //             launchSpeed,
-        //             launchAngle
-        //         )),
-        //         Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
-        //     ).finallyDo(() -> candle.restoreBackground())
-        // );
-
-        // Move-while-aim dynamic shoot (left trigger)
-
-        //跑打
+        // Hub前dynamic shoot，Hub后corner feed (left trigger)
         Driver.leftTrigger().whileTrue(
-            Commands.parallel(
-                MoveWhileAimCommand.create(
-                    drivetrain,
-                    () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.25,
-                    () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.25,
-                    MaxAngularRate * getInputScale(),
-                    Constants.VisionConfig.BLUE_HUB_CENTER
-                ),
-                ShootingCommand.createDynamicShootingCommand(
-                    drivetrain, intake, launcher,
-                    Constants.VisionConfig.BLUE_HUB_CENTER,
-                    Constants.LauncherConfig.WarmupSecond
+            Commands.sequence(
+                makePreShootReverseCommand(),
+                Commands.either(
+                    Commands.parallel(
+                        MoveWhileAimCommand.create(
+                            drivetrain,
+                            () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.25,
+                            () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.25,
+                            MaxAngularRate * getInputScale(),
+                            Constants.VisionConfig.BLUE_HUB_CENTER
+                        ),
+                        ShootingCommand.createDynamicShootingCommand(
+                            drivetrain, intake, launcher,
+                            Constants.VisionConfig.BLUE_HUB_CENTER,
+                            Constants.LauncherConfig.WarmupSecond
+                        )
+                    )
+                    .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
+                    .finallyDo(() -> candle.restoreBackground()),
+                    ShootingCommand.createCornerFeedCommand(
+                        drivetrain, intake, launcher,
+                        () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.5,
+                        () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.5,
+                        MaxAngularRate * getInputScale()),
+                    () -> {
+                        boolean isRed = DriverStation.getAlliance()
+                            .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+                        double x = drivetrain.getPose().getX();
+                        double hubX = isRed
+                            ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+                            : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+                        return isRed ? x > hubX : x < hubX;
+                    }
                 )
             )
-            .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
-            .finallyDo(() -> candle.restoreBackground())
         );
 
         // Intake pitch toggle (up/down)
@@ -291,11 +298,14 @@ public class RobotContainer {
                 }).andThen(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Intaking), candle)),
                 // Intake OFF: if auto-reverse hasn't fired yet, do 0.3s reverse; otherwise just stop feeder
                 Commands.either(
-                    Commands.startEnd(
-                        () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
-                        () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); },
-                        launcher
-                    ).withTimeout(0.3),
+                    Commands.sequence(
+                        Commands.runOnce(() -> autoReverseFired = true),
+                        Commands.startEnd(
+                            () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                            () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); },
+                            launcher
+                        ).withTimeout(0.3)
+                    ),
                     Commands.runOnce(() -> launcher.setFeederVelocity(0)),
                     () -> !autoReverseFired
                 ).andThen(new InstantCommand(() -> candle.restoreBackground(), candle))
@@ -304,6 +314,19 @@ public class RobotContainer {
                 () -> intake.isIntakeRunning()
             ))
         );
+
+        // Auto-adjust launch angle when crossing the hub line
+        new Trigger(() -> {
+            boolean isRed = DriverStation.getAlliance()
+                .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+            double x = drivetrain.getPose().getX();
+            double hubX = isRed
+                ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+                : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+            return isRed ? x > hubX : x < hubX;
+        })
+        .onTrue(Commands.runOnce(() -> { launchAngle = 0.0; launchAngleNeedsUpdate = true; }))
+        .onFalse(Commands.runOnce(() -> { launchAngle = -0.02; launchAngleNeedsUpdate = true; }));
 
         // Auto-reverse: if feeder < 1 rps for 1s while intake is running, trigger reverse once
         new Trigger(() -> !autoReverseFired
@@ -447,6 +470,25 @@ public class RobotContainer {
             .withTimeout(timeout);
 
         return stopIntakeAfter ? cmd.andThen(intake.setIntakeSpeedZeroCommand()) : cmd;
+    }
+
+    /**
+     * If auto-reverse hasn't fired yet this intake cycle, runs a 0.3s reverse before shooting
+     * to seat the ball correctly. Marks autoReverseFired so the trigger won't interrupt later.
+     */
+    private Command makePreShootReverseCommand() {
+        return Commands.either(
+            Commands.sequence(
+                Commands.runOnce(() -> autoReverseFired = true),
+                Commands.startEnd(
+                    () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                    () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); launcher.setIntakeBrake(false); },
+                    launcher
+                ).withTimeout(0.3)
+            ),
+            Commands.runOnce(() -> launcher.setIntakeBrake(false)),
+            () -> !autoReverseFired
+        );
     }
 
     /** Builds a teleop fixed-point auto score command for operator button bindings. */
