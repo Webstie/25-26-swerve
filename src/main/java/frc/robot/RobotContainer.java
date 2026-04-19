@@ -310,8 +310,9 @@ public class RobotContainer {
             ))
         );
 
-        // Auto-adjust launch angle when crossing the hub line
+        // Auto-adjust launch angle when crossing the hub line (teleop only)
         new Trigger(() -> {
+            if (!DriverStation.isTeleopEnabled()) return false;
             boolean isRed = DriverStation.getAlliance()
                 .map(a -> a == DriverStation.Alliance.Red).orElse(false);
             double x = drivetrain.getPose().getX();
@@ -330,7 +331,7 @@ public class RobotContainer {
             Commands.runOnce(() -> launchAngle = -0.02),
             Commands.run(() -> launcher.setAngleToTarget(-0.02), launcher)
                 .until(() -> launcher.isAngleAtPosition(-0.02))
-                .finallyDo(() -> launcher.setAngleVoltage(0))
+                .finallyDo(() -> launcher.setAngleVoltage(0))   
         ));
 
         // Auto-reverse: if feeder < 1 rps for 1s while intake is running, trigger reverse once
