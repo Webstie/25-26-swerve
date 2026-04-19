@@ -168,13 +168,7 @@ public class RobotContainer {
             ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
             : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
         SmartDashboard.putBoolean("Launcher/IsOurHalf", isRed ? x > hubX : x < hubX);
-        if (launchAngleNeedsUpdate) {
-            launcher.setAngleToTarget(launchAngle);
-            if (launcher.isAngleAtPosition(launchAngle)) {
-                launcher.setAngleVoltage(0);
-                launchAngleNeedsUpdate = false;
-            }
-        }
+        SmartDashboard.putNumber("Launcher/ActualAngle", launcher.getCurrentAngle());
     }
 
     public boolean isAutoWin() {
@@ -220,10 +214,11 @@ public class RobotContainer {
         Driver.rightTrigger().whileTrue(
             Commands.sequence(
                 makePreShootReverseCommand(),
-                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
+                Commands.defer(() -> ShootingCommand.createShootingCommand(
                     intake, launcher, launchSpeed, launchAngle)
                     .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
-                    .finallyDo(() -> candle.restoreBackground()))
+                    .finallyDo(() -> candle.restoreBackground()),
+                    Set.of(intake, launcher))
             )
         );
 
@@ -325,8 +320,18 @@ public class RobotContainer {
                 : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
             return isRed ? x > hubX : x < hubX;
         })
-        .onTrue(Commands.runOnce(() -> { launchAngle = 0.0; launchAngleNeedsUpdate = true; }))
-        .onFalse(Commands.runOnce(() -> { launchAngle = -0.02; launchAngleNeedsUpdate = true; }));
+        .onTrue(Commands.sequence(
+            Commands.runOnce(() -> launchAngle = 0.0),
+            Commands.run(() -> launcher.setAngleToTarget(0.0), launcher)
+                .until(() -> launcher.isAngleAtPosition(0.0))
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ))
+        .onFalse(Commands.sequence(
+            Commands.runOnce(() -> launchAngle = -0.02),
+            Commands.run(() -> launcher.setAngleToTarget(-0.02), launcher)
+                .until(() -> launcher.isAngleAtPosition(-0.02))
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ));
 
         // Auto-reverse: if feeder < 1 rps for 1s while intake is running, trigger reverse once
         new Trigger(() -> !autoReverseFired
