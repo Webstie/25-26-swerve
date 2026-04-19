@@ -153,32 +153,40 @@ public class ShootingCommand extends SequentialCommandGroup {
 
     /**
      * Auto shoot: no warmup wait (assumes pre-warmup during path travel).
+     * @param useBoost if true, triggers startFireBoost() on shot; pass false for return-from-warehouse shots
      */
     public static Command createAutoShootingCommand(
         Intake intake,
         Launcher launcher,
-        double frictionWheelLaunchSpeed
+        double frictionWheelLaunchSpeed,
+        double launchAngle,
+        boolean swingIntake,
+        boolean useBoost
     ) {
         Command launcherStream = Commands.sequence(
-            Commands.runOnce(() -> launcher.startFireBoost()),
+            useBoost ? Commands.runOnce(() -> launcher.startFireBoost()) : Commands.none(),
             Commands.run(() -> {
                 launcher.setFrictionWheelVelocity(frictionWheelLaunchSpeed);
+                launcher.setAngleToTarget(launchAngle);
                 launcher.setFeederVelocity(Constants.LauncherConfig.FeederSpeed);
                 launcher.setTransportVelocity(Constants.TransportConfig.TransportSpeed);
             }, launcher)
         );
 
-        Command intakeStream = Commands.parallel(
-            intake.progressiveIntakeSwingCommand()
-                .alongWith(Commands.run(() ->
-                    intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity)))
-        );
+        Command intakeStream = swingIntake
+            ? Commands.parallel(
+                intake.progressiveIntakeSwingCommand()
+                    .alongWith(Commands.run(() ->
+                        intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity))))
+            : Commands.run(() ->
+                intake.setIntakeMotorVelocity(Constants.IntakeConfig.IntakeVelocity), intake);
 
         return Commands.parallel(launcherStream, intakeStream)
             .finallyDo((interrupted) -> {
                 launcher.setFrictionWheelVelocity(0);
                 launcher.setFeederVelocity(0);
                 launcher.setTransportVelocity(0);
+                launcher.setAngleVoltage(0);
                 intake.setIntakeMotorVelocity(0);
                 intake.applyIntakePitchMotorNeutral();
             });

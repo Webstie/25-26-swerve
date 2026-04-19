@@ -111,6 +111,7 @@ public class Launcher extends SubsystemBase {
     /** Boosts friction wheels to the table-defined boost speed for 0.5 seconds. */
     public void startFireBoost() {
         fireBoostRps = frc.robot.Constants.VisionConfig.distanceToBoostSpeedMap.get(targetDistanceMeters);
+        SmartDashboard.putNumber("Launcher/Distance", targetDistanceMeters);
         SmartDashboard.putNumber("Launcher/BoostSpeed", fireBoostRps);
         fireBoostEndTime = Timer.getFPGATimestamp() + 1.0;
     }
@@ -166,7 +167,7 @@ public class Launcher extends SubsystemBase {
         final double kS = 5.0;
 
         double error = targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble();
-        if (Math.abs(error) <= ANGLE_TOLERANCE || angleEncoder.getAbsolutePosition().getValueAsDouble() <=targetPosition) {
+        if (Math.abs(error) <= ANGLE_TOLERANCE) {
             setAngleVoltage(0);
             return;
         }

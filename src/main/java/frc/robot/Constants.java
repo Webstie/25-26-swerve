@@ -113,12 +113,12 @@ public class Constants {
         // Fixed scoring positions: indices 0-2 = near (left/mid/right), 3-5 = far (left/mid/right)
         // Columns: {distance, field_y, pitch_rot, speed_rps}
         public static final double[][] POINTS_PARAMS_TABLE_BLUE = {
-            {3.3,   5.4,   -0.0015, 50},   // Point 1 (near left)
-            {2.8,   4.03,  -0.0015, 50},   // Point 2 (near mid)
-            {3.2,   2.6,   -0.0015, 50},   // Point 3 (near right)
-            {2.17,  6.01,  -0.015,  58.5}, // Point 4 (far left)
-            {1.642, 3.61,  -0.015,  58.5}, // Point 5 (far mid)
-            {2.039, 2.065, -0.015,  58.5}, // Point 6 (far right)
+            {3.3,   5.4,   -0.002, 52},   // Point 1 (near left)
+            {2.8,   4.03,  -0.002, 52},   // Point 2 (near mid)
+            {3.2,   2.6,   -0.002, 52},   // Point 3 (near right)
+            {2.17,  6.01,  -0.009,  59}, // Point 4 (far left)
+            {1.642, 3.61,  -0.009,  59}, // Point 5 (far mid)
+            {2.039, 2.065, -0.009,  59}, // Point 6 (far right)
         };
 
         // Distance-based interpolation table for dynamic shooting

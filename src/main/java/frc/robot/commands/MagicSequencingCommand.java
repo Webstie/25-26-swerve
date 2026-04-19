@@ -108,7 +108,8 @@ public class MagicSequencingCommand {
                            && launcher.isAngleAtPosition(bestPitch)
                            && drive.isAtHeading(targetHeading))
                  .withTimeout(2.5),
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, bestSpeed)
+                Commands.runOnce(() -> launcher.setTargetDistance(distanceToTarget)),
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, bestSpeed, bestPitch, true, true)
             );
         }, Set.of(drive, intakeSubsystem, launcher));
     }
@@ -154,7 +155,8 @@ public class MagicSequencingCommand {
         Intake intakeSubsystem,
         Launcher launcher,
         Translation2d blueCenterPosition,
-        double[][] pointsParamsTable
+        double[][] pointsParamsTable,
+        boolean useBoost
     ) {
         return Commands.defer(() -> {
             boolean isRed = DriverStation.getAlliance().map(a -> a == Alliance.Red).orElse(false);
@@ -162,13 +164,18 @@ public class MagicSequencingCommand {
             double launch_angle = currentParams[2] + Constants.ShootingTrim.pitchOffset;
             double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
 
-            Translation2d fixedPoint = new Translation2d(currentParams[0], currentParams[1]);
+            Translation2d blueFixedPoint = new Translation2d(currentParams[0], currentParams[1]);
+            Translation2d fixedPoint = isRed
+                ? new Translation2d(
+                    Constants.Layout.FIELD_LENGTH_METERS - blueFixedPoint.getX(),
+                    Constants.Layout.FIELD_WIDTH_METERS - blueFixedPoint.getY())
+                : blueFixedPoint;
             Translation2d hubCenter = isRed
                 ? new Translation2d(
                     Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(),
                     Constants.Layout.FIELD_WIDTH_METERS - blueCenterPosition.getY())
                 : blueCenterPosition;
-            launcher.setTargetDistance(fixedPoint.getDistance(hubCenter));
+            double targetDist = fixedPoint.getDistance(hubCenter);
 
             return Commands.sequence(
                 Commands.deadline(
@@ -180,7 +187,8 @@ public class MagicSequencingCommand {
                 ),
                 Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launch_angle))
                     .withTimeout(0.5),
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed)
+                Commands.runOnce(() -> launcher.setTargetDistance(targetDist)),
+                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed, launch_angle, true, useBoost)
             );
         }, Set.of(drive, intakeSubsystem, launcher));
     }
@@ -195,24 +203,33 @@ public class MagicSequencingCommand {
         Intake intakeSubsystem,
         Launcher launcher,
         Translation2d blueCenterPosition,
-        double[][] pointsParamsTable
+        double[][] pointsParamsTable,
+        boolean useBoost
     ) {
         return Commands.defer(() -> {
             boolean isRed = DriverStation.getAlliance().map(a -> a == Alliance.Red).orElse(false);
             double[] currentParams = pointsParamsTable[position_index];
             double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
+            double launchAngle = currentParams[2] + Constants.ShootingTrim.pitchOffset;
 
-            Translation2d fixedPoint = new Translation2d(currentParams[0], currentParams[1]);
+            Translation2d blueFixedPoint = new Translation2d(currentParams[0], currentParams[1]);
+            Translation2d fixedPoint = isRed
+                ? new Translation2d(
+                    Constants.Layout.FIELD_LENGTH_METERS - blueFixedPoint.getX(),
+                    Constants.Layout.FIELD_WIDTH_METERS - blueFixedPoint.getY())
+                : blueFixedPoint;
             Translation2d hubCenter = isRed
                 ? new Translation2d(
                     Constants.Layout.FIELD_LENGTH_METERS - blueCenterPosition.getX(),
                     Constants.Layout.FIELD_WIDTH_METERS - blueCenterPosition.getY())
                 : blueCenterPosition;
-            launcher.setTargetDistance(fixedPoint.getDistance(hubCenter));
-
-            return Commands.parallel(
-                ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed),
-                runToClosestPosition(position_index, drive, pointsParamsTable, blueCenterPosition)
+            double targetDist = fixedPoint.getDistance(hubCenter);
+            return Commands.sequence(
+                Commands.runOnce(() -> launcher.setTargetDistance(targetDist)),
+                Commands.parallel(
+                    ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed, launchAngle, true, useBoost),
+                    runToClosestPosition(position_index, drive, pointsParamsTable, blueCenterPosition)
+                )
             );
         }, Set.of(drive, intakeSubsystem, launcher));
     }

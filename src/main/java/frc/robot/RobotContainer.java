@@ -112,8 +112,8 @@ public class RobotContainer {
 
         NamedCommands.registerCommand("WarmUp_Auto_Far",
             Commands.run(() -> {
-                launcher.setFrictionWheelVelocity(58.5);
-                launcher.setAngleToTarget(-0.015);
+                launcher.setFrictionWheelVelocity(59);
+                launcher.setAngleToTarget(-0.009);
             }, launcher)
             .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(-0.015))
             .withTimeout(Constants.LauncherConfig.WarmupSecond)
@@ -121,27 +121,48 @@ public class RobotContainer {
 
         NamedCommands.registerCommand("WarmUp_Auto_Near",
             Commands.run(() -> {
-                launcher.setFrictionWheelVelocity(50);
-                launcher.setAngleToTarget(-0.0015);
+                launcher.setFrictionWheelVelocity(52);
+                launcher.setAngleToTarget(-0.002);
             }, launcher)
             .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(-0.0015))
             .withTimeout(Constants.LauncherConfig.WarmupSecond)
         );
 
-        // Auto shoot commands: positionIndex, timeout, stopIntakeAfter, useFast
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",         makeAutoScoreCommand(3, 5.0,  false, true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",   makeAutoScoreCommand(3, 5.0, true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Right",        makeAutoScoreCommand(5, 5.0,  false, true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",         makeAutoScoreCommand(1, 3.0,  true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",       makeAutoScoreCommand(2, 3.5,  true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd", makeAutoScoreCommand(2, 5.0, true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",        makeAutoScoreCommand(0, 3.5, true,  false));
-        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",   makeAutoScoreCommand(1, 5.0,  false, false));
+        // Auto shoot commands: positionIndex, timeout, stopIntakeAfter, useFast, useBoost
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",                makeAutoScoreCommand(3, 5.0,  false, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",          makeAutoScoreCommand(3, 5.0,  true,  false, true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd_NoBoost",  makeAutoScoreCommand(3, 5.0,  true,  false, false));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Right",               makeAutoScoreCommand(5, 5.0,  false, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",                makeAutoScoreCommand(1, 3.0,  true,  true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",              makeAutoScoreCommand(2, 3.5,  true,  true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd",        makeAutoScoreCommand(2, 5.0,  true,  true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",               makeAutoScoreCommand(0, 3.5,  true,  false, true));
+        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",          makeAutoScoreCommand(1, 5.0,  false, false, true));
 
         NamedCommands.registerCommand("Intake_Auto",
             intake.adjustIntakePositionCommand(IntakeDownPosition)
             .andThen(intake.setIntakeSpeedOneCommand())
             .andThen(intake.intakeCommand())
+        );
+
+        // Runs indefinitely — use inside a race group so the path cancels it when done.
+        // Keeps the intake pitch actively held at down AND rollers spinning throughout path traversal,
+        // preventing the arm from bouncing up when crossing the bump.
+        NamedCommands.registerCommand("Intake_Hold_Auto",
+            Commands.run(() -> {
+                intake.setPitchMotorPosition(IntakeDownPosition);
+                intake.setIntakeMotorVelocity(IntakeVelocity);
+            }, intake)
+        );
+
+        // Runs indefinitely — use inside a race group so the path cancels it when done.
+        // Keeps launcher angle actively commanded (SparkMax stays live) during path traversal,
+        // preventing the arm from drifting when the SparkMax CAN timeout fires after WarmUp_Auto_Far ends.
+        NamedCommands.registerCommand("WarmUp_Hold_Far",
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(58.5);
+                launcher.setAngleToTarget(-0.015);
+            }, launcher)
         );
 
         NamedCommands.registerCommand("Climb_Auto",
@@ -234,7 +255,7 @@ public class RobotContainer {
         Driver.povLeft().onTrue(new InstantCommand(() -> launchAngle += 0.0005));
         Driver.povRight().onTrue(new InstantCommand(() -> launchAngle -= 0.0005));
 
-        // Driver.back().whileTrue(launcher.adjustAngleCommand(12));
+        Driver.back().whileTrue(launcher.adjustAngleCommand(12));
 
         // Hub前dynamic shoot，Hub后corner feed (left trigger)
         Driver.leftTrigger().whileTrue(
@@ -332,12 +353,14 @@ public class RobotContainer {
             Commands.runOnce(() -> launchAngle = 0.0),
             Commands.run(() -> launcher.setAngleToTarget(0.0))
                 .until(() -> launcher.isAngleAtPosition(0.0))
+                .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ))
         .onFalse(Commands.sequence(
             Commands.runOnce(() -> launchAngle = -0.02),
             Commands.run(() -> launcher.setAngleToTarget(-0.02))
                 .until(() -> launcher.isAngleAtPosition(-0.02))
+                .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ));
 
@@ -361,9 +384,9 @@ public class RobotContainer {
                 .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Outtaking), candle))
         );
 
-        Driver.back().onTrue(
-            launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
-        );
+        // Driver.back().onTrue(
+        //     launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
+        // );
 
         /*** Operator ***/
 
@@ -460,16 +483,16 @@ public class RobotContainer {
 
     /** Builds a named-command auto score sequence for a fixed field position. */
     private Command makeAutoScoreCommand(int positionIndex, double timeout,
-                                          boolean stopIntakeAfter, boolean useFast) {
+                                          boolean stopIntakeAfter, boolean useFast, boolean useBoost) {
         Command scoreCmd = useFast
             ? MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
                 positionIndex, drivetrain, intake, launcher,
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE)
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE, useBoost)
             : MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 positionIndex, drivetrain, intake, launcher,
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE);
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE, useBoost);
 
         Command cmd = Commands.runOnce(() -> {
                 isVisionPoseFusion = true;
@@ -513,7 +536,7 @@ public class RobotContainer {
             .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
                 positionIndex, drivetrain, intake, launcher,
                 Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE))
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE, true))
             .finallyDo((interrupted) -> {
                 candle.restoreBackground();
                 launcher.setFrictionWheelVelocity(0);
