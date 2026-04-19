@@ -247,7 +247,7 @@ public class Intake extends SubsystemBase {
      */
     public Command progressiveIntakeSwingCommand() {
         return Commands.sequence(
-            new WaitCommand(0.5),
+            //new WaitCommand(0.5),
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition),
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition + 1),
             createSwingStep(IntakeSwingUpPosition + 2.5, IntakeDownPosition + 2.5),

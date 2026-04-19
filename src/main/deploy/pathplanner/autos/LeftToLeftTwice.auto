@@ -30,12 +30,6 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "BcakToStart5"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "Shoot_Auto_Blue_Near_Left"
@@ -48,7 +42,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToIntakeTwice5"
+                  "pathName": "BackToStartTwice5"
                 }
               },
               {
@@ -64,12 +58,6 @@
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "BackToStartTwice5"
           }
         },
         {

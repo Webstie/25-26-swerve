@@ -30,7 +30,7 @@ public class MoveWhileAimCommand {
         double maxRotRateRadPerSec,
         Translation2d blueCenterPosition
     ) {
-        PIDController rotationController = new PIDController(3.0, 0.0, 0.0);
+        PIDController rotationController = new PIDController(10.0, 0.0, 0.5);
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
         rotationController.setTolerance(Units.degreesToRadians(0.0));
 
