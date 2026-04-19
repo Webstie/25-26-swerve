@@ -129,7 +129,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",         makeAutoScoreCommand(1, 3.0,  true,  true));
         NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",       makeAutoScoreCommand(2, 5.0,  true,  true));
         NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd", makeAutoScoreCommand(2, 10.0, true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",        makeAutoScoreCommand(0, 10.0, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",        makeAutoScoreCommand(0, 3.5, true,  true));
         NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",   makeAutoScoreCommand(1, 5.0,  false, false));
 
         NamedCommands.registerCommand("Intake_Auto",

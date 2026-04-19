@@ -19,14 +19,51 @@
                 "data": {
                   "name": "Intake_Auto"
                 }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
               }
             ]
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "BcakToStart5"
+            "name": "Shoot_Auto_Blue_Near_Left"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "BackToStartTwice5"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Near_Left"
           }
         }
       ]
