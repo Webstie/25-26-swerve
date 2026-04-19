@@ -3,39 +3,44 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.740916666666667,
-        "y": 4.416373934663698
+        "x": 2.17,
+        "y": 6.01
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.415908333333333,
-        "y": 6.245490601330365
+        "x": 1.910390445979631,
+        "y": 5.903019647547275
       },
       "isLocked": false,
-      "linkedName": "BlueIntake5"
+      "linkedName": "BlueShootFarLeft"
     },
     {
       "anchor": {
-        "x": 0.760083036773429,
-        "y": 5.966275207591934
+        "x": 0.6046257996667068,
+        "y": 5.944587695248102
       },
       "prevControl": {
-        "x": 1.8394120181775777,
-        "y": 5.9133668742586005
+        "x": 0.8539904746240563,
+        "y": 5.96239945774976
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "BlueWarehouse"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5219683655536022,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8039867109634554,
+      "minWaypointRelativePos": 0.40177580466148505,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 1.0,
+        "maxVelocity": 0.5,
         "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -62,7 +67,7 @@
   "folder": "Blue5",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0088577959183
+    "rotation": -47.316495313634945
   },
   "useDefaultConstraints": true
 }

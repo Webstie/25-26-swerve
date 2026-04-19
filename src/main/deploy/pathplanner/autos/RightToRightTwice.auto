@@ -11,26 +11,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToIntake2"
+                  "pathName": "StartToIntake6"
                 }
               },
               {
                 "type": "named",
                 "data": {
                   "name": "Intake_Auto"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "IntakeToShoot2"
                 }
               },
               {
@@ -45,7 +32,38 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Near_Left"
+            "name": "Shoot_Auto_Blue_Near_Right"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "BackToStartTwice6"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Near_Right"
           }
         }
       ]

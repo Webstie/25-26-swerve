@@ -11,22 +11,22 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToIntake5"
+                  "pathName": "StartToShoot"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "Intake_Auto"
+                  "name": "WarmUp_Auto_Near"
                 }
               }
             ]
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "IntakeToWarehouse5"
+            "name": "Shoot_Auto_Blue_Near_Mid"
           }
         },
         {
@@ -36,7 +36,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "WarehouseToShoot5"
+                  "pathName": "ShootToWarehouse"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
                 }
               },
               {
@@ -46,6 +52,12 @@
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "WarehouseToShoot"
           }
         },
         {
