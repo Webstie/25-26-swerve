@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.760083036773429,
-        "y": 5.966275207591934
+        "x": 0.6046257996667068,
+        "y": 5.944587695248102
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.393470351510911,
-        "y": 5.943600207591934
+        "x": 1.2380131144041888,
+        "y": 5.921912695248102
       },
       "isLocked": false,
       "linkedName": "BlueWarehouse"
@@ -28,27 +28,18 @@
       "linkedName": "BlueShootFarLeft"
     }
   ],
-  "rotationTargets": [],
-  "constraintZones": [
+  "rotationTargets": [
     {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.3538205980066445,
-      "maxWaypointRelativePos": 1.0,
-      "constraints": {
-        "maxVelocity": 2.0,
-        "maxAcceleration": 2.0,
-        "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 720.0,
-        "nominalVoltage": 12.0,
-        "unlimited": false
-      }
+      "waypointRelativePos": 0.4024604569419989,
+      "rotationDegrees": -179.1070543901515
     }
   ],
+  "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.0,
-    "maxAcceleration": 1.0,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -64,5 +55,5 @@
     "velocity": 0,
     "rotation": 179.88334612219998
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

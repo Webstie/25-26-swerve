@@ -11,7 +11,44 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToIntake6"
+                  "pathName": "StartToIntake5_Slow"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Far"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Far_Left_toEnd"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeToWarehouse5"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Far"
                 }
               },
               {
@@ -24,28 +61,15 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "IntakeToWarehouse6"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "WarmUp_Auto_Near"
-                }
-              }
-            ]
+            "pathName": "WarehouseToShoot5"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Near_Right_toEnd"
+            "name": "Shoot_Auto_Blue_Far_Left_toEnd"
           }
         }
       ]

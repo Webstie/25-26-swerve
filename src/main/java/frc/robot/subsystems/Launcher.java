@@ -166,7 +166,7 @@ public class Launcher extends SubsystemBase {
         final double kS = 5.0;
 
         double error = targetPosition - angleEncoder.getAbsolutePosition().getValueAsDouble();
-        if (Math.abs(error) <= ANGLE_TOLERANCE) {
+        if (Math.abs(error) <= ANGLE_TOLERANCE || angleEncoder.getAbsolutePosition().getValueAsDouble() <=targetPosition) {
             setAngleVoltage(0);
             return;
         }

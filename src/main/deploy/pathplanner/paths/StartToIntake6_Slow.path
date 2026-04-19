@@ -17,15 +17,15 @@
     {
       "anchor": {
         "x": 7.765239653619313,
-        "y": 1.2229528846027369
+        "y": 1.368212727010541
       },
       "prevControl": {
-        "x": 6.721734169320307,
-        "y": 1.7201087496873217
+        "x": 6.975870058537972,
+        "y": 1.8128657779286197
       },
       "nextControl": {
-        "x": 8.312455744163778,
-        "y": 0.9622434844354791
+        "x": 8.293362059835461,
+        "y": 1.0707206008310308
       },
       "isLocked": false,
       "linkedName": null
@@ -73,7 +73,7 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShootNearRight"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
@@ -90,8 +90,8 @@
       "rotationDegrees": 89.28603607700485
     },
     {
-      "waypointRelativePos": 3.297012302284702,
-      "rotationDegrees": 51.17027012279766
+      "waypointRelativePos": 3.5008787346220887,
+      "rotationDegrees": 73.57469394614702
     }
   ],
   "constraintZones": [
@@ -113,8 +113,8 @@
       "minWaypointRelativePos": 0.9589345172031118,
       "maxWaypointRelativePos": 1.9711431742508052,
       "constraints": {
-        "maxVelocity": 2.0,
-        "maxAcceleration": 2.0,
+        "maxVelocity": 1.0,
+        "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -123,10 +123,10 @@
     },
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 2.9655937846836866,
-      "maxWaypointRelativePos": 3.7380688124305896,
+      "minWaypointRelativePos": 3.1875693673695595,
+      "maxWaypointRelativePos": 3.7114317425083057,
       "constraints": {
-        "maxVelocity": 2.0,
+        "maxVelocity": 2.5,
         "maxAcceleration": 5.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -147,7 +147,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 45.4675979965987
+    "rotation": 37.8167793874094
   },
   "reversed": false,
   "folder": "Blue6",

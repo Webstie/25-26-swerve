@@ -11,14 +11,20 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.BooleanEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringEntry;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -123,13 +129,13 @@ public class RobotContainer {
         );
 
         // Auto shoot commands: positionIndex, timeout, stopIntakeAfter, useFast
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",         makeAutoScoreCommand(3, 6.0,  false, true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",   makeAutoScoreCommand(3, 10.0, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",         makeAutoScoreCommand(3, 5.0,  false, true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",   makeAutoScoreCommand(3, 5.0, true,  true));
         NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Right",        makeAutoScoreCommand(5, 5.0,  false, true));
         NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",         makeAutoScoreCommand(1, 3.0,  true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",       makeAutoScoreCommand(2, 5.0,  true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd", makeAutoScoreCommand(2, 10.0, true,  true));
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",        makeAutoScoreCommand(0, 3.5, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",       makeAutoScoreCommand(2, 3.5,  true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd", makeAutoScoreCommand(2, 5.0, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",        makeAutoScoreCommand(0, 3.5, true,  false));
         NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",   makeAutoScoreCommand(1, 5.0,  false, false));
 
         NamedCommands.registerCommand("Intake_Auto",
@@ -152,6 +158,7 @@ public class RobotContainer {
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
+
     }
 
     public void updateDashboard() {
