@@ -11,14 +11,20 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.BooleanEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringEntry;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -150,6 +156,64 @@ public class RobotContainer {
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
+
+        warmupJIT();
+    }
+
+    /**
+     * 详尽的 JIT 预热方法 (JIT Warmup)
+     * 强迫 Java 虚拟机在 Disable（禁用）状态下，提前把所有复杂的数学运算、类加载、
+     * PID 计算、矩阵乘法等全部编译成机器码，防止第一次点 Enable Auto 时主线程卡死 1.5 秒。
+     */
+    private void warmupJIT() {
+        System.out.println("====== STARTING EXTENSIVE JIT WARMUP (预热自动程序) ======");
+        double startTime = Timer.getFPGATimestamp();
+
+        try {
+            // 1. 预热 CTRE Swerve 底层驱动与运动学矩阵解算
+            // 给定一个极小的非零速度，强迫底盘算一遍各个轮子的转向角和速度
+            ChassisSpeeds dummySpeeds = new ChassisSpeeds(0.01, 0.01, 0.01);
+            drivetrain.driveRobotRelative(dummySpeeds, null);
+
+            // 2. 预热 PathPlanner 的全向轮路径控制器 (历年最严重的卡顿点)
+            PPHolonomicDriveController dummyController = new PPHolonomicDriveController(
+                new PIDConstants(3.0, 0.0, 0.1),
+                new PIDConstants(2.0, 0.0, 0.1)
+            );
+            
+            // 3. 预热你自己写的 PID 寻迹与瞄准逻辑
+            // 强迫加载 PIDCommand 并进行第一次 calculate
+            Command translateCmd = drivetrain.translateToPositionWithPID(new Pose2d(1.0, 1.0, Rotation2d.fromDegrees(90)));
+            try { translateCmd.initialize(); } catch (Exception e) {}
+            
+            Command rotateCmd = drivetrain.translateToRotationWithPID(new Pose2d(0, 0, Rotation2d.fromDegrees(180)));
+            try { rotateCmd.initialize(); } catch (Exception e) {}
+
+            // 4. 预热 Vision (视觉) 与 Kalman Filter 的矩阵更新
+            // 随便塞一个假的视觉数据进去，让底层的 N3xN1 矩阵跑一遍乘法
+            drivetrain.addVisionMeasurement(new Pose2d(2.0, 2.0, new Rotation2d()), Timer.getFPGATimestamp() - 0.1);
+
+            // 5. 预热自定义的复杂 Command (强迫 JVM 类加载器把这些文件读入内存)
+            // 包含：定点射击、跑打序列等
+            Command dummyScore = MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                0, drivetrain, intake, launcher,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE);
+
+            Command dummyMoveAim = MoveWhileAimCommand.create(
+                drivetrain, () -> 0.0, () -> 0.0, 0.0, Constants.VisionConfig.BLUE_HUB_CENTER);
+
+            // 让这些命令尝试运行一下 initialize（使用 try-catch 防止硬件未就绪导致的报错崩溃）
+            try { dummyScore.initialize(); } catch (Exception e) {}
+            try { dummyMoveAim.initialize(); } catch (Exception e) {}
+
+        } catch (Exception e) {
+            // 这里如果有报错是完全正常的（因为有些设备在 Disabled 下被屏蔽了），无需理会
+            System.out.println("Warmup caught expected exception (Ignored): " + e.getMessage());
+        }
+
+        double endTime = Timer.getFPGATimestamp();
+        System.out.println("====== JIT WARMUP FINISHED! 预热完成，耗时: " + (endTime - startTime) + " 秒 ======");
     }
 
     public void updateDashboard() {
