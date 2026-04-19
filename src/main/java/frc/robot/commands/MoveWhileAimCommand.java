@@ -32,7 +32,7 @@ public class MoveWhileAimCommand {
     ) {
         PIDController rotationController = new PIDController(10.0, 0.0, 0.5);
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
-        rotationController.setTolerance(Units.degreesToRadians(0.0));
+        rotationController.setTolerance(Units.degreesToRadians(5.0));
 
         SwerveRequest.FieldCentric request = new SwerveRequest.FieldCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
