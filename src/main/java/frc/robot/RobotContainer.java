@@ -74,7 +74,7 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    private double launchSpeed = 45.0;
+    private double launchSpeed = 47.5;
     private double launchAngle = 0.0;
 
     private final CommandXboxController Driver = new CommandXboxController(0);
