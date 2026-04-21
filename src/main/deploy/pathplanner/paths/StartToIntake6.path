@@ -84,8 +84,8 @@
         "y": 2.6
       },
       "prevControl": {
-        "x": 3.916777685859868,
-        "y": 2.3691750224988435
+        "x": 4.396690391459075,
+        "y": 3.029015421115065
       },
       "nextControl": null,
       "isLocked": false,
@@ -176,7 +176,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 45.4675979965987
+    "rotation": 45.0
   },
   "reversed": false,
   "folder": "Blue6",
