@@ -384,7 +384,6 @@ public class RobotContainer {
             boolean isRed = DriverStation.getAlliance()
                 .map(a -> a == DriverStation.Alliance.Red).orElse(false);
             double x = drivetrain.getPose().getX();
-            // TODO: replace TODO_SECOND_LINE_BLUE_X with the blue-alliance X coordinate of line 2
             double line2X = isRed
                 ? Constants.Layout.FIELD_LENGTH_METERS - 2
                 : 2;
