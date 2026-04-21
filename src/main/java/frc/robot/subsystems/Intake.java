@@ -10,6 +10,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -252,6 +253,13 @@ public class Intake extends SubsystemBase {
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition + 1),
             createSwingStep(IntakeSwingUpPosition + 2.5, IntakeDownPosition + 2.5),
             createSwingStep(-8.9, -11.9).repeatedly()
+        ).finallyDo(() ->
+            CommandScheduler.getInstance().schedule(
+                Commands.sequence(
+                    adjustIntakePositionCommand(IntakeDownPosition),
+                    Commands.runOnce(this::applyIntakePitchMotorNeutral, this)
+                )
+            )
         );
     }
 

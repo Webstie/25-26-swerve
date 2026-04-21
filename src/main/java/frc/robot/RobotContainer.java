@@ -364,14 +364,12 @@ public class RobotContainer {
             return isRed ? x > hubX : x < hubX;
         })
         .onTrue(Commands.sequence(   // entered zone 2 (or 3 — line 2 trigger will override)
-            Commands.runOnce(() -> launchAngle = 0.0),
             Commands.run(() -> launcher.setAngleToTarget(0.0))
                 .until(() -> launcher.isAngleAtPosition(0.0))
                 .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ))
         .onFalse(Commands.sequence(  // returned to zone 1
-            Commands.runOnce(() -> launchAngle = -0.02),
             Commands.run(() -> launcher.setAngleToTarget(-0.02))
                 .until(() -> launcher.isAngleAtPosition(-0.02))
                 .withTimeout(2.0)
@@ -390,14 +388,12 @@ public class RobotContainer {
             return isRed ? x > line2X : x < line2X;
         })
         .onTrue(Commands.sequence(   // entered zone 3
-            Commands.runOnce(() -> launchAngle = -0.05),
             Commands.run(() -> launcher.setAngleToTarget(-0.015))
                 .until(() -> launcher.isAngleAtPosition(-0.015))
                 .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ))
         .onFalse(Commands.sequence(  // returned to zone 2
-            Commands.runOnce(() -> launchAngle = 0.0),
             Commands.run(() -> launcher.setAngleToTarget(0.0))
                 .until(() -> launcher.isAngleAtPosition(0.0))
                 .withTimeout(2.0)
