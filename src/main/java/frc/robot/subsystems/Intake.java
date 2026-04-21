@@ -9,6 +9,7 @@ import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -253,14 +254,19 @@ public class Intake extends SubsystemBase {
             createSwingStep(IntakeSwingUpPosition - 1, IntakeDownPosition + 1),
             createSwingStep(IntakeSwingUpPosition + 2.5, IntakeDownPosition + 2.5),
             createSwingStep(-8.9, -11.9).repeatedly()
-        ).finallyDo(() ->
-            CommandScheduler.getInstance().schedule(
-                Commands.sequence(
-                    adjustIntakePositionCommand(IntakeDownPosition),
-                    Commands.runOnce(this::applyIntakePitchMotorNeutral, this)
-                )
-            )
-        );
+        ).finallyDo(() -> {
+            // Only schedule pitch cleanup in teleop: in auto, the intake subsystem is still
+            // owned by the parent sequential auto command, and scheduling a new command
+            // requiring intake would cancel the entire auto.
+            if (DriverStation.isTeleopEnabled()) {
+                CommandScheduler.getInstance().schedule(
+                    Commands.sequence(
+                        adjustIntakePositionCommand(IntakeDownPosition),
+                        Commands.runOnce(this::applyIntakePitchMotorNeutral, this)
+                    )
+                );
+            }
+        });
     }
 
     /**
