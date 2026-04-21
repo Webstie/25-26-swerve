@@ -347,7 +347,12 @@ public class RobotContainer {
             ))
         );
 
-        // Auto-adjust launch angle when crossing the hub line (teleop only)
+        // Auto-adjust launch angle based on field position zones (teleop only).
+        // Zone 1 (near hub):  x < line1  → angle A (-0.02)
+        // Zone 2 (middle):    line1 < x < line2 → angle B (0.0)
+        // Zone 3 (far):       x > line2  → angle C (TODO: fill in)
+
+        // Line 1 trigger: crossing the hub center line (zone 1 ↔ zone 2)
         new Trigger(() -> {
             if (!DriverStation.isTeleopEnabled()) return false;
             boolean isRed = DriverStation.getAlliance()
@@ -358,17 +363,44 @@ public class RobotContainer {
                 : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
             return isRed ? x > hubX : x < hubX;
         })
-        .onTrue(Commands.sequence(
+        .onTrue(Commands.sequence(   // entered zone 2 (or 3 — line 2 trigger will override)
             Commands.runOnce(() -> launchAngle = 0.0),
             Commands.run(() -> launcher.setAngleToTarget(0.0))
                 .until(() -> launcher.isAngleAtPosition(0.0))
                 .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ))
-        .onFalse(Commands.sequence(
+        .onFalse(Commands.sequence(  // returned to zone 1
             Commands.runOnce(() -> launchAngle = -0.02),
             Commands.run(() -> launcher.setAngleToTarget(-0.02))
                 .until(() -> launcher.isAngleAtPosition(-0.02))
+                .withTimeout(2.0)
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ));
+
+        // Line 2 trigger: crossing the second boundary (zone 2 ↔ zone 3)
+        new Trigger(() -> {
+            if (!DriverStation.isTeleopEnabled()) return false;
+            boolean isRed = DriverStation.getAlliance()
+                .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+            double x = drivetrain.getPose().getX();
+            // TODO: replace TODO_SECOND_LINE_BLUE_X with the blue-alliance X coordinate of line 2
+            double line2X = isRed
+                ? Constants.Layout.FIELD_LENGTH_METERS - 2
+                : 2;
+            return isRed ? x > line2X : x < line2X;
+        })
+        .onTrue(Commands.sequence(   // entered zone 3
+            Commands.runOnce(() -> launchAngle = -0.05),
+            Commands.run(() -> launcher.setAngleToTarget(-0.05))
+                .until(() -> launcher.isAngleAtPosition(-0.05))
+                .withTimeout(2.0)
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ))
+        .onFalse(Commands.sequence(  // returned to zone 2
+            Commands.runOnce(() -> launchAngle = 0.0),
+            Commands.run(() -> launcher.setAngleToTarget(0.0))
+                .until(() -> launcher.isAngleAtPosition(0.0))
                 .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ));
