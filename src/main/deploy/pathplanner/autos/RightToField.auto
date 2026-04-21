@@ -1,0 +1,63 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "StartToIntake6"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Near_Right"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Right to Field"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
