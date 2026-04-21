@@ -392,8 +392,8 @@ public class RobotContainer {
         })
         .onTrue(Commands.sequence(   // entered zone 3
             Commands.runOnce(() -> launchAngle = -0.05),
-            Commands.run(() -> launcher.setAngleToTarget(-0.05))
-                .until(() -> launcher.isAngleAtPosition(-0.05))
+            Commands.run(() -> launcher.setAngleToTarget(-0.015))
+                .until(() -> launcher.isAngleAtPosition(-0.015))
                 .withTimeout(2.0)
                 .finallyDo(() -> launcher.setAngleVoltage(0))
         ))
