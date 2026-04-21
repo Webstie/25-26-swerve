@@ -23,7 +23,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "WarmUp_Auto_Near"
+                  "name": "WarmUp_Without_Pitch"
                 }
               }
             ]
@@ -54,7 +54,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "WarmUp_Auto_Near"
+                  "name": "WarmUp_Without_Pitch"
                 }
               }
             ]

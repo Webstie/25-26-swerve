@@ -42,7 +42,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "IntakeToWarehouse6"
+                  "pathName": "IntakeToHP6"
                 }
               },
               {
@@ -50,26 +50,33 @@
                 "data": {
                   "name": "Intake_Auto"
                 }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "HpToHub6"
+                }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "WarmUp_Auto_Far"
+                  "name": "Intake_Auto"
                 }
               }
             ]
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "WarehouseToShoot5"
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Far_Left_toEnd"
+            "name": "Shoot_Auto_Blue_Near_Right_toEnd"
           }
         }
       ]
