@@ -3,42 +3,58 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.2254187834455497,
+        "x": 2.8,
         "y": 4.002854406128273
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.5075156782147845,
-        "y": 3.7629287841252745
+        "x": 2.5505812852444127,
+        "y": 3.985816074940301
       },
       "isLocked": false,
       "linkedName": "ShootPosition7"
     },
     {
       "anchor": {
-        "x": 0.923229521038585,
-        "y": 3.7557198342751335
+        "x": 1.803724792408067,
+        "y": 5.374519572953736
       },
       "prevControl": {
-        "x": 2.8458725204991095,
-        "y": 3.754142346623767
+        "x": 1.8664665374326752,
+        "y": 4.4727994060995755
+      },
+      "nextControl": {
+        "x": 1.760688018979835,
+        "y": 5.993041204785128
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.7280326871682707,
+        "y": 5.943896554916568
+      },
+      "prevControl": {
+        "x": 0.9778248842595807,
+        "y": 5.9540876428023735
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueWarehouse"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7643229166666666,
+      "waypointRelativePos": 1.585237258347951,
       "rotationDegrees": 180.0
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.7,
-      "maxWaypointRelativePos": 1.0,
+      "minWaypointRelativePos": 1.5,
+      "maxWaypointRelativePos": 2.0,
       "constraints": {
         "maxVelocity": 0.5,
         "maxAcceleration": 3.0,
@@ -68,7 +84,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 179.86742474172615
+    "rotation": 179.88334612219998
   },
   "reversed": false,
   "folder": "Blue7",

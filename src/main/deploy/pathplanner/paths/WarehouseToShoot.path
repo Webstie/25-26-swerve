@@ -8,11 +8,27 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.3614200019057527,
-        "y": 5.921221554916568
+        "x": 2.4926821287619605,
+        "y": 5.653941021690645
       },
       "isLocked": false,
       "linkedName": "BlueWarehouse"
+    },
+    {
+      "anchor": {
+        "x": 2.0117000000000003,
+        "y": 3.742744444444444
+      },
+      "prevControl": {
+        "x": 1.3162003652843328,
+        "y": 3.826204400610324
+      },
+      "nextControl": {
+        "x": 2.5155888888888893,
+        "y": 3.6822777777777773
+      },
+      "isLocked": false,
+      "linkedName": null
     },
     {
       "anchor": {
@@ -20,8 +36,8 @@
         "y": 6.01
       },
       "prevControl": {
-        "x": 1.8076249999999998,
-        "y": 6.010166666666667
+        "x": 2.3564138541116213,
+        "y": 5.84341706271274
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,8 +46,8 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.4024604569419989,
-      "rotationDegrees": -179.1070543901515
+      "waypointRelativePos": 0.6,
+      "rotationDegrees": 97.01811995099699
     }
   ],
   "constraintZones": [],
@@ -50,7 +66,7 @@
     "rotation": -28.32675041745776
   },
   "reversed": false,
-  "folder": "Blue6",
+  "folder": "Blue7",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 179.88334612219998

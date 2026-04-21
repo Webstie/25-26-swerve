@@ -11,24 +11,31 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.events.EventTrigger;
-import com.pathplanner.lib.events.TriggerEvent;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.BooleanEntry;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringEntry;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConfig;
-import frc.robot.commands.AutoMoveWhileAimCommand;
 import frc.robot.commands.MagicSequencingCommand;
+import frc.robot.commands.MatchStateCommand;
 import frc.robot.commands.MoveWhileAimCommand;
 import frc.robot.commands.OuttakeCommand;
 import frc.robot.commands.ShootingCommand;
@@ -38,766 +45,457 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
-import frc.robot.subsystems.Transport;
 import frc.robot.subsystems.Vision.VisionMeasurement;
 import frc.robot.subsystems.Vision;
 
 import static frc.robot.Constants.ClimberConfig.ClimbPosition;
 import static frc.robot.Constants.IntakeConfig.*;
 import java.util.List;
-import java.util.Locale.LanguageRange;
+import java.util.Set;
 
 
 public class RobotContainer {
-     
 
     private final SendableChooser<Command> autoChooser;
+
     public final Climber climber = new Climber();
     public final Launcher launcher = new Launcher();
-    public final Transport transport = new Transport();
     public final Intake intake = new Intake();
     public final CANdleSystem candle = new CANdleSystem();
     public final Vision vision = new Vision();
+    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-     
-
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
-
-    /* Setting up bindings for necessary control of the swerve drive platform */
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    private double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond);
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // deadband applied manually in lambda
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
-    
+
+    private double launchSpeed = 47.5;
+    private double launchAngle = 0.0;
+
     private final CommandXboxController Driver = new CommandXboxController(0);
     private final CommandXboxController Operator = new CommandXboxController(1);
 
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    // Elastic auto win tracking
+    private final BooleanEntry isAutoWinEntry;
+    private final StringEntry isAutoWinTextEntry;
 
     private boolean isSlowMode = false;
-
-    private double launchSpeed = 50;
-    private double launchAngle = -0.01;
-
-    //是否融合视觉位姿
     public boolean isVisionPoseFusion = true;
 
-    public RobotContainer() {
-        
+    // Flag to ensure auto-reverse fires at most once per intake cycle
+    private boolean autoReverseFired = true;
+    // Flag set by hub-line Trigger; consumed by updateDashboard until angle reaches target
+    private boolean launchAngleNeedsUpdate = true;
 
-        new EventTrigger("Climb_UP").onTrue(climber.ClimbingProcessSingleCommand());
-        //register the named commands for auto mode
-        
+    public RobotContainer() {
+
+        NetworkTable elasticTable = NetworkTableInstance.getDefault().getTable("Elastic");
+        isAutoWinEntry = elasticTable.getBooleanTopic("isAutoWin").getEntry(false);
+        isAutoWinTextEntry = elasticTable.getStringTopic("isAutoWinText").getEntry("AUTO LOST");
+        isAutoWinEntry.set(false);
+        isAutoWinTextEntry.set("AUTO LOST");
+
+        // Start match state tracking when teleop begins
+        new Trigger(() -> DriverStation.isTeleopEnabled())
+            .onTrue(new MatchStateCommand(() -> isAutoWinEntry.get(false)));
+
+        new EventTrigger("Climb_UP").onTrue(climber.climbingProcessCommand());
 
         NamedCommands.registerCommand("Climb_DOWN",
-            Commands.runOnce(() -> {
-                climber.setPosition(ClimbPosition);
-            })
+            Commands.runOnce(() -> climber.setPosition(ClimbPosition))
         );
-        
-        //自动发射调用命令
+
         NamedCommands.registerCommand("WarmUp_Auto_Far",
-            Commands.parallel(
-                Commands.runOnce(()->launcher.setFrictionWheelVelocity(58.5)),//预热       
-                launcher.AdjustAngleToPositionCommand(-0.015)// 调整角度
-            )
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(59);
+                launcher.setAngleToTarget(-0.009);
+            }, launcher)
+            .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(-0.015))
+            .withTimeout(Constants.LauncherConfig.WarmupSecond)
         );
 
         NamedCommands.registerCommand("WarmUp_Auto_Near",
-            Commands.parallel(
-                Commands.runOnce(()->launcher.setFrictionWheelVelocity(50)),//预热       
-                launcher.AdjustAngleToPositionCommand(-0.0015)// 调整角度
-            )
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(52);
+                launcher.setAngleToTarget(-0.002);
+            }, launcher)
+            .until(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(-0.0015))
+            .withTimeout(Constants.LauncherConfig.WarmupSecond)
         );
 
-        //自动发射远左
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                3,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(6.0)
-            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
+        NamedCommands.registerCommand("WarmUp_Without_Pitch",
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(52);
+            }, launcher)
+            .until(() -> launcher.isFrictionWheelReady())
+                .withTimeout(Constants.LauncherConfig.WarmupSecond)
         );
 
-        //自动发射远左--不断发射直到结束
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                3,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(10.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
 
-        //自动发射远右
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Right",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                5,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(5.0)
-            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
-        
-        //自动发射近中
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                1,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(3.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
+        // Auto shoot commands: positionIndex, timeout, stopIntakeAfter, useFast, useBoost
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left",                makeAutoScoreCommand(3, 5.0,  false, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd",          makeAutoScoreCommand(3, 5.0,  true,  false, true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Left_toEnd_NoBoost",  makeAutoScoreCommand(3, 5.0,  true,  false, false));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Far_Right",               makeAutoScoreCommand(5, 5.0,  false, true,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Mid",                makeAutoScoreCommand(1, 3.0,  true,  false,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",              makeAutoScoreCommand(2, 3.5,  true,  false,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd",        makeAutoScoreCommand(2, 5.0,  true,  false,  true));
+        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",               makeAutoScoreCommand(0, 3.5,  true,  false, true));
+        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",          makeAutoScoreCommand(1, 5.0,  false, false, true));
 
-        //自动发射近右
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                2,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(5.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
-
-        //自动发射近右到最后
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Right_toEnd",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                2,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(10.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
-
-        //自动发射近左
-        NamedCommands.registerCommand("Shoot_Auto_Blue_Near_Left",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
-                0,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(10.0)
-            .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
-
-        //！！！！！！！！！！求稳移动到固定点位的效果不好，到位调整浪费时间较多，弃用
-
-        //自动发射远左，求稳移动到固定点位
-        NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Near_Mid",
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                1,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            }).withTimeout(5.0)
-            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
-
-        // //自动发射远右，求稳移动到固定点位
-        // NamedCommands.registerCommand("Shoot_Auto_Fixed_Blue_Far_Right",
-        //     Commands.runOnce(() -> {
-        //         System.out.println("Starting Hub targeting command");
-        //         isVisionPoseFusion = true;
-        //         candle.Changecolor(Constants.RobotState.State.Shooting);
-        //     })
-        //     .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-        //         5,
-        //         drivetrain, 
-        //         intake, 
-        //         launcher, 
-        //         transport,
-        //         Constants.VisionConfig.BLUE_HUB_CENTER,
-        //         Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-        //     ))
-        //     .finallyDo((interrupted) -> {
-        //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-        //         candle.restoreBackground();
-        //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-        //     }).withTimeout(5.0)
-        //     // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        // );
-
-         //！！！！！！！！！！效果不好，弃用
-        //自动发射跑打
-        NamedCommands.registerCommand("Shoot_Auto_Dynamic",
-            Commands.parallel(
-                    AutoMoveWhileAimCommand.create(  // <--- 修改这里
-                        drivetrain,
-                        Constants.VisionConfig.BLUE_HUB_CENTER
-                    ),
-                    ShootingCommand.createAutoDynamicShootingCommand(
-                        drivetrain,
-                        intake,
-                        launcher,
-                        transport,
-                        Constants.VisionConfig.BLUE_HUB_CENTER
-                    )
-                )
-            .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
-            .finallyDo(() -> candle.restoreBackground())
-            .withTimeout(5.0) // 运行4秒后，瞄准逻辑会自动卸载，恢复正常寻路
-            // .andThen(intake.SetIntakeSpeedZeroSingleCommand())
-        );
-
-        //自动intake调用命令
         NamedCommands.registerCommand("Intake_Auto",
-            intake.AdjustIntakePositionSingleCommand(IntakeDownPosition)
-            .andThen(intake.SetIntakeSpeedOneSingleCommand())
-            .andThen(intake.IntakeSingleCommand())
+            intake.adjustIntakePositionCommand(IntakeDownPosition)
+            .andThen(intake.setIntakeSpeedOneCommand())
+            .andThen(intake.intakeCommand())
         );
 
-        
-        NamedCommands.registerCommand("Climb_Auto", 
+        // Runs indefinitely — use inside a race group so the path cancels it when done.
+        // Keeps the intake pitch actively held at down AND rollers spinning throughout path traversal,
+        // preventing the arm from bouncing up when crossing the bump.
+        NamedCommands.registerCommand("Intake_Hold_Auto",
+            Commands.run(() -> {
+                intake.setPitchMotorPosition(IntakeDownPosition);
+                intake.setIntakeMotorVelocity(IntakeVelocity);
+            }, intake)
+        );
+
+        // Runs indefinitely — use inside a race group so the path cancels it when done.
+        // Keeps launcher angle actively commanded (SparkMax stays live) during path traversal,
+        // preventing the arm from drifting when the SparkMax CAN timeout fires after WarmUp_Auto_Far ends.
+        NamedCommands.registerCommand("WarmUp_Hold_Far",
+            Commands.run(() -> {
+                launcher.setFrictionWheelVelocity(58.5);
+                launcher.setAngleToTarget(-0.015);
+            }, launcher)
+        );
+
+        NamedCommands.registerCommand("Climb_Auto",
             Commands.sequence(
-                // 第一步：展开/准备爬升机构，并亮起爬升指示灯
-                climber.ClimbingProcessSingleCommand()
-                    .alongWith(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.ClimbingUp), candle)),
-                
-                // 第二步：直接设定目标位置
+                climber.climbingProcessCommand()
+                    .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingUp), candle)),
                 Commands.runOnce(() -> climber.setPosition(ClimbPosition), climber)
             )
         );
 
         configureBindings();
 
-        // 同步初始灯光状态，避免启动时 LED 与实际 flag 不一致
         refreshBackgroundState();
 
-        // Build an auto chooser. This will use Commands.none() as the default option.
         autoChooser = AutoBuilder.buildAutoChooser();
-        // Another option that allows you to specify the default auto by its name
-        // autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
         SmartDashboard.putData("Auto Chooser", autoChooser);
+
     }
 
-    //按键绑定
     public void updateDashboard() {
-        SmartDashboard.putNumber("Launcher/LaunchSpeed", launchSpeed);
-        SmartDashboard.putNumber("Launcher/LaunchAngle", launchAngle);
+        SmartDashboard.putNumber("Launcher/Speed", launchSpeed);
+        SmartDashboard.putNumber("Launcher/Angle", launchAngle);
         SmartDashboard.putNumber("Launcher/SpeedOffset", Constants.ShootingTrim.speedOffset);
         SmartDashboard.putNumber("Launcher/PitchOffset", Constants.ShootingTrim.pitchOffset);
+        SmartDashboard.putBoolean("Launcher/Update", launchAngleNeedsUpdate);
+
+        boolean isRed = DriverStation.getAlliance()
+            .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+        double x = drivetrain.getPose().getX();
+        double hubX = isRed
+            ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+            : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+        SmartDashboard.putBoolean("Launcher/IsOurHalf", isRed ? x > hubX : x < hubX);
+        SmartDashboard.putNumber("Launcher/ActualAngle", launcher.getCurrentAngle());
     }
-    // Bindings
+
+    public boolean isAutoWin() {
+        return isAutoWinEntry.get(false);
+    }
+
     private void configureBindings() {
-        
-        /******************************************************（Driver）**********************************************************************/
-        // 这个是默认的开环底盘控制，使用左操纵杆控制平移，右操纵杆控制旋转
+
+        /*** Driver ***/
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() -> {
-                // 在归一化轴值（-1~1）上应用死区，保证任何速度模式下推杆响应一致
                 double rawX = MathUtil.applyDeadband(-Driver.getLeftY(), 0.1);
                 double rawY = MathUtil.applyDeadband(-Driver.getLeftX(), 0.1);
                 double rawR = MathUtil.applyDeadband(-Driver.getRightX(), 0.1);
                 double scale = getInputScale();
                 return drive
-                    .withVelocityX(rawX * MaxSpeed * 0.75 * scale)
-                    .withVelocityY(rawY * MaxSpeed * 0.75 * scale)
+                    .withVelocityX(rawX * MaxSpeed * Constants.DriveConfig.TeleopDriveSpeedScale * scale)
+                    .withVelocityY(rawY * MaxSpeed * Constants.DriveConfig.TeleopDriveSpeedScale * scale)
                     .withRotationalRate(rawR * MaxAngularRate * scale);
             })
         );
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        // 在视觉位姿关闭后的定头
+        // Reset field-centric heading
         Driver.a().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        // 切换是否使用视觉位姿融合
+        // Toggle vision pose fusion
         Driver.b().onTrue(Commands.runOnce(() -> {
             isVisionPoseFusion = !isVisionPoseFusion;
             refreshBackgroundState();
         }));
+
+        // Toggle slow mode (25% speed cap)
         Driver.start().onTrue(Commands.runOnce(() -> {
             isSlowMode = !isSlowMode;
             refreshBackgroundState();
         }));
-                        
 
-        // 电推杆微调
-        // Driver.povUp().whileTrue(launcher.AdjustAngleSingleCommand(-12));
-        // Driver.povDown().whileTrue(launcher.AdjustAngleSingleCommand(12));
+        // Celebration lights
+        Driver.y().onTrue(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.ClimbingDown), candle));
 
-        //装福灯
-        Driver.y().onTrue(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.ClimbingDown),candle));
-
-
-        //调试用途
-        // Driver.povRight().onTrue(Commands.runOnce(() -> launchSpeed += 1.25));
-        // Driver.povLeft().onTrue(Commands.runOnce(() -> launchSpeed -= 1.25));
-
-        // Driver.povDown().onTrue(Commands.runOnce(() -> launchAngle += 0.001));
-        // Driver.povUp().onTrue(Commands.runOnce(() -> launchAngle -= 0.001));
-        
-        //调试用途
-        // Driver.b()
-        //     .whileTrue(
-        //     Commands.parallel(
-        //         new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-        //             intake,
-        //             launcher,
-        //             transport,
-        //             launchSpeed,
-        //             launchAngle
-        //         )),
-        //         Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-        //     ).finallyDo(() -> candle.restoreBackground())
-        // );
-
-        //单独执行发射命令
-        Driver.rightTrigger()
-            .whileTrue(
-            Commands.parallel(
-                new ProxyCommand(() -> ShootingCommand.createShootingCommand(
-                    intake,
-                    launcher,
-                    transport,
-                    47.5,
-                    0.0031
-                )),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.restoreBackground())
+        // Manual shoot (right trigger)
+        Driver.rightTrigger().whileTrue(
+            Commands.sequence(
+                makePreShootReverseCommand(),
+                Commands.defer(() -> ShootingCommand.createShootingCommand(
+                    intake, launcher, launchSpeed, launchAngle)
+                    .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
+                    .finallyDo(() -> candle.restoreBackground()),
+                    Set.of(intake, launcher))
+            )
         );
 
-        // Operator A键：中场盲射 Feed，且带intake上下摆动(极短预热跑打)
-        Operator.a()
-            .whileTrue(
-            Commands.parallel(
-                ShootingCommand.createDynamicFeedCommand(
-                    intake,
-                    launcher,
-                    transport,
-                    70.0,    // 射速给到最大，保证能飞过半场
-                    -0.025,   // 对应适合跨越半场的抛物线角度
-                    true // 需要摆动
-                ),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.restoreBackground())
+        Driver.povUp().onTrue(new InstantCommand(() -> launchSpeed += 0.25));
+        Driver.povDown().onTrue(new InstantCommand(() -> launchSpeed -= 0.25));
+        Driver.povLeft().onTrue(new InstantCommand(() -> launchAngle += 0.0005));
+        Driver.povRight().onTrue(new InstantCommand(() -> launchAngle -= 0.0005));
+
+        Driver.back().whileTrue(launcher.adjustAngleCommand(12));
+
+        // Hub前dynamic shoot，Hub后corner feed (left trigger)
+        Driver.leftTrigger().whileTrue(
+            Commands.sequence(
+                makePreShootReverseCommand(),
+                Commands.either(
+                    Commands.parallel(
+                        MoveWhileAimCommand.create(
+                            drivetrain,
+                            () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.25,
+                            () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.25,
+                            MaxAngularRate * getInputScale(),
+                            Constants.VisionConfig.BLUE_HUB_CENTER
+                        ),
+                        ShootingCommand.createDynamicShootingCommand(
+                            drivetrain, intake, launcher,
+                            Constants.VisionConfig.BLUE_HUB_CENTER,
+                            Constants.LauncherConfig.WarmupSecond
+                        )
+                    )
+                    .beforeStarting(() -> candle.changeColor(Constants.RobotState.State.Shooting))
+                    .finallyDo(() -> candle.restoreBackground()),
+                    ShootingCommand.createCornerFeedCommand(
+                        drivetrain, intake, launcher,
+                        () -> -Driver.getLeftY() * MaxSpeed * Constants.DriveConfig.AimDriveScaleX * 0.5,
+                        () -> -Driver.getLeftX() * MaxSpeed * Constants.DriveConfig.AimDriveScaleY * 0.5,
+                        MaxAngularRate * getInputScale()),
+                    () -> {
+                        boolean isRed = DriverStation.getAlliance()
+                            .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+                        double x = drivetrain.getPose().getX();
+                        double hubX = isRed
+                            ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+                            : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+                        return isRed ? x > hubX : x < hubX;
+                    }
+                )
+            )
         );
 
-        // Operator 右扳机键：中场盲射 Feed，且intake不摆动(极短预热跑打)
-        Operator.povDown()
-            .whileTrue(
-            Commands.parallel(
-                ShootingCommand.createDynamicFeedCommand(
-                    intake,
-                    launcher,
-                    transport,
-                    70.0,    // 射速给到最大，保证能飞过半场
-                    -0.025,   // 对应适合跨越半场的抛物线角度
-                    false // 不需要摆动
-                ),
-                Commands.runOnce(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle)
-            ).finallyDo(() -> candle.restoreBackground())
+        // Intake pitch toggle (up/down)
+        Driver.x().onTrue(
+            intake.changePitchPositionCommand()
+                .andThen(Commands.either(
+                    intake.adjustIntakePositionCommand(IntakeUpPosition),
+                    intake.adjustIntakePositionCommand(IntakeDownPosition),
+                    () -> intake.getIntakePitchFlag()
+                ))
         );
 
-        //intake机构放下or回收
-        Driver.x().onTrue(intake.ChangePitchPositionSingleCommand()
-                    .andThen(Commands.either(
-                        intake.AdjustIntakePositionSingleCommand(IntakeUpPosition), 
-                        intake.AdjustIntakePositionSingleCommand(IntakeDownPosition), 
-                        ()->intake.IntakepitchPositionFlag))
-                        );
-
-        //吸球
+        // Intake on/off toggle
         Driver.rightBumper().onTrue(
-            intake.ChangeIntakeSpeedSingleCommand()
-            .andThen(intake.IntakeSingleCommand())
+            intake.changeIntakeSpeedCommand()
+            .andThen(intake.intakeCommand())
             .andThen(Commands.either(
-                new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Intaking), candle),
-                new InstantCommand(() -> candle.restoreBackground(), candle),
-                () -> intake.Intake_press_times % 2 == 1
+                // Intake ON: run transport + feeder + hold friction wheels, reset auto-reverse flag + LED
+                Commands.runOnce(() -> {
+                    launcher.setTransportVelocity(10);
+                    launcher.setFrictionWheelVelocity(-1);
+                    launcher.setFeederVelocity(10);
+                    launcher.setIntakeBrake(true);
+                    autoReverseFired = false;
+                }).andThen(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Intaking), candle)),
+                // Intake OFF: if auto-reverse hasn't fired yet, do 0.3s reverse; otherwise just stop feeder
+                Commands.either(
+                    Commands.sequence(
+                        Commands.runOnce(() -> autoReverseFired = true),
+                        Commands.startEnd(
+                            () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                            () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); },
+                            launcher
+                        ).withTimeout(0.3)
+                    ),
+                    Commands.runOnce(() -> launcher.setFeederVelocity(0)),
+                    () -> !autoReverseFired
+                ).andThen(new InstantCommand(() -> candle.restoreBackground(), candle))
+                .andThen(Commands.waitSeconds(0.5))
+                .finallyDo(() -> launcher.setIntakeBrake(false)),
+                () -> intake.isIntakeRunning()
             ))
-            
         );
 
-        //吐球
-        Driver.leftBumper().whileTrue(OuttakeCommand.create(intake, launcher, transport, candle)
-                            .alongWith(new InstantCommand(()->candle.Changecolor(Constants.RobotState.State.Outtaking),candle)));
+        // Auto-adjust launch angle based on field position zones (teleop only).
+        // Zone 1 (near hub):  x < line1  → angle A (-0.02)
+        // Zone 2 (middle):    line1 < x < line2 → angle B (0.0)
+        // Zone 3 (far):       x > line2  → angle C (TODO: fill in)
 
-        /*****************************************************（Operator）**********************************************************/
-        // Operator.a().whileTrue(
-        //     new OuttakeCommand(intake, launcher, transport)
-            
+        // Line 1 trigger: crossing the hub center line (zone 1 ↔ zone 2)
+        new Trigger(() -> {
+            if (!DriverStation.isTeleopEnabled()) return false;
+            boolean isRed = DriverStation.getAlliance()
+                .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+            double x = drivetrain.getPose().getX();
+            double hubX = isRed
+                ? Constants.Layout.FIELD_LENGTH_METERS - Constants.VisionConfig.BLUE_HUB_CENTER.getX()
+                : Constants.VisionConfig.BLUE_HUB_CENTER.getX();
+            return isRed ? x > hubX : x < hubX;
+        })
+        .onTrue(Commands.sequence(   // entered zone 2 (or 3 — line 2 trigger will override)
+            Commands.run(() -> launcher.setAngleToTarget(0.0))
+                .until(() -> launcher.isAngleAtPosition(0.0))
+                .withTimeout(2.0)
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ))
+        .onFalse(Commands.sequence(  // returned to zone 1
+            Commands.run(() -> launcher.setAngleToTarget(-0.02))
+                .until(() -> launcher.isAngleAtPosition(-0.02))
+                .withTimeout(2.0)
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ));
+
+        // Line 2 trigger: crossing the second boundary (zone 2 ↔ zone 3)
+        new Trigger(() -> {
+            if (!DriverStation.isTeleopEnabled()) return false;
+            boolean isRed = DriverStation.getAlliance()
+                .map(a -> a == DriverStation.Alliance.Red).orElse(false);
+            double x = drivetrain.getPose().getX();
+            double line2X = isRed
+                ? Constants.Layout.FIELD_LENGTH_METERS - 2
+                : 2;
+            return isRed ? x > line2X : x < line2X;
+        })
+        .onTrue(Commands.sequence(   // entered zone 3
+            Commands.run(() -> launcher.setAngleToTarget(-0.015))
+                .until(() -> launcher.isAngleAtPosition(-0.015))
+                .withTimeout(2.0)
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ))
+        .onFalse(Commands.sequence(  // returned to zone 2
+            Commands.run(() -> launcher.setAngleToTarget(0.0))
+                .until(() -> launcher.isAngleAtPosition(0.0))
+                .withTimeout(2.0)
+                .finallyDo(() -> launcher.setAngleVoltage(0))
+        ));
+
+        // Auto-reverse: if feeder < 1 rps for 1s while intake is running, trigger reverse once
+        new Trigger(() -> !autoReverseFired
+                      && intake.isIntakeRunning()
+                      && Math.abs(launcher.getFeederVelocity()) < 1.0)
+            .debounce(1.0)
+            .onTrue(
+                Commands.runOnce(() -> autoReverseFired = true)
+                .andThen(Commands.startEnd(
+                    () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                    () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); },
+                    launcher
+                ).withTimeout(0.3))
+            );
+
+        // Outtake
+        Driver.leftBumper().whileTrue(
+            OuttakeCommand.create(intake, launcher, candle)
+                .alongWith(new InstantCommand(() -> candle.changeColor(Constants.RobotState.State.Outtaking), candle))
+        );
+
+        // Driver.back().onTrue(
+        //     launcher.shooterWarmupCommand(Constants.LauncherConfig.WarmupSpeed)
         // );
-        // Operator.povRight().whileTrue(
-        //     Commands.runOnce(() -> {
-        //         System.out.println("SWING");
-        //     })
-        //     .andThen(
-        //         Commands.runOnce(()->
-        //             intake.IntakeSwingSingleCommand().repeatedly())
-        //     ));
 
-        
-        //爬升
-        Operator.back().onTrue(climber.ClimbingProcessSingleCommand());
+        /*** Operator ***/
+
+        // Mid-field feed with intake swing
+        Operator.a().whileTrue(
+            Commands.parallel(
+                ShootingCommand.createDynamicFeedCommand(
+                    intake, launcher,
+                    LauncherConfig.MidFieldFeedSpeed,
+                    LauncherConfig.MidFieldFeedAngle,
+                    true
+                ),
+                Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.restoreBackground())
+        );
+
+        // Mid-field feed without intake swing
+        Operator.povDown().whileTrue(
+            Commands.parallel(
+                ShootingCommand.createDynamicFeedCommand(
+                    intake, launcher,
+                    LauncherConfig.MidFieldFeedSpeed,
+                    LauncherConfig.MidFieldFeedAngle,
+                    false
+                ),
+                Commands.runOnce(() -> candle.changeColor(Constants.RobotState.State.Shooting), candle)
+            ).finallyDo(() -> candle.restoreBackground())
+        );
+
+        // Climber
+        Operator.back().onTrue(climber.climbingProcessCommand());
         Operator.start().whileTrue(
             Commands.run(() -> climber.setPosition(ClimbPosition))
         ).onFalse(
             Commands.sequence(
-                Commands.runOnce(()->climber.releaseClimber()),
+                Commands.runOnce(() -> climber.releaseClimber()),
                 Commands.waitSeconds(0.1),
                 Commands.runOnce(() -> climber.setPosition(climber.getCurrentPosition()))
             )
         );
 
+        // Fixed-point auto score: near left/mid/right (0-2), far left/mid/right (3-5)
+        Operator.x().whileTrue(makeFixedPointShootCommand(0));        // near left
+        Operator.y().whileTrue(makeFixedPointShootCommand(1));        // near mid
+        Operator.b().whileTrue(makeFixedPointShootCommand(2));        // near right
+        Operator.povLeft().whileTrue(makeFixedPointShootCommand(3));  // far left
+        Operator.povUp().whileTrue(makeFixedPointShootCommand(4));    // far mid
+        Operator.povRight().whileTrue(makeFixedPointShootCommand(5)); // far right
 
-        // 半自动点位近左
-        Operator.x().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true; // 进入半自动模式，开启视觉位姿融合
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                0,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
-
-        //半自动点位近中
-        Operator.y().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                1,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
-
-        //半自动点位近右
-        Operator.b().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                2,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
-                //半自动点位远左
-        Operator.povLeft().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                3,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
-
-        //半自动点位远中
-        Operator.povUp().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                4,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
-
-        //半自动点位远右
-        Operator.povRight().whileTrue(
-            Commands.runOnce(() -> {
-                System.out.println("Starting Hub targeting command");
-                isVisionPoseFusion = true;
-                candle.Changecolor(Constants.RobotState.State.Shooting);
-            })
-            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
-                5,
-                drivetrain, 
-                intake, 
-                launcher, 
-                transport,
-                Constants.VisionConfig.BLUE_HUB_CENTER,
-                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE
-            ))
-            .finallyDo((interrupted) -> {
-                //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-                candle.restoreBackground();
-                launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-                System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-            })
-        );
-
-        // 比赛现场全局射击参数微调（整体偏移，叠加在所有查表结果之上）
-        // Right bumper/trigger = 射速偏移 ±1.25 rps；Left bumper/trigger = Pitch角度偏移 ±0.001 rot
-        Operator.rightBumper().onTrue(Commands.runOnce(() -> {
-            Constants.ShootingTrim.speedOffset += 1.25;
-            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
-        }));
-        Operator.rightTrigger().onTrue(Commands.runOnce(() -> {
-            Constants.ShootingTrim.speedOffset -= 1.25;
-            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
-        }));
-        Operator.leftBumper().onTrue(Commands.runOnce(() -> {
-            Constants.ShootingTrim.pitchOffset += 0.001;
-            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
-        }));
-        Operator.leftTrigger().onTrue(Commands.runOnce(() -> {
-            Constants.ShootingTrim.pitchOffset -= 0.001;
-            System.out.println("[Trim] SpeedOffset=" + Constants.ShootingTrim.speedOffset + " PitchOffset=" + Constants.ShootingTrim.pitchOffset);
-        }));
-
-        // //半自动原地瞄准
-        // Driver.leftTrigger().whileTrue(
-        //     Commands.runOnce(() -> {
-        //         if(intake.Intake_press_times % 2 == 1){intake.ChangeIntakeSpeedSingleCommand();}
-        //         System.out.println("Starting Hub targeting command");
-        //         isVisionPoseFusion = true;
-        //     })
-        //     .andThen(new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting), candle))
-        //     .andThen(MagicSequencingCommand.createAnyPointAutoScoreCommand(
-        //         drivetrain, 
-        //         intake, 
-        //         launcher, 
-        //         transport,
-        //         Constants.VisionConfig.BLUE_HUB_CENTER
-        //     ))
-        //     .finallyDo((interrupted) -> {
-        //         candle.restoreBackground();
-        //         //isVisionPoseFusion = false; // 退出半自动模式，关闭视觉位姿融合
-        //         launcher.setFrictionWheelVelocity(0);//防止半自动预热后被中断导致摩擦轮一直转
-        //         System.out.println("Hub targeting command ended. Interrupted: " + interrupted);
-        //         new InstantCommand(() -> candle.Changecolor(Constants.RobotState.State.Shooting));
-        //     })
-        // );
-
-        // 操作手按住右扳机时：原地转向 + 动态发射（参考 MagicSequencingCommand 原地发射逻辑）
-        Driver.leftTrigger().whileTrue(
-            Commands.parallel(MoveWhileAimCommand.create(
-                    drivetrain,
-                    () -> -Driver.getLeftY() * MaxSpeed * 0.175 * getInputScale(),
-                    () -> -Driver.getLeftX() * MaxSpeed * 0.150 * getInputScale(),
-                    MaxAngularRate * getInputScale(),
-                    Constants.VisionConfig.BLUE_HUB_CENTER
-                    ),
-                    ShootingCommand.createDynamicShootingCommand(
-                        drivetrain,
-                        intake,
-                        launcher,
-                        transport,
-                        Constants.VisionConfig.BLUE_HUB_CENTER
-                    )
-                )
-                .beforeStarting(() -> candle.Changecolor(Constants.RobotState.State.Shooting))
-                .finallyDo(() -> candle.restoreBackground())
-        );
-            
-            
-            
-
-        //********************************************************** (Sysidroutine) ******************************************************
-        // // Run SysId routines when holding back/start and X/Y.
-        // // Note that each routine should be run exactly once in a single log.
-        // Driver.back().and(Driver.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        // Driver.back().and(Driver.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        // Driver.start().and(Driver.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        // Driver.start().and(Driver.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
+        // Global shooting trim: rightBumper/rightTrigger = speed ±step, leftBumper/leftTrigger = pitch ±step
+        Operator.rightBumper().onTrue(Commands.runOnce(() ->
+            Constants.ShootingTrim.speedOffset += Constants.ShootingTrim.SPEED_TRIM_STEP));
+        Operator.rightTrigger().onTrue(Commands.runOnce(() ->
+            Constants.ShootingTrim.speedOffset -= Constants.ShootingTrim.SPEED_TRIM_STEP));
+        Operator.leftBumper().onTrue(Commands.runOnce(() ->
+            Constants.ShootingTrim.pitchOffset += Constants.ShootingTrim.PITCH_TRIM_STEP));
+        Operator.leftTrigger().onTrue(Commands.runOnce(() ->
+            Constants.ShootingTrim.pitchOffset -= Constants.ShootingTrim.PITCH_TRIM_STEP));
     }
-    
-    //融合视觉位姿
-    public void addMeasurements() {
 
+    public void addMeasurements() {
         SwerveDriveState driveState = drivetrain.getState();
         List<VisionMeasurement> measurements = vision.processVisionData(driveState);
-
         for (VisionMeasurement m : measurements) {
             drivetrain.addVisionMeasurement(m.pose, m.timestamp, m.stdDevs);
         }
-
     }
 
-    //初始重置odom位置，防止启动区看不到tag导致乱跑
-    public Command getAutoInitCommand(){
+    public Command getAutoInitCommand() {
         return AutoBuilder.resetOdom(Constants.VisionConfig.m_initialPose);
     }
 
-    //返回选择的auto命令
     public Command getAutonomousCommand() {
-        // This method loads the auto when it is called, however, it is recommended
-        // to first load your paths/autos when code starts, then return the
-        // pre-loaded auto/path
         return autoChooser.getSelected();
     }
 
@@ -806,18 +504,78 @@ public class RobotContainer {
     }
 
     /**
-     * 根据当前所有持久状态的组合刷新背景灯光。
-     * 优先级：SlowMode（青色）> VisionFusion（黄色）> Idle（灭灯）
-     * 在任何持久状态切换后调用，保证不同组合下灯光正确。
+     * Refreshes the background LED state based on persistent mode flags.
+     * Priority: SlowMode (cyan) > VisionFusion disabled (yellow) > Idle (off).
      */
     private void refreshBackgroundState() {
         if (isSlowMode) {
             candle.setBackgroundState(Constants.RobotState.State.ClimbingUp);
         } else if (!isVisionPoseFusion) {
-            // vision 关闭时亮黄色警告
             candle.setBackgroundState(Constants.RobotState.State.VisionFusion);
         } else {
             candle.setBackgroundState(Constants.RobotState.State.Idle);
         }
+    }
+
+    /** Builds a named-command auto score sequence for a fixed field position. */
+    private Command makeAutoScoreCommand(int positionIndex, double timeout,
+                                          boolean stopIntakeAfter, boolean useFast, boolean useBoost) {
+        Command scoreCmd = useFast
+            ? MagicSequencingCommand.createFastFixedPointAutoScoreCommand(
+                positionIndex, drivetrain, intake, launcher,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE, useBoost)
+            : MagicSequencingCommand.createFixedPointAutoScoreCommand(
+                positionIndex, drivetrain, intake, launcher,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE, useBoost);
+
+        Command cmd = Commands.runOnce(() -> {
+                isVisionPoseFusion = true;
+                candle.changeColor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(scoreCmd)
+            .finallyDo((interrupted) -> {
+                candle.restoreBackground();
+                launcher.setFrictionWheelVelocity(0);
+            })
+            .withTimeout(timeout);
+
+        return stopIntakeAfter ? cmd.andThen(intake.setIntakeSpeedZeroCommand()) : cmd;
+    }
+
+    /**
+     * If auto-reverse hasn't fired yet this intake cycle, runs a 0.3s reverse before shooting
+     * to seat the ball correctly. Marks autoReverseFired so the trigger won't interrupt later.
+     */
+    private Command makePreShootReverseCommand() {
+        return Commands.either(
+            Commands.sequence(
+                Commands.runOnce(() -> autoReverseFired = true),
+                Commands.startEnd(
+                    () -> { launcher.setFrictionWheelVelocity(-50); launcher.setFeederVelocity(-20); launcher.setTransportVelocity(-10); },
+                    () -> { launcher.setFrictionWheelVelocity(0); launcher.setFeederVelocity(0); launcher.setTransportVelocity(0); launcher.setIntakeBrake(false); },
+                    launcher
+                ).withTimeout(0.3)
+            ),
+            Commands.runOnce(() -> launcher.setIntakeBrake(false)),
+            () -> !autoReverseFired
+        );
+    }
+
+    /** Builds a teleop fixed-point auto score command for operator button bindings. */
+    private Command makeFixedPointShootCommand(int positionIndex) {
+        return Commands.runOnce(() -> {
+                isVisionPoseFusion = true;
+                candle.changeColor(Constants.RobotState.State.Shooting);
+            })
+            .andThen(MagicSequencingCommand.createFixedPointAutoScoreCommand(
+                positionIndex, drivetrain, intake, launcher,
+                Constants.VisionConfig.BLUE_HUB_CENTER,
+                Constants.VisionConfig.POINTS_PARAMS_TABLE_BLUE, true))
+            .finallyDo((interrupted) -> {
+                candle.restoreBackground();
+                launcher.setFrictionWheelVelocity(0);
+            });
     }
 }

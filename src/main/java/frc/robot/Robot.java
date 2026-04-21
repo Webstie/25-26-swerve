@@ -55,15 +55,13 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    // 重置 intake toggle 状态，防止 auto 遗留的计数器/flag 导致 teleop 第一次按键无效
+    // Reset intake toggle state to prevent stale auto counters/flags from breaking the first teleop button press
     m_robotContainer.intake.resetTeleopState();
   }
 
   @Override
   public void teleopPeriodic() {
     
-    //是否使用视觉位姿
-    //System.out.println("FLAG"+m_robotContainer.isVisionPoseFusion);
     if(m_robotContainer.isVisionPoseFusion){
       m_robotContainer.addMeasurements();
     }
