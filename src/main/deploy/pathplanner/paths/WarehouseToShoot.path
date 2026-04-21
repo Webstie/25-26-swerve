@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.084544444444444,
-        "y": 5.944587695248102
+        "x": 0.7280326871682707,
+        "y": 5.943896554916568
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.849193886038134,
-        "y": 5.654632162022179
+        "x": 2.4926821287619605,
+        "y": 5.653941021690645
       },
       "isLocked": false,
       "linkedName": "BlueWarehouse"
@@ -32,12 +32,12 @@
     },
     {
       "anchor": {
-        "x": 3.2,
-        "y": 2.6
+        "x": 2.17,
+        "y": 6.01
       },
       "prevControl": {
-        "x": 3.3864138541116215,
-        "y": 2.4334170627127407
+        "x": 2.3564138541116213,
+        "y": 5.84341706271274
       },
       "nextControl": null,
       "isLocked": false,
@@ -63,7 +63,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -28.32675041745776
   },
   "reversed": false,
   "folder": "Blue7",

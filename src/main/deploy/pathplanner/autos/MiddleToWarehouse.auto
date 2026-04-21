@@ -49,9 +49,22 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "WarehouseToShoot"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "WarehouseToShoot5)_Mid"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
           }
         },
         {

@@ -3,34 +3,34 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.084544444444444,
-        "y": 5.944587695248102
+        "x": 0.7280326871682707,
+        "y": 5.943896554916568
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.717931759181926,
-        "y": 5.921912695248102
+        "x": 1.3614200019057527,
+        "y": 5.921221554916568
       },
       "isLocked": false,
       "linkedName": "BlueWarehouse"
     },
     {
       "anchor": {
-        "x": 3.2,
-        "y": 2.6
+        "x": 3.3,
+        "y": 5.4
       },
       "prevControl": {
-        "x": 2.837625,
-        "y": 2.600166666666667
+        "x": 2.2878884934756827,
+        "y": 5.568185053380782
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BlueShootFarLeft"
+      "linkedName": "BlueShootNearLeft"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.4288224956063179,
+      "waypointRelativePos": 0.25,
       "rotationDegrees": 179.81493073628462
     }
   ],
@@ -47,7 +47,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -45.0
   },
   "reversed": false,
   "folder": "Blue5",

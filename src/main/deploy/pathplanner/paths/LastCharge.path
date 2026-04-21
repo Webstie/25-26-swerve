@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.2,
-        "y": 2.6
+        "x": 2.17,
+        "y": 6.01
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.189779970266601,
-        "y": 2.585341111961115
+        "x": 3.1597799702666003,
+        "y": 5.995341111961115
       },
       "isLocked": false,
       "linkedName": "BlueShootFarLeft"
@@ -48,7 +48,7 @@
   "folder": "Blue3",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -28.32675041745776
   },
   "useDefaultConstraints": false
 }

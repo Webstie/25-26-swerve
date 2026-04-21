@@ -186,7 +186,7 @@ public class MagicSequencingCommand {
                     }, launcher)
                 ),
                 Commands.waitUntil(() -> launcher.isFrictionWheelReady() && launcher.isAngleAtPosition(launch_angle))
-                    .withTimeout(0.5),
+                    .withTimeout(0.25),
                 Commands.runOnce(() -> launcher.setTargetDistance(targetDist)),
                 ShootingCommand.createAutoShootingCommand(intakeSubsystem, launcher, frictionWheelLaunchSpeed, launch_angle, true, useBoost)
             );
