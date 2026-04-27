@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,12 +28,11 @@ public class Intake extends SubsystemBase {
 
     private final VelocityTorqueCurrentFOC intakeLeftMotorRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final VelocityTorqueCurrentFOC intakeRightMotorRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
-    private final MotionMagicVoltage intakePitchMotorRequest = new MotionMagicVoltage(0.0).withSlot(0);
+    private final DynamicMotionMagicVoltage intakePitchMotorRequest =
+        new DynamicMotionMagicVoltage(0.0, IntakePitchDownCruiseVelocity, IntakePitchDownAcceleration).withSlot(0);
 
     private int intakePressCount = 0;
     private boolean intakePitchPositionFlag = true;
-    private double currentPitchAcceleration = Double.NaN;
-    private double currentPitchCruiseVelocity = Double.NaN;
 
     private final NeutralOut neutralRequest = new NeutralOut(); // Coast/neutral release for intake pitch motor
 
@@ -75,8 +74,6 @@ public class Intake extends SubsystemBase {
         intakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
         intakePitchMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         intakePitchMotor.getConfigurator().apply(intakePitchMotorConfigs);
-        currentPitchAcceleration = IntakePitchDownAcceleration;
-        currentPitchCruiseVelocity = IntakePitchDownCruiseVelocity;
     }
 
     /**
@@ -124,29 +121,14 @@ public class Intake extends SubsystemBase {
      * Sets intake pitch motor position.
      */
     public void setPitchMotorPosition(double position) {
-        applyPitchMotionMagicConfig(position);
-        intakePitchMotor.setControl(intakePitchMotorRequest.withPosition(position));
-    }
-
-    /**
-     * Selects separate Motion Magic speed limits for raising vs lowering the intake pitch.
-     */
-    private void applyPitchMotionMagicConfig(double targetPosition) {
-        boolean isRaising = targetPosition > getPitchMotorPosition();
+        boolean isRaising = position > getPitchMotorPosition();
         double acceleration = isRaising ? IntakePitchUpAcceleration : IntakePitchDownAcceleration;
         double cruiseVelocity = isRaising ? IntakePitchUpCruiseVelocity : IntakePitchDownCruiseVelocity;
 
-        if (acceleration == currentPitchAcceleration && cruiseVelocity == currentPitchCruiseVelocity) {
-            return;
-        }
-
-        var config = new TalonFXConfiguration();
-        intakePitchMotor.getConfigurator().refresh(config);
-        config.MotionMagic.MotionMagicAcceleration = acceleration;
-        config.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity;
-        intakePitchMotor.getConfigurator().apply(config);
-        currentPitchAcceleration = acceleration;
-        currentPitchCruiseVelocity = cruiseVelocity;
+        intakePitchMotor.setControl(intakePitchMotorRequest
+            .withPosition(position)
+            .withVelocity(cruiseVelocity)
+            .withAcceleration(acceleration));
     }
 
     /**
