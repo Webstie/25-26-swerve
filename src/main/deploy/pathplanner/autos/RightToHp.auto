@@ -11,7 +11,38 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToIntake6"
+                  "pathName": "StartToIntake6_Slow"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Near_Right"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeToHP6"
                 }
               },
               {
@@ -30,7 +61,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "IntakeToWarehouse6"
+                  "pathName": "HpToHub6"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
                 }
               },
               {

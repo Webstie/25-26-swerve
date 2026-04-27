@@ -15,14 +15,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Launcher;
-import frc.robot.subsystems.Transport;
 import frc.robot.util.MathUtils;
 
+// Teleop mobile shooting. Applies a direct speed limit, effectively a fixed lead offset. Works well in practice.
 public class MoveWhileAimCommand {
-    private static final double LEAD_GAIN_RAD_PER_MPS = 0.5;
-    private static final double MAX_LEAD_RAD = Units.degreesToRadians(30.0);
+    private static final double LEAD_GAIN_RAD_PER_MPS = 0.50; // Empirical: each 1 m/s of lateral speed adds ~0.5 rad (~28.6°) of lead angle. Tune from testing.
+    private static final double MAX_LEAD_RAD = Units.degreesToRadians(180.0);
     private static final double MIN_TARGET_DISTANCE_METERS = 0.05;
 
     public static Command create(
@@ -32,9 +30,9 @@ public class MoveWhileAimCommand {
         double maxRotRateRadPerSec,
         Translation2d blueCenterPosition
     ) {
-        PIDController rotationController = new PIDController(3.0, 0.0, 0.0);
+        PIDController rotationController = new PIDController(10.0, 0.0, 0.5);
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
-        rotationController.setTolerance(Units.degreesToRadians(10.0));
+        rotationController.setTolerance(Units.degreesToRadians(5.0));
 
         SwerveRequest.FieldCentric request = new SwerveRequest.FieldCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -60,8 +58,12 @@ public class MoveWhileAimCommand {
                 var robotRelativeSpeeds = drive.getRobotRelativeSpeeds();
                 double cos = currentPose.getRotation().getCos();
                 double sin = currentPose.getRotation().getSin();
-                double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
-                double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+                // double fieldVx = robotRelativeSpeeds.vxMetersPerSecond * cos - robotRelativeSpeeds.vyMetersPerSecond * sin;
+                // double fieldVy = robotRelativeSpeeds.vxMetersPerSecond * sin + robotRelativeSpeeds.vyMetersPerSecond * cos;
+
+                // Use Kalman-predicted velocity
+                double fieldVx = Constants.KalmanFilterConfig.predict_vx;
+                double fieldVy = Constants.KalmanFilterConfig.predict_vy;
 
                 double ux = dx / distance;
                 double uy = dy / distance;
@@ -69,13 +71,13 @@ public class MoveWhileAimCommand {
                 double lateralUy = ux;
                 double lateralSpeed = fieldVx * lateralUx + fieldVy * lateralUy;
 
-                double leadAngle = MathUtils.clamp(
+                Constants.KalmanFilterConfig.leadAngle = MathUtils.clamp(
                     -LEAD_GAIN_RAD_PER_MPS * lateralSpeed,
                     -MAX_LEAD_RAD,
                     MAX_LEAD_RAD
                 );
-                targetHeadingRad += leadAngle;
-                SmartDashboard.putNumber("Aim/LeadAngleDeg", Units.radiansToDegrees(leadAngle));
+                targetHeadingRad += Constants.KalmanFilterConfig.leadAngle;
+                SmartDashboard.putNumber("Aim/LeadAngleDeg", Units.radiansToDegrees(Constants.KalmanFilterConfig.leadAngle));
                 SmartDashboard.putNumber("Aim/LateralSpeed", lateralSpeed);
             }
 

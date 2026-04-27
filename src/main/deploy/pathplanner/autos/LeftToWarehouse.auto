@@ -11,7 +11,38 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "StartToIntake1"
+                  "pathName": "StartToIntake5"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake_Auto"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "WarmUp_Auto_Near"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot_Auto_Blue_Near_Left"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "IntakeToWarehouse5"
                 }
               },
               {
@@ -30,7 +61,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "IntakeToShoot1"
+                  "pathName": "WarehouseToShoot5)_Left"
                 }
               },
               {
@@ -45,7 +76,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot_Auto_Blue_Near_Right_toEnd"
+            "name": "Shoot_Auto_Blue_Near_Left"
           }
         }
       ]
