@@ -32,6 +32,8 @@ public class Intake extends SubsystemBase {
 
     private int intakePressCount = 0;
     private boolean intakePitchPositionFlag = true;
+    private double currentPitchAcceleration = Double.NaN;
+    private double currentPitchCruiseVelocity = Double.NaN;
 
     private final NeutralOut neutralRequest = new NeutralOut(); // Coast/neutral release for intake pitch motor
 
@@ -66,13 +68,15 @@ public class Intake extends SubsystemBase {
         intakePitchMotorConfigs.Slot0.kP = 5;
         intakePitchMotorConfigs.Slot0.kI = 0;
         intakePitchMotorConfigs.Slot0.kD = 0;
-        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 400;
-        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 800;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = IntakePitchDownAcceleration;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = IntakePitchDownCruiseVelocity;
         intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
         intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
         intakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
         intakePitchMotorConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         intakePitchMotor.getConfigurator().apply(intakePitchMotorConfigs);
+        currentPitchAcceleration = IntakePitchDownAcceleration;
+        currentPitchCruiseVelocity = IntakePitchDownCruiseVelocity;
     }
 
     /**
@@ -120,7 +124,29 @@ public class Intake extends SubsystemBase {
      * Sets intake pitch motor position.
      */
     public void setPitchMotorPosition(double position) {
+        applyPitchMotionMagicConfig(position);
         intakePitchMotor.setControl(intakePitchMotorRequest.withPosition(position));
+    }
+
+    /**
+     * Selects separate Motion Magic speed limits for raising vs lowering the intake pitch.
+     */
+    private void applyPitchMotionMagicConfig(double targetPosition) {
+        boolean isRaising = targetPosition > getPitchMotorPosition();
+        double acceleration = isRaising ? IntakePitchUpAcceleration : IntakePitchDownAcceleration;
+        double cruiseVelocity = isRaising ? IntakePitchUpCruiseVelocity : IntakePitchDownCruiseVelocity;
+
+        if (acceleration == currentPitchAcceleration && cruiseVelocity == currentPitchCruiseVelocity) {
+            return;
+        }
+
+        var config = new TalonFXConfiguration();
+        intakePitchMotor.getConfigurator().refresh(config);
+        config.MotionMagic.MotionMagicAcceleration = acceleration;
+        config.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity;
+        intakePitchMotor.getConfigurator().apply(config);
+        currentPitchAcceleration = acceleration;
+        currentPitchCruiseVelocity = cruiseVelocity;
     }
 
     /**

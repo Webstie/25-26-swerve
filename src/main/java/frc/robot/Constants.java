@@ -80,6 +80,10 @@ public class Constants {
         public static final double SwingWaitTime = 0.1;
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -90.0;
+        public static final double IntakePitchUpAcceleration = 200.0;
+        public static final double IntakePitchUpCruiseVelocity = 300.0;
+        public static final double IntakePitchDownAcceleration = 300.0;
+        public static final double IntakePitchDownCruiseVelocity = 500.0;
 
         public static final int INTAKE_LEFT_MOTOR_ID = 6;
         public static final int INTAKE_RIGHT_MOTOR_ID = 7;
