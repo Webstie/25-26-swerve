@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,7 +28,8 @@ public class Intake extends SubsystemBase {
 
     private final VelocityTorqueCurrentFOC intakeLeftMotorRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
     private final VelocityTorqueCurrentFOC intakeRightMotorRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0);
-    private final MotionMagicVoltage intakePitchMotorRequest = new MotionMagicVoltage(0.0).withSlot(0);
+    private final DynamicMotionMagicVoltage intakePitchMotorRequest =
+        new DynamicMotionMagicVoltage(0.0, IntakePitchDownCruiseVelocity, IntakePitchDownAcceleration).withSlot(0);
 
     private int intakePressCount = 0;
     private boolean intakePitchPositionFlag = true;
@@ -66,8 +67,8 @@ public class Intake extends SubsystemBase {
         intakePitchMotorConfigs.Slot0.kP = 5;
         intakePitchMotorConfigs.Slot0.kI = 0;
         intakePitchMotorConfigs.Slot0.kD = 0;
-        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = 400;
-        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = 800;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicAcceleration = IntakePitchDownAcceleration;
+        intakePitchMotorConfigs.MotionMagic.MotionMagicCruiseVelocity = IntakePitchDownCruiseVelocity;
         intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kV = 0.12;
         intakePitchMotorConfigs.MotionMagic.MotionMagicExpo_kA = 0.1;
         intakePitchMotorConfigs.MotionMagic.MotionMagicJerk = 0;
@@ -120,7 +121,14 @@ public class Intake extends SubsystemBase {
      * Sets intake pitch motor position.
      */
     public void setPitchMotorPosition(double position) {
-        intakePitchMotor.setControl(intakePitchMotorRequest.withPosition(position));
+        boolean isRaising = position > getPitchMotorPosition();
+        double acceleration = isRaising ? IntakePitchUpAcceleration : IntakePitchDownAcceleration;
+        double cruiseVelocity = isRaising ? IntakePitchUpCruiseVelocity : IntakePitchDownCruiseVelocity;
+
+        intakePitchMotor.setControl(intakePitchMotorRequest
+            .withPosition(position)
+            .withVelocity(cruiseVelocity)
+            .withAcceleration(acceleration));
     }
 
     /**
