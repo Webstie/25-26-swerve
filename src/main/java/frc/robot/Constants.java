@@ -10,17 +10,20 @@ import edu.wpi.first.wpilibj.XboxController;
 
 public class Constants {
 
+    /** LED/background states used by CANdleSystem. */
     public static class RobotState {
         public enum State {
             Shooting, Intaking, ClimbingUp, Outtaking, ClimbingDown, Idle, VisionFusion;
         }
     }
 
+    /** Field dimensions in meters. Used for alliance mirroring and hub-relative checks. */
     public static class Layout {
         public static final double FIELD_LENGTH_METERS = 16.540988;
         public static final double FIELD_WIDTH_METERS = 8.0692752;
     }
 
+    /** CANdle IDs plus legacy test buttons/brightness positions. */
     public static class CANDLE {
         public static final int CANdleID1 = 1;
         public static final int CANdleID2 = 2;
@@ -37,14 +40,18 @@ public class Constants {
         public static final int TemperatureButton = XboxController.Button.kY.value;
     }
 
+    /** Climber motor ID and Motion Magic target positions in motor rotations. */
     public static final class ClimberConfig {
         public static final double ClimberTopPosition = 95.0;
         public static final double ClimbPosition = 1.0;
         public static final int CLIMBER_MOTOR_ID = 1;
     }
 
+    /** Shooter, feeder, transport-to-shooter, and launcher pitch tuning. */
     public static final class LauncherConfig {
+        // Shooter flywheel speeds are in rotations per second (rps).
         public static final double WarmupSpeed = 60.0;
+        // Default warmup wait/timeout before feeding balls into the shooter.
         public static final double WarmupSecond = 1.0;
         public static final double FeederSpeed = 100.0;
         public static final double OuttakeBallspeed = -30.0;
@@ -72,35 +79,44 @@ public class Constants {
         public static final int RIGHT_FRICTIONWHEEL_MOTOR_ID = 5;
     }
 
+    /** Intake roller and pitch-arm tuning. Pitch positions are motor rotations. */
     public static final class IntakeConfig {
-        public static final double IntakeSwingDownPosition = -15.0;
+        // Swing positions used while shooting/feeding to keep the ball moving.
+        public static final double IntakeSwingDownPosition = -16.0;
         public static final double IntakeSwingUpPosition = -13.0;
+        // Stowed/deployed intake pitch positions.
         public static final double IntakeUpPosition = 0.0;
         public static final double IntakeDownPosition = -17.5;
+        // Delay at each swing endpoint. Smaller = faster shake frequency.
         public static final double SwingWaitTime = 0.1;
+        // Roller velocities are in rotations per second (rps). Sign controls direction.
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -90.0;
+        // Dynamic Motion Magic limits for intake pitch. Up/down are selected by target direction.
         public static final double IntakePitchUpAcceleration = 300.0;
         public static final double IntakePitchUpCruiseVelocity = 300.0;
         public static final double IntakePitchDownAcceleration = 300.0;
-        public static final double IntakePitchDownCruiseVelocity = 500.0;
+        public static final double IntakePitchDownCruiseVelocity = 350.0;
 
         public static final int INTAKE_LEFT_MOTOR_ID = 6;
         public static final int INTAKE_RIGHT_MOTOR_ID = 7;
         public static final int INTAKE_PITCH_MOTOR_ID = 9;
     }
 
+    /** Ball transport between intake and shooter. Velocity is rps. */
     public static final class TransportConfig {
         public static final double TransportSpeed = 90.0;
         public static final int TRANSPORT_MOTOR_ID = 10;
     }
 
+    /** Teleop drive scaling. Aim scales are used while driver holds auto-aim shooting. */
     public static final class DriveConfig {
         public static final double TeleopDriveSpeedScale = 0.75;
         public static final double AimDriveScaleX = 0.5;
         public static final double AimDriveScaleY = 0.4;
     }
 
+    /** Field geometry, AprilTag layout, and all vision-assisted shooting lookup tables. */
     public static class VisionConfig {
         public static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
                 .loadField(AprilTagFields.kDefaultField);
@@ -127,6 +143,8 @@ public class Constants {
 
         // Distance-based interpolation table for dynamic shooting
         // Columns: {distance_m, pitch_rot, speed_rps, boost_rps}
+        // Applied to both speed columns below before they enter the interpolation maps.
+        // Positive = faster shooter, negative = slower shooter.
         public static final double DISTANCE_SPEED_OFFSET = -2.0;
 
         public static final double[][] DISTANCE_PARAMS_TABLE = {
@@ -167,6 +185,7 @@ public class Constants {
         public static final InterpolatingDoubleTreeMap distanceToSpeedMap = new InterpolatingDoubleTreeMap();
         public static final InterpolatingDoubleTreeMap distanceToBoostSpeedMap = new InterpolatingDoubleTreeMap();
 
+        // Build interpolation maps once at startup from DISTANCE_PARAMS_TABLE.
         static {
             for (double[] point : DISTANCE_PARAMS_TABLE) {
                 distanceToPitchMap.put(point[0], point[1]);
@@ -175,14 +194,14 @@ public class Constants {
             }
         }
 
-        // Corner feed targets — blue alliance loading station corners (blue alliance frame)
+        // Corner feed targets in the blue alliance frame.
         public static final Translation2d BLUE_CORNER_LEFT  = new Translation2d(1.5, 7.0);
         public static final Translation2d BLUE_CORNER_RIGHT = new Translation2d(1.5, 1.0);
 
         // Reject corner feed if robot is closer than this to the hub (ball won't clear)
         public static final double CORNER_FEED_MIN_HUB_DISTANCE = 0.5;
 
-        // Corner feed distance → {pitch_rot, speed_rps} — long lob shots
+        // Corner feed distance -> {pitch_rot, speed_rps}; used for long lob shots.
         public static final double[][] CORNER_FEED_DISTANCE_TABLE = {
             {5.0,  -0.015,  70.0},
             {6.0,  -0.020,  75.0},
@@ -193,6 +212,7 @@ public class Constants {
         public static final InterpolatingDoubleTreeMap distanceToCornerPitchMap = new InterpolatingDoubleTreeMap();
         public static final InterpolatingDoubleTreeMap distanceToCornerSpeedMap = new InterpolatingDoubleTreeMap();
 
+        // Build interpolation maps once at startup from CORNER_FEED_DISTANCE_TABLE.
         static {
             for (double[] point : CORNER_FEED_DISTANCE_TABLE) {
                 distanceToCornerPitchMap.put(point[0], point[1]);
@@ -200,12 +220,14 @@ public class Constants {
             }
         }
 
+        // Vision lineup tolerances used by drivetrain/aim commands.
         public static final double LINEUP_TOLERANCE_METERS = 0.015;
         public static final double ANGLE_TOLERANCE_DEGREES = 3.0;
     }
 
     /** Global in-match shooting trim: additive offsets applied on top of all table lookups. */
     public static class ShootingTrim {
+        // Operator bumpers/triggers adjust by these amounts each press.
         public static final double SPEED_TRIM_STEP = 1.25;
         public static final double PITCH_TRIM_STEP = 0.001;
         /** Speed offset (rps): positive = faster */
@@ -214,10 +236,13 @@ public class Constants {
         public static double pitchOffset = 0.0;
     }
 
+    /** Tunables/state for the simple lead prediction filter used while aiming. */
     public static class KalmanFilterConfig {
         public static final double kDt = 0.020; // 20ms
+        // Process and measurement noise terms for the filter state.
         public static final double[] stateStdDevs = {0.01, 0.1, 0.5};
         public static final double[] measurementStdDevs = {0.01, 0.02};
+        // Predicted target/robot-relative state used by aim compensation.
         public static double predict_vx = 0.0;
         public static double predict_vy = 0.0;
         public static double predict_x = 0.0;
