@@ -127,6 +127,8 @@ public class Constants {
 
         // Distance-based interpolation table for dynamic shooting
         // Columns: {distance_m, pitch_rot, speed_rps, boost_rps}
+        public static final double DISTANCE_SPEED_OFFSET = -2.0;
+
         public static final double[][] DISTANCE_PARAMS_TABLE = {
             // {1.125, 0.0031,  47.5},  // Point 1
             // {1.5,   0.0029,  50},    // Point 2
@@ -168,8 +170,8 @@ public class Constants {
         static {
             for (double[] point : DISTANCE_PARAMS_TABLE) {
                 distanceToPitchMap.put(point[0], point[1]);
-                distanceToSpeedMap.put(point[0], point[2]);
-                distanceToBoostSpeedMap.put(point[0], point[3]);
+                distanceToSpeedMap.put(point[0], point[2] + DISTANCE_SPEED_OFFSET);
+                distanceToBoostSpeedMap.put(point[0], point[3] + DISTANCE_SPEED_OFFSET);
             }
         }
 
