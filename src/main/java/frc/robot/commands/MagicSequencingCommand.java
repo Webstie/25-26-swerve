@@ -162,7 +162,9 @@ public class MagicSequencingCommand {
             boolean isRed = DriverStation.getAlliance().map(a -> a == Alliance.Red).orElse(false);
             double[] currentParams = pointsParamsTable[position_index];
             double launch_angle = currentParams[2] + Constants.ShootingTrim.pitchOffset;
-            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
+            double frictionWheelLaunchSpeed = currentParams[3]
+                + Constants.VisionConfig.POINTS_SPEED_OFFSET
+                + Constants.ShootingTrim.speedOffset;
 
             Translation2d blueFixedPoint = new Translation2d(currentParams[0], currentParams[1]);
             Translation2d fixedPoint = isRed
@@ -209,7 +211,9 @@ public class MagicSequencingCommand {
         return Commands.defer(() -> {
             boolean isRed = DriverStation.getAlliance().map(a -> a == Alliance.Red).orElse(false);
             double[] currentParams = pointsParamsTable[position_index];
-            double frictionWheelLaunchSpeed = currentParams[3] + Constants.ShootingTrim.speedOffset;
+            double frictionWheelLaunchSpeed = currentParams[3]
+                + Constants.VisionConfig.POINTS_SPEED_OFFSET
+                + Constants.ShootingTrim.speedOffset;
             double launchAngle = currentParams[2] + Constants.ShootingTrim.pitchOffset;
 
             Translation2d blueFixedPoint = new Translation2d(currentParams[0], currentParams[1]);

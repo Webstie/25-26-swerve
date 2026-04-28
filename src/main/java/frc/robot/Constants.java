@@ -137,6 +137,9 @@ public class Constants {
 
         // Fixed scoring positions: indices 0-2 = near (left/mid/right), 3-5 = far (left/mid/right)
         // Columns: {distance, field_y, pitch_rot, speed_rps}
+        // Applied to the speed column below before in-match ShootingTrim.speedOffset.
+        public static final double POINTS_SPEED_OFFSET = -2.0;
+
         public static final double[][] POINTS_PARAMS_TABLE_BLUE = {
             {3.3,   5.4,   -0.002, 52},   // Point 1 (near left)
             {2.8,   4.03,  -0.002, 52},   // Point 2 (near mid)
