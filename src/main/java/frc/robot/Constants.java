@@ -89,14 +89,19 @@ public class Constants {
         public static final double IntakeDownPosition = -17.5;
         // Delay at each swing endpoint. Smaller = faster shake frequency.
         public static final double SwingWaitTime = 0.1;
+        // Motion Magic limits used only while shaking/swinging intake during shots.
+        public static final double IntakeSwingUpAcceleration = 300.0;
+        public static final double IntakeSwingUpCruiseVelocity = 400.0;
+        public static final double IntakeSwingDownAcceleration = 300.0;
+        public static final double IntakeSwingDownCruiseVelocity = 400.0;
         // Roller velocities are in rotations per second (rps). Sign controls direction.
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -90.0;
         // Dynamic Motion Magic limits for intake pitch. Up/down are selected by target direction.
         public static final double IntakePitchUpAcceleration = 300.0;
-        public static final double IntakePitchUpCruiseVelocity = 300.0;
+        public static final double IntakePitchUpCruiseVelocity = 200.0;
         public static final double IntakePitchDownAcceleration = 300.0;
-        public static final double IntakePitchDownCruiseVelocity = 350.0;
+        public static final double IntakePitchDownCruiseVelocity = 300.0;
 
         public static final int INTAKE_LEFT_MOTOR_ID = 6;
         public static final int INTAKE_RIGHT_MOTOR_ID = 7;
