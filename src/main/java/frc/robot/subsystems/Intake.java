@@ -125,6 +125,10 @@ public class Intake extends SubsystemBase {
         double acceleration = isRaising ? IntakePitchUpAcceleration : IntakePitchDownAcceleration;
         double cruiseVelocity = isRaising ? IntakePitchUpCruiseVelocity : IntakePitchDownCruiseVelocity;
 
+        setPitchMotorPosition(position, cruiseVelocity, acceleration);
+    }
+
+    private void setPitchMotorPosition(double position, double cruiseVelocity, double acceleration) {
         intakePitchMotor.setControl(intakePitchMotorRequest
             .withPosition(position)
             .withVelocity(cruiseVelocity)
@@ -201,6 +205,18 @@ public class Intake extends SubsystemBase {
         ).until(() -> Math.abs(getPitchMotorPosition() - expectedPosition) < 0.5);
     }
 
+    private Command adjustIntakeSwingPositionCommand(double expectedPosition) {
+        return runEnd(
+            () -> {
+                boolean isRaising = expectedPosition > getPitchMotorPosition();
+                double acceleration = isRaising ? IntakeSwingUpAcceleration : IntakeSwingDownAcceleration;
+                double cruiseVelocity = isRaising ? IntakeSwingUpCruiseVelocity : IntakeSwingDownCruiseVelocity;
+                setPitchMotorPosition(expectedPosition, cruiseVelocity, acceleration);
+            },
+            () -> setPitchMotorPosition(getPitchMotorPosition())
+        ).until(() -> Math.abs(getPitchMotorPosition() - expectedPosition) < 0.5);
+    }
+
     /**
      * Moves intake to expected pitch while simultaneously outtaking.
      */
@@ -230,9 +246,9 @@ public class Intake extends SubsystemBase {
     /** Shared helper: one up-down swing step between two positions. */
     private Command createSwingStep(double upPos, double downPos) {
         return Commands.sequence(
-            adjustIntakePositionCommand(upPos),
+            adjustIntakeSwingPositionCommand(upPos),
             new WaitCommand(SwingWaitTime),
-            adjustIntakePositionCommand(downPos),
+            adjustIntakeSwingPositionCommand(downPos),
             new WaitCommand(SwingWaitTime)
         );
     }

@@ -89,14 +89,19 @@ public class Constants {
         public static final double IntakeDownPosition = -17.5;
         // Delay at each swing endpoint. Smaller = faster shake frequency.
         public static final double SwingWaitTime = 0.1;
+        // Motion Magic limits used only while shaking/swinging intake during shots.
+        public static final double IntakeSwingUpAcceleration = 300.0;
+        public static final double IntakeSwingUpCruiseVelocity = 400.0;
+        public static final double IntakeSwingDownAcceleration = 300.0;
+        public static final double IntakeSwingDownCruiseVelocity = 400.0;
         // Roller velocities are in rotations per second (rps). Sign controls direction.
         public static final double OuttakeVelocity = 20.0;
         public static final double IntakeVelocity = -90.0;
         // Dynamic Motion Magic limits for intake pitch. Up/down are selected by target direction.
         public static final double IntakePitchUpAcceleration = 300.0;
-        public static final double IntakePitchUpCruiseVelocity = 300.0;
+        public static final double IntakePitchUpCruiseVelocity = 200.0;
         public static final double IntakePitchDownAcceleration = 300.0;
-        public static final double IntakePitchDownCruiseVelocity = 350.0;
+        public static final double IntakePitchDownCruiseVelocity = 300.0;
 
         public static final int INTAKE_LEFT_MOTOR_ID = 6;
         public static final int INTAKE_RIGHT_MOTOR_ID = 7;
@@ -132,8 +137,11 @@ public class Constants {
 
         // Fixed scoring positions: indices 0-2 = near (left/mid/right), 3-5 = far (left/mid/right)
         // Columns: {distance, field_y, pitch_rot, speed_rps}
+        // Applied to the speed column below before in-match ShootingTrim.speedOffset.
+        public static final double POINTS_SPEED_OFFSET = -2.0;
+
         public static final double[][] POINTS_PARAMS_TABLE_BLUE = {
-            {3.3,   5.4,   -0.002, 52},   // Point 1 (near left)
+            {3.2,   5.4,   -0.002, 52},   // Point 1 (near left)
             {2.8,   4.03,  -0.002, 52},   // Point 2 (near mid)
             {3.2,   2.6,   -0.002, 52},   // Point 3 (near right)
             {2.17,  6.01,  -0.009,  59}, // Point 4 (far left)
