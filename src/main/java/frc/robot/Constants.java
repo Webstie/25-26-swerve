@@ -141,7 +141,7 @@ public class Constants {
         public static final double POINTS_SPEED_OFFSET = -2.0;
 
         public static final double[][] POINTS_PARAMS_TABLE_BLUE = {
-            {3.3,   5.4,   -0.002, 52},   // Point 1 (near left)
+            {3.2,   5.4,   -0.002, 52},   // Point 1 (near left)
             {2.8,   4.03,  -0.002, 52},   // Point 2 (near mid)
             {3.2,   2.6,   -0.002, 52},   // Point 3 (near right)
             {2.17,  6.01,  -0.009,  59}, // Point 4 (far left)
